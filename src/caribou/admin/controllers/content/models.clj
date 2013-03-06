@@ -12,7 +12,7 @@
             [caribou.app.template :as template]
             [caribou.asset :as asset]
             [caribou.config :as config]
-            [caribou-admin.helpers :as helpers]))
+            [caribou.admin.helpers :as helpers]))
 
 (defn safe-route-for
   [slug & args]
