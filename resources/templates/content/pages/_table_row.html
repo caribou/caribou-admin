@@ -1,0 +1,8 @@
+<tr>
+  <td>{{{_level}}} {{ name }}</td>
+  <td>{{ status }}</td>
+  <td><a href="">Add Child</a> &nbsp; <a href="">View</a> &nbsp; <a href="">Edit</a> &nbsp; <a href="">Delete</a></td>
+</tr>
+{{#children}}
+{{> templates/content_library/pages/_table_row.html}}
+{{/children}}

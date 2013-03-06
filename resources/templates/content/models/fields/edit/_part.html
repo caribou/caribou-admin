@@ -1,0 +1,8 @@
+<!-- part editor -->
+<select name="{{slug}}">
+  {{#part-values:part field instance}}
+  <option value="{{value}}" {{#selected}}selected{{/selected}}>{{name}}</option>
+  {{/part-values:part field instance}}
+</select>
+
+<a id="add-{{model.slug}}-{{slug}}" data-slug="{{slug}}" href="#" class="pull-right btn btn-primary">+ Add new</a>

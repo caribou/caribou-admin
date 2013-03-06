@@ -1,0 +1,54 @@
+{{< templates/layouts/app.html}}
+{{%content}}
+
+<div class="page-header">
+  <div class="container-fluid clearfix">
+    <h1 class="pull-left">Pages</h1>
+    <a class="pull-right btn btn-large">New Page</a>
+  </div>
+</div>
+    
+<div class="container-fluid">
+  <section>
+    
+    <div class="row-fluid">
+      
+      <div class="span9 column">
+        
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Page</th>
+              <th>Status</th>
+              <th>&nbsp;</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#pages}}
+            {{> templates/content_library/pages/_table_row.html}}
+            {{/pages}}
+          </tbody>
+        </table>
+        
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Page</th>
+              <th>Status</th>
+              <th>&nbsp;</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#admin-pages}}
+            {{> templates/content_library/pages/_table_row.html}}
+            {{/admin-pages}}
+          </tbody>
+        </table>
+        
+      </div>
+    </div>
+    
+  </section>
+</div>
+
+{{/content}}

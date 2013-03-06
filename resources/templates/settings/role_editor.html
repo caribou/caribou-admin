@@ -1,0 +1,90 @@
+{{%content}}
+
+<div class="column" id="add_edit_view_column">
+  <div class="titlebar">
+    <span class="add_edit_view_title">Edit Role Admin</span>
+    <span class="add_edit_subtitle subtle"></span>
+  </div>
+  <form action="{{route-for :submit_edit_roles params}}"
+	class="edit_role"
+	id="edit_role_1"
+	method="post">
+    <div class="scrollable_view">
+      <div class="fieldset">
+	<label class="text_field_label content_label_container" for="role_name">
+	  <span class="content_label">Name</span>
+	</label>
+	<div class="field">
+	  <input class="text" id="role_name" label="name" name="role[name]"
+		 size="30" type="text" value="{{title}}">
+	</div>
+      </div>
+      <div class="fieldset">
+	<label class="select_label content_label_container"
+	       for="role_default_level">
+	  <span class="content_label">Default Level</span>
+	</label>
+	<div class="field">
+	  <select class="select" id="role_default_level" label="default_level"
+		  name="role[default_level]">
+	    <option value="1">Read</option>
+	    <option value="3">Edit</option>
+	    <option value="7">Create</option>
+	    <option value="15" selected="selected">Delete</option>
+	    <option value="15" selected="selected">All</option>
+	  </select>
+	</div>
+      </div>
+      <hr>
+      <div class="fieldset">
+	<div class="field">
+	  <table cellspacing="0" class="association_table content_permission"
+		 id="global_content_permissions_table">
+	    <thead></thead>
+	    <colgroup><col><col><col><col><col><col></colgroup>
+	    {{#tasks}}
+	    <tbody>
+	      <tr>
+		<th>{{name}}</th>
+		<th style="width: 12%">
+		  <input id="read_{{name}}"
+			 name="read_{{name}}"
+			 type="checkbox"
+			 {{read_checked}}> Read
+		</th>
+		<th style="width: 12%">
+		  <input id="write_{{name}}"
+			 name="write_{{name}}"
+			 type="checkbox"
+			 {{write_checked}}> Edit
+		</th>
+		<th style="width: 12%">
+		  <input id="create_{{name}}"
+			 name="create_{{name}}"
+			 type="checkbox"
+			 {{create_checked}}> Create
+		</th>
+		<th style="width: 12%">
+		  <input id="delete_{{name}}"
+			 name="delete_{{name}}"
+			 type="checkbox"
+			 {{delete_checked}}> Delete
+		</th>
+		<th style="width: 12%">
+		  <input id="all_{{name}}"
+			 name="all_{{name}}"
+			 type="checkbox"> All
+		</th>
+	      </tr>
+	    </tbody>
+	    {{/tasks}}
+	  </table>
+	</div>
+      </div>
+      <hr>
+    </div>
+    <input type="submit">Submit Changes</input>
+  </form>
+</div>
+
+{{/content}}

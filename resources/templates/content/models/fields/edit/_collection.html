@@ -1,0 +1,18 @@
+{{#has-items field instance}}
+<span id="{{slug}}">{{item-count field instance}}</span> item(s).
+{{/has-items field instance}}
+{{^has-items field instance}}
+<span id="{{slug}}">No</span> item(s).
+{{/has-items field instance}}
+
+<a id="edit-{{model.slug}}-{{slug}}" data-slug="{{slug}}" href="#" class="pull-right btn btn-primary hide">Edit</a>
+
+<span data-collection-field="{{slug}}" />
+
+<!-- div style="max-height:150px; overflow:scroll">
+  <ul>
+  {{!#value-for-key instance slug}}
+    <li> {{!human-friendly-title field loop.item}} </li>
+  {{!/value-for-key instance slug}}
+  </ul>
+</div -->

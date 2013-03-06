@@ -1,0 +1,11 @@
+{{#pager.pagination?}}
+<div class="pagination">
+  <ul>
+    {{#pager.previous-page?}}<li><a data-page="{{pager.previous-page}}" href="{{#pager.pagination-target}}{{route-for pager.pagination-target params {:page pager.previous-page} }}{{/pager.pagination-target}}">Prev</a></li>{{/pager.previous-page?}}
+    {{#pager.pages}}
+    <li {{#equals loop.index pager.current}}class="active"{{/equals loop.index pager.current}}><a data-page="{{loop.index}}" href="{{#pager.pagination-target}}{{route-for pager.pagination-target params {:page loop.index} }}{{/pager.pagination-target}}">{{loop.inc-index}}</a></li>
+    {{/pager.pages}}
+    {{#pager.next-page?}}<li><a data-page="{{pager.next-page}}" href="{{#pager.pagination-target}}{{route-for pager.pagination-target params {:page pager.next-page} }}{{/pager.pagination-target}}">Next</a></li>{{/pager.next-page?}}
+  </ul>
+</div>
+{{/pager.pagination?}}

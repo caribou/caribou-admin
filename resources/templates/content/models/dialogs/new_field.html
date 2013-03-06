@@ -1,0 +1,51 @@
+<div id="new-field" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="newFieldLabel" aria-hidden="true">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    <h3 id="newFieldLabel">Add New Field</h3>
+  </div>
+
+  <form action="{{route-for :new_model_field params }}" method="POST">
+    <div class="modal-body">
+      <div class="control-group">
+        <label class="control-label" for="field-name">Name</label>
+        <div class="controls">
+          <input type="text" id="field-name" name="field-name" placeholder="Field name...">
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label" for="field-type">Type</label>
+        <div class="controls">
+          <select name="field-type" id="field-type">
+            {{! TODO: where do i get this list from? }}
+            <option></option>
+            <option value="string">A single text string</option>
+            <option value="text">A body of text</option>
+            <option value="boolean">Boolean (Yes/No) field</option>
+            <option value="slug">Slug</option>
+            <option value="integer">Integer</option>
+            <option value="timestamp">Date/time</option>
+            <option value="asset">Asset (like an Image or Video)</option>
+            <option value="link">Link to other models</option>
+            <option value="collection">Collection of other model things</option>
+            <option value="part">A single associate model</option>
+          </select>
+        </div>
+      </div>
+      <div class="control-group hide" id="association-controls">
+        <label class="control-label" for="target">Target</label>
+        <select name="target-id" id="target-id">
+          {{#models:m}}
+          <option value="{{m.id}}">{{m.name}}</option>
+          {{/models:m}}
+        </select>
+        <label class="control-label" for="reciprocal-name">Reciprocal Name</label>
+        <div class="controls">
+          <input type="text" id="reciprocal-name" name="reciprocal-name" placeholder="Reciprocal name...">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" data-dismiss="modal" onclick="this.form.submit()">Add!</button>
+    </div>
+  </form>
+</div>

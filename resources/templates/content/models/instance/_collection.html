@@ -1,0 +1,48 @@
+    <div class="row-fluid">
+      <div class="span9 column">
+        <table class="table table-striped table-bordered" style="max-width:none; width:auto;">
+          <thead>
+            <tr>
+              {{#fields}}
+                {{^locked}}
+                  {{#allows-sorting}}
+                    <th><a href="{{safe-route-for :results params}}?order={{slug}}">{{name}}</a></th>
+                  {{/allows-sorting}}     
+                  {{^allows-sorting}}
+                    <th>{{name}}</th>
+                  {{/allows-sorting}}     
+                {{/locked}}
+              {{/fields}}
+              <th>Fun stuff</th>
+            </tr>
+          </thead>
+          <tbody class="sortable" data-position='{ "model":"{{order-info.model.slug}}", "offset": {{pager.start-index}}, "field":"{{order-info.field.slug}}", "field-path":"{{order-info.field-path}}" }'>
+            {{#pager.results:instance}}
+            <tr data-position='{ "position": {{order-get-in instance order-info.field-path}}, "id": "{{get-in instance order-info.id-path}}" }' {{#locked}}class="error"{{/locked}}>
+              {{#fields}}
+                {{^locked}}
+                <td>
+                  {{> templates/content/models/fields/view/_[[type]].html }}
+                </td>
+                {{/locked}}
+              {{/fields}}
+              <td>
+                {{^locked}}
+                  <a class="choose-link hide" href="#choose" data-model="{{model.slug}}" data-id="{{id}}">Choose</a> 
+                  <a class="edit-link" href="{{safe-route-for :edit_model_instance params {:id id} }}" data-model="{{model.slug}}" data-id="{{id}}">Edit</a> 
+                  <a class="remove-link hide" href="#remove" data-toggle="tooltip" title="Doesn't delete the content, just removes its association." data-model="{{model.slug}}" data-id="{{id}}">Remove</a>
+                  <a class="delete-link" href="#destroy" data-model="{{model.slug}}" data-id="{{id}}">Destroy</a>
+                {{/locked}}
+              </td>
+            </tr>
+            {{/pager.results:instance}}
+          </tbody>
+        </table>
+        {{^pager.results}}
+          <div class="alert alert-error">Oh no!  Nobody has entered a {{model.slug}} yet!</div>
+        {{/pager.results}}
+      </div>
+    </div>
+
+    {{> templates/content/models/dialogs/delete.html }}
+

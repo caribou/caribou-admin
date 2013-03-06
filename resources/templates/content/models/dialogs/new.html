@@ -1,0 +1,19 @@
+<div id="new-model" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="newModelLabel" aria-hidden="true">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    <h3 id="newModelLabel">Create New Model</h3>
+  </div>
+
+  <form action="{{route-for :new_model params }}" method="POST">
+    <div class="modal-body">
+      <fieldset>
+        <label>Model name</label>
+        <input type="text" name="model-name" id="model_name" placeholder="Your new model name...">
+        <span class="help-block">Keep it singular (<em>ball</em> instead of <em>balls</em>, etc.)</span>
+      </fieldset>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" data-dismiss="modal" onclick="this.form.submit()">Create that shiz!</button>
+    </div>
+  </form>
+</div>

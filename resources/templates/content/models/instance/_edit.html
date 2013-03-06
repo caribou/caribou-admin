@@ -1,0 +1,34 @@
+<table class="table table-striped table-bordered">
+  <!-- thead>
+    <tr>
+      <th>Field</th>
+      <th>Type</th>
+      <th>Value</th>
+    </tr>
+  </thead -->
+  <tbody class="" data-position='{ "model":"field", "offset": 0, "field":"model_position" }'>
+
+  {{#model.fields:field}}
+    {{! Only showing editable fields for now}}
+    {{#field.editable}}
+      {{^join-model? field}}
+      <tr data-position='{ "position": {{model_position}}, "id": "{{id}}" }' {{#locked}}class="error"{{/locked}}>
+        <td>{{name}}</td>
+        <td>{{type}}</td>
+        <td>
+          {{! show the edit template for editable fields }}
+          {{!#editable}}
+          {{> templates/content/models/fields/edit/_[[type]].html }}
+          {{!/editable}}
+          {{! and the view template for non-editable fields - TODO:kd - do we even want to show these? }}
+          {{!^editable}}
+          {{!> templates/content/models/fields/view/_[[type]].html }}
+          {{!/editable}}
+        </td>
+      </tr>
+      {{/join-model? field}}
+    {{/field.editable}}
+  {{/model.fields:field}}
+
+  </tbody>
+</table>

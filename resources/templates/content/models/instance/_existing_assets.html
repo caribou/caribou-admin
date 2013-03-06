@@ -1,0 +1,17 @@
+{{! for now let's just do images }}
+<style type="text/css">
+.thumbnail {
+    max-width: 80px;
+}
+</style>
+
+{{> templates/content/models/collection/_pagination.html}}
+
+<div id="asset-container" style="max-height: 700px; overflow: scroll;">
+  <select name="images">
+    <option value=""></option>
+    {{#pager.results:image}}
+    <option value="{{image.id}}" data-img-src="/{{image.path}}" data-img-label="{{image.filename}}">{{image.filename}}</option>
+    {{/pager.results:image}}
+  </select>
+</div>
