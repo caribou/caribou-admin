@@ -10,7 +10,7 @@
 
   {{!TODO: fix this hidden-field nonsense}}
 
-  {{#bulk}}<input type="hidden" name="ids" value="{{ids}}" />{{/bulk}}
+  {{#bulk?}}<input type="hidden" name="ids" value="{{ids}}" />{{/bulk?}}
 
   {{#model.fields:field}}
     {{! Only showing editable fields for now}}
@@ -19,7 +19,7 @@
       <tr data-position='{ "position": {{model_position}}, "id": "{{id}}" }' {{#locked}}class="error"{{/locked}}>
         <td>{{name}}</td>
         <td>{{type}}</td>
-        {{#bulk}}<td><input type="checkbox" value="{{field.slug}}" name="caribou-update" /></td>{{/bulk}}
+        {{#bulk?}}<td><input type="checkbox" value="{{field.slug}}" name="caribou-update" /></td>{{/bulk?}}
         <td>
           {{! show the edit template for editable fields }}
           {{!#editable}}

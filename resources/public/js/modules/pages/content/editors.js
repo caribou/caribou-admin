@@ -104,11 +104,11 @@ var editors = (function (global) {
   }
 
   $.extend( FieldEditor.prototype, Editor.prototype, {
-    description: function() { return this.field.slug },
-    selector: function() { return "input[name=" + this.field.slug + "]" },
-    syncToDOM: function () { $( this.selector() ).val( this.value ) },
-    syncFromDOM: function () { this.value = $( this.selector() ).val() },
-    syncValueFrom: function( from ) { this.value = from.get( this.field.slug ) },
+    description:   function() { return this.field.slug },
+    selector:      function() { return "input[name=" + this.field.slug + "]" },
+    syncToDOM:     function() { $( this.selector() ).val( this.value ) },
+    syncFromDOM:   function() { this.value = $( this.selector() ).val() },
+    syncValueFrom: function(from) { this.value = from.get( this.field.slug ) },
     on: function( event, fn ) {
       if ( event === "caribou:edit" ) {
         event = "change keyup";
@@ -719,7 +719,9 @@ var editors = (function (global) {
       console.log("Applying command "+command, selected);
       // just do edit for now
       if (command === "edit") {
-        if (selected.length === 1) {
+        if (selected.length === 0) {
+          global.caribou.status.addErrorMessage("You have to choose at least one!").render();
+        } else if (selected.length === 1) {
           return self.editExisting( selected[0] );
         }
         return self.bulkEdit( selected );
@@ -793,8 +795,8 @@ var editors = (function (global) {
       if (self.multiple) {
         $( ".choose-link" ).hide().map(function(index, el) {
           var data = $(this).data();
-          if (data.id && !self._currentIds[ data.id ]) {
-            $(this).after("<input type='checkbox' value='" + data.id + "' name='id' />");
+          if ( self._currentIds[ data.id ] ) {
+            $("input[type=checkbox][name=id][value=" + data.id + "]").hide();
           }
         });
       } else {

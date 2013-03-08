@@ -171,26 +171,22 @@
 
 (defn edit-instance
   [request]
-  ;(println "COOKIES ------------" (str (:cookies request)))
-  ;(println "SUCCESS" (get-in request [:cookies "success-message" :value]))
-  (println (:params request))
   (let [model-slug (-> request :params :slug)
         model (model/pick :model {:where {:slug model-slug} :include {:fields {}}})
         model-fields (:fields model)
+        ids (clojure.string/split (-> request :params :id) #"[,:]")
+        bulk? (not= 1 (count ids))
         include   (into {}
                     (map #(vector (keyword (:slug %)) {})
                       (filter (fn [a] (some #(= % (:type a)) ["collection", "part", "link"])) (model/db #(:fields model)))))
-        instance  (if (-> request :params :id)
+        instance  (if (not bulk?)
                     (model/pick (keyword (:slug model)) {:where {:id (-> request :params :id)} :include include})
                     {})]
-    (render (merge {:model model :instance instance} request))))
+    (render (merge {:model model :bulk? bulk? :instance instance} request))))
 
 (defn edit-instance-post
   [request]
   (let [model-slug (-> request :params :slug)
-        ;; model (model/pick :model {:where {:slug model-slug} :include {:fields {}}})
-        ;; fetch the instance in case we need to validate against it - may not need to do this.  TBD!
-        ;; instance (model/pick (:slug model) {:where {:id (-> request :params :id)} :include {:fields {}}})
         edited-instance (dissoc (:params request) :slug)
         updated-instance (model/create model-slug edited-instance)
         ]
@@ -248,17 +244,16 @@
                                                  :offset (:offset params)})
         instance (first raw-content)
         associated-content ((keyword assoc-name) instance)
-        join-content (if (= assoc-type "link")
-                       ((keyword (str assoc-name "_join")) instance)
-                       nil)
+        ;join-content (if (= assoc-type "link")
+        ;               ((keyword (str assoc-name "_join")) instance)
+        ;               nil)
         content (map #(if (= (:slug model) "asset")
                           (assoc % :path (asset/asset-path %))
-                          %) associated-content)
-        joined-content (if (= (count join-content) (count content))
-                         (map (fn [a b] (assoc a :join b)) content join-content)
-                         content)]
-    ;(println joined-content)
-    joined-content))
+                          %) associated-content)]
+        ;joined-content (if (= (count join-content) (count content))
+        ;                 (map (fn [a b] (assoc a :join b)) content join-content)
+        ;                 content)]
+    content))
 
 (defn editor-associated-content
   "Associated content has to be handled slightly differently because
@@ -316,7 +311,7 @@
   [request]
   (let [model-slug (-> request :params :model)
         model (model/pick :model {:where {:slug model-slug} :include {:fields {}}})
-        id-list (clojure.string/split (-> request :params :id) #"\,")
+        id-list (clojure.string/split (-> request :params :id) #"[,:]")
         inflated (remove nil? (map #(model/pick model-slug {:where {:id %}}) id-list))
         all-equal (fn [a b]
                     (if (map? a)
@@ -330,7 +325,7 @@
       {:template (:body (render (merge request {:template template
                                                 :model model
                                                 :instance merged
-                                                :bulk true
+                                                :bulk? true
                                                 :ids (-> request :param :id)
                                                 :fields (human-friendly-fields model)
                                                 :order-info (order-info model)
