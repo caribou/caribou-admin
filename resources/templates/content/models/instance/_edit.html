@@ -1,11 +1,12 @@
 <table class="table table-striped table-bordered">
-  <!-- thead>
+  <thead>
     <tr>
       <th>Field</th>
       <th>Type</th>
+      {{#bulk?}}<th>Update?</th>{{/bulk?}}
       <th>Value</th>
     </tr>
-  </thead -->
+  </thead>
   <tbody class="" data-position='{ "model":"field", "offset": 0, "field":"model_position" }'>
 
   {{!TODO: fix this hidden-field nonsense}}

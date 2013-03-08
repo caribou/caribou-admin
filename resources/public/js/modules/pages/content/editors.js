@@ -976,7 +976,7 @@ var editors = (function (global) {
         this.backButton().show();
         this.cancelButton().show();
       } else {
-        if ( !active.value.id ) {
+        if ( !active.value.id && !active.ids ) {
           this.saveChangesButton().text("Create");
         }
         this.saveChangesButton().show();
@@ -986,6 +986,8 @@ var editors = (function (global) {
         this.cancelButton().hide();
       }
       active.render( this.options.selector );
+      $( this.options.selector ).show();
+
       active.attach();
       if ( _.contains( _( active ).functions(), "addNew") ) {
         this.addNewButton().show();
@@ -1044,6 +1046,7 @@ var editors = (function (global) {
     Editor: Editor,
     FieldEditor: FieldEditor,
     ModelEditor: ModelEditor,
+    BulkModelEditor: BulkModelEditor,
     EditorStack: EditorStack
   };
 })(window);
@@ -1058,29 +1061,40 @@ $(function () {
   if ( !$("#editor")[0] ) { return }
 
   var pageInfo = $('body').data();
+  var ids = pageInfo.instanceIds || [];
   var api = window.caribou.api;
   var stack = window.caribou.editors = new editors.EditorStack({ selector: "#editor" });
   stack.attach();
 
-  var editor = new editors.ModelEditor({
+  // ack
+  var options = {
     model: api.model( pageInfo.model ),
-    value: { id: pageInfo.instanceId },
     submit: function( value, next ) {
       console.log("Holy smokes, batman!", value);
-      var data = [{ model: pageInfo.model, fields: editor.prepareForUpdate( value ) }];
+      var values = _.isArray( value ) ? value : [value];
+      var data = _.map( values, function(v) {
+        return { model: pageInfo.model, fields: editor.prepareForUpdate( v ) };
+      });
       api.post( data, function( d ) {
         console.log(d);
-        if (next) { 
-          next( d[0] );
+        if (next) {
+          next( values.length > 1 ? values : values[0] );
         } else {
           location.href = api.routeFor( "to-route", { page: "results", slug: pageInfo.model } );
         }
       });
     }
-  });
+  };
+  // ack ack
+  if ( pageInfo.instanceIds.length > 1 ) {
+    options.ids = pageInfo.instanceIds;
+  } else {
+    options.value = { id: pageInfo.instanceIds[0] };
+  }
 
+  var editor = pageInfo.instanceIds.length > 1 ? new editors.BulkModelEditor(options) : new editors.ModelEditor(options);
   editor.load( function( data, error, xhr ) {
-    editor.value = pageInfo.instanceId? data.state : {};
+    editor.value = pageInfo.instanceIds.length? data.state : {};
     editor.syncToChildren();
     editor.template = data.template;
     stack.push(editor);
