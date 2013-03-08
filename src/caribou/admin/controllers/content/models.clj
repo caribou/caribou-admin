@@ -174,7 +174,10 @@
   (let [model-slug (-> request :params :slug)
         model (model/pick :model {:where {:slug model-slug} :include {:fields {}}})
         model-fields (:fields model)
-        ids (clojure.string/split (-> request :params :id) #"[,:]")
+        id-param (-> request :params :id)
+        ids (if-not (nil? id-param)
+              (clojure.string/split (-> request :params :id) #"[,:]")
+              [])
         specific? (= 1 (count ids))
         include   (into {}
                     (map #(vector (keyword (:slug %)) {})
@@ -333,7 +336,8 @@
                                                 :order-info (order-info model)
                                                 })))
        :model model
-       :state merged})))
+       :state merged
+       :inflated inflated})))
 
 (defn json-payload
   [request]
