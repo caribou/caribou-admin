@@ -1,5 +1,4 @@
 var editors = (function (global) {
-
   function Editor( options ) {
     var self = this;
 
@@ -8,9 +7,8 @@ var editors = (function (global) {
     }
     self.model = options.model || self.model;
     self.value = options.value || self.value;
-
-    // stash all options here
     self.options = options;
+
     return self;
   }
 
@@ -92,7 +90,8 @@ var editors = (function (global) {
         self.attach();
         if (success) { success( data ) }
       });
-    }
+    },
+    on: function( event, fn ) { console.error(this + " can't handle " + event); }
   });
 
   // Parent class for editors representing fields
@@ -109,7 +108,13 @@ var editors = (function (global) {
     selector: function() { return "input[name=" + this.field.slug + "]" },
     syncToDOM: function () { $( this.selector() ).val( this.value ) },
     syncFromDOM: function () { this.value = $( this.selector() ).val() },
-    syncValueFrom: function( from ) { this.value = from.get( this.field.slug ) }
+    syncValueFrom: function( from ) { this.value = from.get( this.field.slug ) },
+    on: function( event, fn ) {
+      if ( event === "caribou:edit" ) {
+        event = "change keyup";
+      }
+      $( this.selector() ).on( event, fn );
+    }
   });
 
   function TextEditor( options ) { FieldEditor.call( this, options ) }
@@ -161,6 +166,9 @@ var editors = (function (global) {
         value: from.get( this.field.slug ),
         id: from.get( this.field.slug + "_id" )
       };
+    },
+    syncsTo: function() {
+      return [ this.field.slug, this.field.slug + "_id" ];
     },
     attach: function() {
       var self = this;
@@ -311,15 +319,15 @@ var editors = (function (global) {
   //==============================================
 
   var fieldEditorMap = {
-    string: FieldEditor,
-    text: TextEditor,
-    integer: FieldEditor,
-    timestamp: DateFieldEditor,
-    "boolean": CheckBoxEditor,
-    asset: AssetFieldEditor,
+    string:     FieldEditor,
+    text:       TextEditor,
+    integer:    FieldEditor,
+    timestamp:  DateFieldEditor,
+    "boolean":  CheckBoxEditor,
+    asset:      AssetFieldEditor,
     collection: CollectionFieldEditor,
-    part: PartFieldEditor,
-    link: LinkFieldEditor
+    part:       PartFieldEditor,
+    link:       LinkFieldEditor
     // etc.
   };
 
@@ -332,35 +340,15 @@ var editors = (function (global) {
       if ( field.editable ) {
         var fieldEditorClass = fieldEditorMap[ field.type ] || FieldEditor;
         var editor;
-        // I hate this here.  It would be better to do this with polymorphism
-        // but the tricky thing is the "sync" function needs to be a closure, and it
-        // varies from field to field.
-        switch (field.type) {
-          case "part":
-          case "asset":
-            editor = new fieldEditorClass({
-              model: self.model,
-              field: field,
-              parent: self,
-              idField: _( self.model.fields ).find( function(f) { return f.slug === field.slug + "_id" } ),
-              value: self.get( field.slug ),
-              idValue: self.get( field.slug + "_id" ),
-              sync: function( value, next ) {
-                self.set( field.slug, value.value );
-                self.set( field.slug + "_id", value.id );
-                if (next) next( value );
-              }
-            });
-            break;
-          default:
-            editor = new fieldEditorClass({
-              model: self.model,
-              field: field,
-              parent: self,
-              value: self.get( field.slug ),
-              sync: function( value, next ) { self.set( field.slug, value ); if (next) next(value); }
-            });
-        }
+        editor = new fieldEditorClass({
+          model: self.model,
+          field: field,
+          parent: self,
+          idField: _( self.model.fields ).find( function(f) { return f.slug === field.slug + "_id" } ),
+          value: self.get( field.slug ),
+          idValue: self.get( field.slug + "_id" ),
+          sync: function( value, next ) { self.syncFromChild( editor, value, next ); }
+        });
         self.children.push( editor );
       }
     });
@@ -402,6 +390,16 @@ var editors = (function (global) {
         child.syncValueFrom( self );
       });
     },
+    syncFromChild: function( child, value, next ) {
+      var self = this;
+      if ( child.field.type === "asset" || child.field.type === "part" ) {
+        self.set( child.field.slug, value.value );
+        self.set( child.field.slug + "_id", value.id );
+      } else {
+        self.set( child.field.slug, value ); 
+      }
+      if (next) next( value );
+    },
     attach: function() {
       $( this.children ).each( function( index, child ) {
         child.attach();
@@ -416,7 +414,6 @@ var editors = (function (global) {
       Editor.prototype.submit.call( self, next );
     }
   });
-
 
   function AssetEditor( options ) {
     Editor.call( this, options );
@@ -590,18 +587,22 @@ var editors = (function (global) {
       var self = this;
       var reciprocalField = self.reciprocalField();
       var chooser = new CollectionChooser({
+        multiple: true,
         model: self.model,
         current: self.value,
         submit: function( value, next ) {
           console.log("user chose ", value);
-          if ( self.field.type === "collection" ) {
-            value[reciprocalField.slug] = self.instance;
-            value[reciprocalField.slug+"_id"] = self.instance.id;
-          } else if ( self.field.type === "link" ) {
-            value[reciprocalField.slug] = [ self.instance ];
-          }
+          if (!_.isArray(value) ) { value = [value] };
+          _(value).each( function(v) {
+            if ( self.field.type === "collection" ) {
+              v[reciprocalField.slug] = self.instance;
+              v[reciprocalField.slug+"_id"] = self.instance.id;
+            } else if ( self.field.type === "link" ) {
+              v[reciprocalField.slug] = [ self.instance ];
+            }
+          });
           if (!self.instance.id) {
-            self.value.push( value );
+            self.value.concat( value );
             // complicated situation here if instance.id doesn't exist
             next( value );
           } else {
@@ -616,7 +617,11 @@ var editors = (function (global) {
     },
     saveChanges: function( value, next ) {
       var self = this;
-      var data = [{ model: self.model.slug, fields: self.prepareForUpdate( value ) }];
+      var data = [];
+      if (!_.isArray(value)) { value = [value] }
+      _( value ).each( function(v) {
+        data.push({ model: self.model.slug, fields: self.prepareForUpdate( v ) });
+      });
       self.api().post( data, function( d ) {
         console.log(d);
         self.load( function(data, error, jqxhr ) {
@@ -674,8 +679,14 @@ var editors = (function (global) {
     var _currentIds = {};
     _( this.current ).each(function( c ) { _currentIds[ c.id ] = true });
     this._currentIds = _currentIds;
+    // can we choose more than one item?
+    this.multiple = options.multiple || false;
   }
   $.extend( CollectionChooser.prototype, Editor.prototype, {
+    description: function() {
+      var self = this;
+      return "Choose " + self.model.name;
+    },
     load: function( success ) {
       var self = this;
       var route = self.api().routeFor( "editor-content", {
@@ -693,25 +704,173 @@ var editors = (function (global) {
       self._content = {};
       _( content ).each( function(c) { self._content[ c.id ] = c } );
     },
+    selected: function() {
+      var self = this;
+      if (!self.multiple) { return null }
+      var selected = [];
+      var ids = $("input[name=id]:checked").each( function(index, el) {
+        selected.push(self._content[ $(el).val() ]);
+      });
+      return selected;
+    },
+    command: function( command ) {
+      var self = this;
+      var selected = self.selected();
+      console.log("Applying command "+command, selected);
+      // just do edit for now
+      if (command === "edit") {
+        if (selected.length === 1) {
+          return self.editExisting( selected[0] );
+        }
+        return self.bulkEdit( selected );
+      }
+      return;
+    },
+    // TODO:kd - combine the two following methods
+    // or better, make ModelEditor a special case
+    // of BulkModelEditor.
+    editExisting: function( existing ) {
+      var self = this;
+      var editor = new ModelEditor({
+        model: self.model,
+        value: { id: existing.id },
+        submit: function( value, next ) {
+          self.saveChanges( value, next );
+        }
+      });
+
+      editor.load( function(data, error, jqxhr) {
+        editor.template = data.template;
+        editor.value = data.state;
+        editor.syncToChildren();
+        global.caribou.editors.push( editor );
+      });
+    },
+    bulkEdit: function( values ) {
+      var self = this;
+      var editor = new BulkModelEditor({
+        model: self.model,
+        ids: _( values ).pluck("id"),
+        submit: function( value, next ) {
+          self.saveChanges( value, next );
+        }
+      });
+
+      editor.load( function(data, error, jqxhr) {
+        editor.template = data.template;
+        editor.value = data.state;
+        editor.syncToChildren();
+        global.caribou.editors.push( editor );
+      });
+    },
+    saveChanges: function( value, next ) {
+      var self = this;
+      var data = [];
+      if (!_.isArray(value)) { value = [value] }
+      _( value ).each( function(v) {
+        data.push({ model: self.model.slug, fields: self.prepareForUpdate( v ) });
+      });
+      self.api().post( data, function( d ) {
+        console.log(d);
+        self.load( function(data, error, jqxhr ) {
+          self.value = data.state;
+          self.template = data.template;
+          global.caribou.status.addSuccessMessage(
+            "Saved changes to " + self.model.slug + ": " +
+            global.caribou.api.bestTitle( value, self.model.slug )
+          );
+          if (next) { next( value ) }
+        });
+      });
+    },
     attach: function() {
+      // TODO:kd - little bit too much going on here now.
       var self = this;
       console.log("collection chooser " + self.model + " attaching");
       //global.caribou.models.enableSorting();
       $( ".edit-link" ).hide();
       $( ".delete-link" ).hide();
-      $( ".choose-link" ).off("click").filter(function(index) {
-        return !self._currentIds[ $(this).data().id ];
-      }).on("click", function(e) {
-        e.preventDefault();
-        var id = $(this).data().id;
-        self.value = self._content[ id ];
-        $("#back-button").trigger("click");
-      }).show();
+      if (self.multiple) {
+        $( ".choose-link" ).hide().map(function(index, el) {
+          var data = $(this).data();
+          if (data.id && !self._currentIds[ data.id ]) {
+            $(this).after("<input type='checkbox' value='" + data.id + "' name='id' />");
+          }
+        });
+      } else {
+        $( ".choose-link" ).off("click").filter(function(index) {
+          return !self._currentIds[ $(this).data().id ];
+        }).on("click", function(e) {
+          e.preventDefault();
+          var id = $(this).data().id;
+          self.value = self._content[ id ];
+          $("#back-button").trigger("click");
+        }).show();
+      }
       $(".pagination a").off("click").on("click", function(e) {
         e.preventDefault();
         self.page = $(this).data().page;
         self.refresh( function( data, error, jqxhr ) {
           console.log("refreshed to page " + self.page);
+        });
+      });
+    },
+    submit: function( next ) {
+      var self = this;
+      if (self.multiple) {
+        self.value = self.selected();
+      }
+      self.callback("submit", next); 
+    }
+  });
+
+  function BulkModelEditor( options ) {
+    ModelEditor.call( this, options );
+    this.ids = options.ids;
+  }
+  $.extend( BulkModelEditor.prototype, ModelEditor.prototype, {
+    description: function() {
+      var self = this;
+      return "Bulk edit: " + self.ids.length + " " + owl.pluralize( self.model.slug );
+    },
+    load: function( success ) {
+      var self = this;
+      var route = self.api().routeFor( "bulk-editor-content", {
+        model: self.model.slug,
+        id: this.ids.join(",")
+      });
+      $.ajax({ url: route, success: success });
+    },
+    syncFromChild: function( child, value, next ) {
+      var self = this;
+      var checkboxes = $("input[name='caribou-update'][value='" + child.field.slug + "']:checked"); 
+      if (checkboxes.length) {
+        ModelEditor.prototype.syncFromChild.call( this, child, value, next );
+      }
+    },
+    submit: function( next ) {
+      var self = this;
+      var old = self.value;
+      self.value = {};
+      self.syncFromDOM();
+      $( self.children ).each( function(index, child) {
+        child.submit();
+      });
+      var values = [];
+      _( self.ids ).each(function(id) {
+        var n = _.clone( self.value );
+        n.id = id;
+        values.push(n);
+      });
+      this.callbackWithValue("submit", values, next);
+      //}
+    },
+    attach: function() {
+      var self = this;
+      ModelEditor.prototype.attach.call( this );
+      $( self.children ).each( function(index, child) {
+        child.on("caribou:edit", function(e) {
+          $("input[name='caribou-update'][value='" + child.field.slug + "']").prop("checked", true);
         });
       });
     }
@@ -728,13 +887,16 @@ var editors = (function (global) {
 
   $.extend( EditorStack.prototype, {
     // These controls should be added by editors, not
-    // hardcoded here.
+    // hardcoded here, but for now this is in charge of
+    // navigation and management, so it needs to be the
+    // dude who responds.
     saveChangesButton: function() { return $("#save-changes"); },
     saveAndNew:        function() { return $("#save-and-new"); },
     saveAndContinue:   function() { return $("#save-and-continue"); },
     backButton:        function() { return $("#back-button");  },
     cancelButton:      function() { return $("#cancel-button"); },
     addNewButton:      function() { return $("#add-new"); },
+    commandMenu:       function() { return $("#command-menu"); },
     chooseExistingButton: function() { return $("#choose-existing"); },
     attach: function() {
       var self = this;
@@ -778,6 +940,11 @@ var editors = (function (global) {
         e.preventDefault();
         return self.chooseExisting();
       });
+      self.commandMenu().on("change", function(e) {
+        var r = self.command();
+        self.commandMenu().val("");
+        return r;
+      });
       return self;
     },
     activeEditor: function() { return this.editors[ this.editors.length - 1 ] },
@@ -818,7 +985,6 @@ var editors = (function (global) {
       }
       active.render( this.options.selector );
       active.attach();
-      // TODO:kd - not sure how to check if it has an addNew method
       if ( _.contains( _( active ).functions(), "addNew") ) {
         this.addNewButton().show();
       } else {
@@ -828,6 +994,11 @@ var editors = (function (global) {
         this.chooseExistingButton().show();
       } else {
         this.chooseExistingButton().hide();
+      }
+      if ( _.contains( _( active ).functions(), "command") ) {
+        this.commandMenu().show();
+      } else {
+        this.commandMenu().hide();
       }
       //global.caribou.status.render().clearMessages();
       return this;
@@ -846,6 +1017,12 @@ var editors = (function (global) {
       active.cancel();
       this.pop();
       return false;
+    },
+    command: function() {
+      var self = this;
+      var active = self.activeEditor();
+      var command = self.commandMenu().val();
+      return active.command( command );
     },
     popActiveEditor: function() {
       var self = this;

@@ -8,6 +8,10 @@
   </thead -->
   <tbody class="" data-position='{ "model":"field", "offset": 0, "field":"model_position" }'>
 
+  {{!TODO: fix this hidden-field nonsense}}
+
+  {{#bulk}}<input type="hidden" name="ids" value="{{ids}}" />{{/bulk}}
+
   {{#model.fields:field}}
     {{! Only showing editable fields for now}}
     {{#field.editable}}
@@ -15,10 +19,11 @@
       <tr data-position='{ "position": {{model_position}}, "id": "{{id}}" }' {{#locked}}class="error"{{/locked}}>
         <td>{{name}}</td>
         <td>{{type}}</td>
+        {{#bulk}}<td><input type="checkbox" value="{{field.slug}}" name="caribou-update" /></td>{{/bulk}}
         <td>
           {{! show the edit template for editable fields }}
           {{!#editable}}
-          {{> templates/content/models/fields/edit/_[[type]].html }}
+            {{> templates/content/models/fields/edit/_[[type]].html }}
           {{!/editable}}
           {{! and the view template for non-editable fields - TODO:kd - do we even want to show these? }}
           {{!^editable}}

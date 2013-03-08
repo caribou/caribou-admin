@@ -73,7 +73,7 @@
 
 (comment
   ;; here is a way to test out the create-login controller from the repl
-  (caribou.model/db #(weareinstrumentv3.controllers.login/create-login
+  (caribou.model/db #(caribou.admin.controllers.login/create-login
                       {:params {:email "justin@weareinstrument.com"
                                 :password "419truth"
                                 :first "Justin"
@@ -81,7 +81,7 @@
                        :template (constantly "")})))
 
 (comment
-  (caribou.model/db #(weareinstrumentv3.controllers.login/submit-login
+  (caribou.model/db #(caribou.admin.controllers.login/submit-login
                       {:params {:email "justin@weareinstrument.com"
                                 :password "419truth"
                                 :locale "en_US"}

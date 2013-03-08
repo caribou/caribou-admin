@@ -202,19 +202,6 @@
   [request]
   (edit-instance request))
 
-(defn bulk-edit-instance
-  [request]
-  (let [model-slug (-> request :params :slug)
-        model (model/gather :model {:where {:slug model-slug} :include {:fields {}}})
-        id-list (clojure.string/split (-> request :params :id) #"\,")
-        inflated (remove nil? (map #(model/pick model-slug {:where {:id %}}) id-list))
-        all-equal (fn [a b]
-                    (if (map? a)
-                      (if (= (:id a) (:id b)) a nil)
-                      (if (= a b) a nil)))
-        merged (apply (partial merge-with all-equal) inflated)]
-    (json-response merged)))
-    
 
 (defn editor-for
   ;; given a model slug, generates an editor for that model
@@ -325,6 +312,32 @@
        :model model
        :state (if-not (contains? params :id) (:results pager) instance)})))
 
+(defn bulk-editor-content
+  [request]
+  (let [model-slug (-> request :params :model)
+        model (model/pick :model {:where {:slug model-slug} :include {:fields {}}})
+        id-list (clojure.string/split (-> request :params :id) #"\,")
+        inflated (remove nil? (map #(model/pick model-slug {:where {:id %}}) id-list))
+        all-equal (fn [a b]
+                    (if (map? a)
+                      (if (= (:id a) (:id b)) a nil)
+                      (if (= a b) a nil)))
+        merged (apply (partial merge-with all-equal) inflated)
+        template (template/find-template 
+                   (util/pathify ["content" "models" "instance" (or (-> request :params :template) "_edit.html")]))
+        ]
+    (json-response
+      {:template (:body (render (merge request {:template template
+                                                :model model
+                                                :instance merged
+                                                :bulk true
+                                                :ids (-> request :param :id)
+                                                :fields (human-friendly-fields model)
+                                                :order-info (order-info model)
+                                                })))
+       :model model
+       :state merged})))
+
 (defn json-payload
   [request]
   (:data (walk/keywordize-keys (-> request :json-params))))
@@ -403,5 +416,5 @@
     "to-route" (to-route request)
     "upload-asset" (upload-asset request)
     "remove-link" (remove-link request)
-    "bulk-edit-instance" (bulk-edit-instance request)
+    "bulk-editor-content" (bulk-editor-content request)
     {:status 404 :body "Awwwwww snap!"}))
