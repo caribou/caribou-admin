@@ -1,7 +1,7 @@
-(defproject caribou-admin "0.1.0"
+(defproject caribou-admin "0.1.1"
   :description "The page routing ring handler for caribou"
-  :dependencies [[org.clojure/clojure "1.3.0"]
-                 [antler/caribou-frontend "0.9.5"]
+  :dependencies [[org.clojure/clojure "1.4.0"]
+                 [antler/caribou-frontend "0.9.9"]
                  [hiccup "1.0.2"]
                  [antler/lichen "0.3.1"]
                  [clj-stacktrace "0.2.5"]
