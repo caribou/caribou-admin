@@ -175,14 +175,17 @@
         model (model/pick :model {:where {:slug model-slug} :include {:fields {}}})
         model-fields (:fields model)
         ids (clojure.string/split (-> request :params :id) #"[,:]")
-        bulk? (not= 1 (count ids))
+        specific? (= 1 (count ids))
         include   (into {}
                     (map #(vector (keyword (:slug %)) {})
                       (filter (fn [a] (some #(= % (:type a)) ["collection", "part", "link"])) (model/db #(:fields model)))))
-        instance  (if (not bulk?)
+        instance  (if specific?
                     (model/pick (keyword (:slug model)) {:where {:id (-> request :params :id)} :include include})
                     {})]
-    (render (merge {:model model :bulk? bulk? :instance instance} request))))
+    (render (merge {:model model
+                    :bulk? (and (> (count ids) 0) (not specific?))
+                    :instance-ids (generate-string ids)
+                    :instance instance} request))))
 
 (defn edit-instance-post
   [request]
@@ -197,7 +200,6 @@
 (defn create-instance
   [request]
   (edit-instance request))
-
 
 (defn editor-for
   ;; given a model slug, generates an editor for that model
