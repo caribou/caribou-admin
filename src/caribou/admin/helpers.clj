@@ -109,7 +109,7 @@
         page-slug (:page-slug opts)
         current-page (:current-page opts)
         current    (or (if (string? current-page) (Integer/parseInt current-page) current-page) 0)
-        size       (or (if (string? page-size) (Integer/parseInt page-size) page-size) 20) ;; get default from somewhere?
+        size       (or (if (string? page-size) (Integer/parseInt page-size) page-size) 50) ;; get default from somewhere?
         page-count (/ (count results) size)]
     {:pagination?       (> page-count 1)
      :previous-page?    (> current 0)

@@ -1078,7 +1078,7 @@ $(function () {
       api.post( data, function( d ) {
         console.log(d);
         if (next) {
-          next( values.length > 1 ? values : values[0] );
+          next( d.length > 1 ? d : d[0] );
         } else {
           location.href = api.routeFor( "to-route", { page: "results", slug: pageInfo.model } );
         }

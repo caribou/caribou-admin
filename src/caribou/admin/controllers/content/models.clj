@@ -1,6 +1,7 @@
 (ns caribou.admin.controllers.content.models
   (:use [cheshire.core :only (generate-string)])
   (:require [caribou.model :as model]
+            [caribou.query :as query]
             [caribou.field.link :as link]
             [caribou.app.controller :as controller]
             [clojure.string :as string]
@@ -139,7 +140,6 @@
                                                                     :current-page (:page params)})}))))
 
 ;; ---- manipulate model attributes ----
-;; TODO:kd - edit-field should work the same.
 (defn new-field
   [request]
   (let [field-name (-> request :params :field-name)
@@ -148,7 +148,6 @@
         target-id (-> request :params :target-id)
         ;; extra bits here, validate, etc
         model (model/pick :model {:where {:slug (-> request :params :slug)} :include {:fields {}}})
-        ;; TODO:kd - more checking/validation
         new-field (if (not (nil? target-id))
                     {:name (string/capitalize field-name)
                      :type field-type
@@ -348,8 +347,7 @@
   (let [payload (json-payload request)
         model (@model/models (keyword (:model payload)))
         association (get-in model [:fields (keyword (:field payload))])
-        deleted (link/remove-link association (:id payload) (:target-id payload))
-        ]
+        deleted (link/remove-link association (:id payload) (:target-id payload))]
     (json-response deleted)))
 
 ; updates multiple models.  needs some validation/idiot-proofing.
@@ -365,14 +363,22 @@
   [request]
   (let [payload (json-payload request)
         results (map #(model/destroy (keyword (:model %)) (:id %)) payload)]
+    (model/init)
     (json-response results)))
 
-; TODO:kd - unify this with find-results above
 (defn find-all
   [request]
   (let [model (or (keyword (-> request :params :model)) :model)
         include (-> request :params :include)]
-  (json-response (model/find-all model {:include include}))))
+    (json-response (model/find-all model {:include include}))))
+
+(defn find-one
+  [request]
+  (let [params (-> request :params)
+        slug (or (keyword (:model params)) :model)
+        include (:include params)
+        where (if (:slug params) {:slug (:slug params)} {:id (:id params)})]
+    (json-response (model/pick slug {:where where :include (model/process-include include)}))))
 
 (defn to-route
   [request]
@@ -413,6 +419,7 @@
     "editor-associated-content" (editor-associated-content request)
     "update-all" (update-all request)
     "find-all" (find-all request)
+    "find-one" (find-one request)
     "delete-all" (delete-all request)
     "to-route" (to-route request)
     "upload-asset" (upload-asset request)
