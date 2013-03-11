@@ -1,6 +1,7 @@
 (ns caribou.admin.controllers.content.models
   (:use [cheshire.core :only (generate-string)])
   (:require [caribou.model :as model]
+            [caribou.query :as query]
             [caribou.field.link :as link]
             [caribou.app.controller :as controller]
             [clojure.string :as string]
@@ -139,7 +140,6 @@
                                                                     :current-page (:page params)})}))))
 
 ;; ---- manipulate model attributes ----
-;; TODO:kd - edit-field should work the same.
 (defn new-field
   [request]
   (let [field-name (-> request :params :field-name)
@@ -148,7 +148,6 @@
         target-id (-> request :params :target-id)
         ;; extra bits here, validate, etc
         model (model/pick :model {:where {:slug (-> request :params :slug)} :include {:fields {}}})
-        ;; TODO:kd - more checking/validation
         new-field (if (not (nil? target-id))
                     {:name (string/capitalize field-name)
                      :type field-type
@@ -364,6 +363,7 @@
   [request]
   (let [payload (json-payload request)
         results (map #(model/destroy (keyword (:model %)) (:id %)) payload)]
+    (model/init)
     (json-response results)))
 
 (defn find-all
@@ -379,7 +379,7 @@
         include (:include params)
         where (if (:slug params) {:slug (:slug params)} {:id (:id params)})]
     (json-response (model/pick slug {:where where :include (model/process-include include)}))))
-        
+
 (defn to-route
   [request]
   (controller/redirect (pages/route-for (-> request :params :page keyword) (dissoc (:params request) :action :page))))

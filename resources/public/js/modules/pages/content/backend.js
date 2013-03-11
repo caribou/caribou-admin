@@ -65,18 +65,8 @@
         }
       };
 
-      // fetch a fresh model synchronously. This is a bad idea; TODO:kd - solve this properly.
-      //$.ajax({
-      //  type: "POST",
-      //  async: false,
-      //  url: self.routeFor( "find-all", { model: "model", include: "fields" } ),
-      //  success: function( data ) {
-      //    self.initWithModel( data );
-      //  }
-      //});
       return self;
     }
-
 
     global.caribou = global.caribou || {};
     global.caribou.api = CaribouAPI( $('body').data().api );
