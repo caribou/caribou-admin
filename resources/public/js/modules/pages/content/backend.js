@@ -1,6 +1,7 @@
 (function (global) {
     function CaribouAPI( api ) {
       var self = {
+        _model: {},
         routeFor: function( action, params ) {
             params = params || {};
             params['action'] = action;
@@ -11,17 +12,31 @@
             return api + "?" + $.param( params );
         },
         initWithModel: function( model ) {
-          self._model = {};
+          self._model = self._model || {};
           _( model ).each( function(m) {
             self._model[ m.slug ] = m;
             self._model[ m.id ] = m;
           });
         },
         model: function( slug ) {
+          console.log("=============================== request for " + slug + " ==============================");
+          if (self._model[ slug ]) { return self._model[ slug ] }
+          var options = { model: "model", include:"fields" };
+          if ( _.isNumber( slug ) || (slug + "").match(/^\d+$/) ) {
+            options.id = slug;
+          } else {
+            options.slug = slug;
+          }
+          // calling this synchronously is bad.
+          $.ajax({
+            type: "POST",
+            async: false,
+            url: self.routeFor( "find-one", options ),
+            success: function( data ) {
+              self.initWithModel( [data] );
+            }
+          });
           return self._model[ slug ];
-        },
-        models: function() {
-          return self._model;
         },
         bestTitle: function( m, slug ) {
           var model = self.model( slug );
@@ -51,14 +66,14 @@
       };
 
       // fetch a fresh model synchronously. This is a bad idea; TODO:kd - solve this properly.
-      $.ajax({
-        type: "POST",
-        async: false,
-        url: self.routeFor( "find-all", { model: "model", include: "fields" } ),
-        success: function( data ) {
-          self.initWithModel( data );
-        }
-      });
+      //$.ajax({
+      //  type: "POST",
+      //  async: false,
+      //  url: self.routeFor( "find-all", { model: "model", include: "fields" } ),
+      //  success: function( data ) {
+      //    self.initWithModel( data );
+      //  }
+      //});
       return self;
     }
 
