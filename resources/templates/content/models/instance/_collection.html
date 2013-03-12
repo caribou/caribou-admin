@@ -4,16 +4,21 @@
           <thead>
             <tr>
               <th>
-               &nbsp; 
+               &nbsp;
               </th>
               {{#fields}}
+                {{#locked}}
+                  {{#equals slug "id"}}
+                    <th><a href="{{safe-route-for :results params}}?order={{slug}}">{{name}}</a></th>
+                  {{/equals slug "id"}}
+                {{/locked}}
                 {{^locked}}
                   {{#allows-sorting}}
                     <th><a href="{{safe-route-for :results params}}?order={{slug}}">{{name}}</a></th>
-                  {{/allows-sorting}}     
+                  {{/allows-sorting}}
                   {{^allows-sorting}}
                     <th>{{name}}</th>
-                  {{/allows-sorting}}     
+                  {{/allows-sorting}}
                 {{/locked}}
               {{/fields}}
               <th>Fun stuff</th>
@@ -24,6 +29,9 @@
             <tr data-position='{ "position": {{order-get-in instance order-info.field-path}}, "id": "{{get-in instance order-info.id-path}}" }' {{#locked}}class="error"{{/locked}}>
               <td><input type="checkbox" name="id" value="{{get-in instance "id" }}" /></td>
               {{#fields}}
+                {{#equals slug "id"}}
+                  <td>{{get-in instance "id"}}</td>
+                {{/equals slug "id"}}
                 {{^locked}}
                 <td>
                   {{> templates/content/models/fields/view/_[[type]].html }}
@@ -32,8 +40,8 @@
               {{/fields}}
               <td>
                 {{^locked}}
-                  <a class="choose-link hide" href="#choose" data-model="{{model.slug}}" data-id="{{id}}">Choose</a> 
-                  <a class="edit-link" href="{{safe-route-for :edit_model_instance params {:id id} }}" data-model="{{model.slug}}" data-id="{{id}}">Edit</a> 
+                  <a class="choose-link hide" href="#choose" data-model="{{model.slug}}" data-id="{{id}}">Choose</a>
+                  <a class="edit-link" href="{{safe-route-for :edit_model_instance params {:id id} }}" data-model="{{model.slug}}" data-id="{{id}}">Edit</a>
                   <a class="remove-link hide" href="#remove" data-toggle="tooltip" title="Doesn't delete the content, just removes its association." data-model="{{model.slug}}" data-id="{{id}}">Remove</a>
                   <a class="delete-link" href="#destroy" data-model="{{model.slug}}" data-id="{{id}}">Destroy</a>
                 {{/locked}}

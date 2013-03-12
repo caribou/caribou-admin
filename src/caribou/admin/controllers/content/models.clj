@@ -363,6 +363,7 @@
   [request]
   (let [payload (json-payload request)
         results (map #(model/destroy (keyword (:model %)) (:id %)) payload)]
+    (query/clear-queries)
     (model/init)
     (json-response results)))
 

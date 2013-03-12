@@ -15,7 +15,7 @@
 
   {{#model.fields:field}}
     {{! Only showing editable fields for now}}
-    {{#field.editable}}
+    {{#or field.editable params.show_hidden}}
       {{^join-model? field}}
       <tr data-position='{ "position": {{model_position}}, "id": "{{id}}" }' {{#locked}}class="error"{{/locked}}>
         <td>{{name}}</td>
@@ -33,7 +33,7 @@
         </td>
       </tr>
       {{/join-model? field}}
-    {{/field.editable}}
+    {{/or field.editable params.show_hidden}}
   {{/model.fields:field}}
 
   </tbody>
