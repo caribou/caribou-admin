@@ -23,7 +23,7 @@ to name it _development.clj_ and have something like this in it:
 
 and then start it up:
 
-  lein ring server
+    lein ring server
 
 
 ## License
