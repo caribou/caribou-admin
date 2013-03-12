@@ -2,7 +2,7 @@
   (:use [caribou.app.controller]
         [caribou.app.pages :only [route-for select-route]])
   (:require [caribou.model :as model]
-            [caribou.admin.permissions :as permissions]))
+            [caribou.permissions :as permissions]))
 
 (defn edit-roles
   [request]

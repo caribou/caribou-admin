@@ -1,5 +1,6 @@
 (ns caribou.admin.controllers.content.assets
-  (:use caribou.app.controller))
+  (:use caribou.app.controller)
+  (:require [caribou.model :as model]))
   
 (defn index
   [params]
@@ -31,6 +32,6 @@
 
 (defn matches
   [request]
-  (let [search (-> request params search)
+  (let [search (-> request :params :search)
         matches (model/gather :asset {:where search})]
     (render (merge {:assets matches} request))))
