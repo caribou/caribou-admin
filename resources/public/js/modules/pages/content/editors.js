@@ -71,7 +71,9 @@ var editors = (function (global) {
       var blacklist = _( this.model.fields ).chain().filter(
         function(f) {
           if ( f.type === "id" ) { return false }
-          if ( f.type === "integer" && f.slug.match(/_id$/) ) { return false }
+          if ( f.slug === "type" ) { return false }
+          if ( f.type === "integer" && f.slug.match(/(^|_)id$/) ) { return false }
+          if ( f.type === "part" ) { return true } // because the part_id is ok
           //if ( f.type === "link" || f.type === "collection" ) { return true }
           return !f.editable;
         }).map( function(f) { return f.slug }).value();

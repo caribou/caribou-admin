@@ -13,6 +13,7 @@
             [caribou.app.template :as template]
             [caribou.asset :as asset]
             [caribou.config :as config]
+            [caribou.admin.index :as index]
             [caribou.admin.helpers :as helpers]))
 
 (defn safe-route-for
@@ -55,10 +56,13 @@
    and returns them in a map suitable for use in an :include clause
    of gather."
   [model]
-  (into {}
-    (map #(vector (keyword (:slug %)) {})
-      (filter (fn [a] (and (some #(= (:type a) %) ["collection", "part", "link"])
-                           (not (:join_model (@model/models (:target_id a)))))) (:fields model)))))
+  (let [fields (if (map? (:fields model))
+                 (map :row (vals (:fields model)))
+                 (:fields model))]
+    (into {}
+      (map #(vector (keyword (:slug %)) {})
+        (filter (fn [a] (and (some #(= (:type a) %) ["collection", "part", "link"])
+                             (not (:join_model (@model/models (:target_id a)))))) fields)))))
 
 (defn human-friendly-fields
   "returns the set of fields that a human can read - is a bit hacky"
@@ -117,6 +121,17 @@
         models (seq (sort-by :name (-> @model/models vals set)))]
     (render (merge request {:model model :models models}))))
 
+(defn keyword-results
+  "This inefficiently inflates search results into
+  real content directly from the DB, one-by-one"
+  [kw slug]
+  (let [m (@model/models (keyword slug))
+        raw (index/search m kw)
+        _ (println raw)
+        includes (build-includes m)
+        inflated (map (fn [r] (model/pick slug {:where {:id (:id r)} :include includes})) raw)]
+    inflated))
+
 (defn view-results
   [request]
   (let [params (-> request :params)
@@ -124,10 +139,12 @@
         ;; this needs to delegate to someone else to find the list of things to show
         includes (build-includes model)
         order (or (:order params) "position")
-        results (model/gather (-> request :params :slug) {:limit (:limit params)
+        kw-results (when-not (empty? (:keyword params))
+                     (keyword-results (:keyword params) (:slug params)))
+        results (or kw-results (model/gather (-> request :params :slug) {:limit (:limit params)
                                                           :offset (:offset params)
                                                           :include includes
-                                                          :order (model/process-order order)})
+                                                          :order (model/process-order order)}))
         friendly-fields (human-friendly-fields model)
         order-info (order-info model)]
     (render (merge request {:results results
@@ -354,8 +371,9 @@
 (defn update-all
   [request]
   (let [payload (json-payload request)
-        _ (println payload)
-        results (map #(model/create (keyword (:model %)) (:fields %)) payload)]
+        results (map (fn [x] (model/create (keyword (:model x)) (:fields x))) payload)]
+    (query/clear-queries)
+    (model/init)
     (json-response results)))
 
 ; this is too drastic and should probably have some sanity checking.
@@ -384,6 +402,12 @@
 (defn to-route
   [request]
   (controller/redirect (pages/route-for (-> request :params :page keyword) (dissoc (:params request) :action :page))))
+
+(defn reindex
+  [request]
+  (let [model (@model/models (keyword (-> request :params :slug)))]
+    (println (index/update-all model))
+    (controller/redirect (pages/route-for :models (dissoc (:params request) :action :slug)))))
 
 (defn slugify-filename
   [s]
@@ -425,5 +449,6 @@
     "to-route" (to-route request)
     "upload-asset" (upload-asset request)
     "remove-link" (remove-link request)
+    "reindex" (reindex request)
     "bulk-editor-content" (bulk-editor-content request)
     {:status 404 :body "Awwwwww snap!"}))
