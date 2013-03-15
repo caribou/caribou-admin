@@ -12,6 +12,12 @@
         unique (set searchable)]
     (seq unique)))
 
+(defn searchable? [model]
+  (> (count (searchable-fields model)) 0))
+
+(defn- searchable-keys [model]
+  (map #(-> % :slug keyword) (searchable-fields model)))
+
 ;; Some constants
 (def required-keys [:id])
 (def default-limit 10)
@@ -23,8 +29,7 @@
   or indexed, plus any required fields, plus a bucket :_indexed
   field containing all indexed content for this record."
   [model content opts]
-  (let [searchable (searchable-fields model)
-        searchable-keys (map #(-> % :slug keyword) searchable)
+  (let [searchable-keys (searchable-keys model)
         index-keys (if (map? (:index opts)) (keys (:index opts)) (or (:index opts) []))
         store-keys (if (map? (:store opts)) (keys (:store opts)) (or (:store opts) []))
         omit-keys  (if (map? (:omit opts)) (keys (:omit opts)) (or (:omit opts) []))
@@ -68,19 +73,23 @@
   ([model content]
     (update model content {}))
   ([model content opts]
-    (let [typed (delete model content opts)
-          _ (println typed)
-          indexed (clucy/add index typed)]
-    indexed)))
+    (if (searchable? model)
+      (let [typed (delete model content opts)
+            _ (println typed)
+            indexed (clucy/add index typed)]
+        indexed)
+      nil)))
 
 (defn add
   "Adds content to the index."
   ([model content]
     (add model content {}))
   ([model content opts]
-    (let [typed (prepare-for-index model content opts)
+    (if (searchable? model)
+      (let [typed (prepare-for-index model content opts)
           indexed (clucy/add index typed)]
-      indexed)))
+        indexed)
+      nil)))
 
 (defn search
   "Searches for content in the index.  Requires a model
@@ -90,7 +99,10 @@
   ([model where]
     (search model where {}))
   ([model where opts]
-    (clucy/search index where (or (:limit opts) default-limit) :default-field :_indexed)))
+    (clucy/search index where (or (:limit opts) default-limit)
+                        :default-field :_indexed
+                        :page (:page opts)
+                        :results-per-page (:size opts))))
 
 (defn add-all
   "Use this when bootstrapping your index."
@@ -104,4 +116,6 @@
   ([model]
     (update-all model {}))
   ([model opts]
-    (map #(update model % opts) (model/gather (:slug model)))))
+    (if (searchable? model)
+      (map #(update model % opts) (model/gather (:slug model)))
+      nil)))

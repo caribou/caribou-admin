@@ -126,7 +126,8 @@
   real content directly from the DB, one-by-one"
   [kw slug]
   (let [m (@model/models (keyword slug))
-        raw (index/search m kw)
+        ;; TODO - remove this hardcoded limit and make it work with pagination
+        raw (index/search m kw {:limit 200})
         _ (println raw)
         includes (build-includes m)
         inflated (map (fn [r] (model/pick slug {:where {:id (:id r)} :include includes})) raw)]
@@ -159,23 +160,28 @@
 ;; ---- manipulate model attributes ----
 (defn new-field
   [request]
-  (let [field-name (-> request :params :field-name)
-        field-type (-> request :params :field-type)
-        reciprocal-name (-> request :params :reciprocal-name)
-        target-id (-> request :params :target-id)
+  (let [params (-> request :params)
+        field-name (:field-name params)
+        field-type (:field-type params)
+        searchable (= (:searchable params) "yes")
+        reciprocal-name (:reciprocal-name params)
+        target-id (:target-id params)
         ;; extra bits here, validate, etc
         model (model/pick :model {:where {:slug (-> request :params :slug)} :include {:fields {}}})
         new-field (if (not (nil? target-id))
                     {:name (string/capitalize field-name)
                      :type field-type
+                     :searchable searchable
                      :target_id target-id
                      :reciprocal_name (string/capitalize reciprocal-name)}
                     {:name (string/capitalize field-name)
+                     :searchable searchable
                      :type field-type})
         new-model (model/update :model (:id model) {:fields [ new-field ] })]
       (controller/redirect (pages/route-for :edit_model
                              (dissoc (:params request) :field-name
                                                        :field-type
+                                                       :searchable
                                                        :target-id
                                                        :reciprocal-name)))))
 
@@ -371,7 +377,9 @@
 (defn update-all
   [request]
   (let [payload (json-payload request)
-        results (map (fn [x] (model/create (keyword (:model x)) (:fields x))) payload)]
+        updated (map (fn [x] (vector (:model x) (model/create (keyword (:model x)) (:fields x)))) payload)
+        indexed (doall (map (fn [x] (index/update (@model/models (keyword (first x))) (second x))) updated))
+        results (map second updated)]
     (query/clear-queries)
     (model/init)
     (json-response results)))

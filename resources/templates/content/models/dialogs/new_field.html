@@ -6,18 +6,13 @@
 
   <form action="{{route-for :new_model_field params }}" method="POST">
     <div class="modal-body">
-      <div class="control-group">
-        <label class="control-label" for="field-name">Name</label>
-        <div class="controls">
-          <input type="text" id="field-name" name="field-name" placeholder="Field name...">
-        </div>
-      </div>
+
       <div class="control-group">
         <label class="control-label" for="field-type">Type</label>
         <div class="controls">
           <select name="field-type" id="field-type">
             {{! TODO: where do i get this list from? }}
-            <option></option>
+            <option value="">What type of field?</option>
             <option value="string">A single text string</option>
             <option value="text">A body of text</option>
             <option value="boolean">Boolean (Yes/No) field</option>
@@ -31,6 +26,18 @@
           </select>
         </div>
       </div>
+
+      <div class="control-group">
+        <label class="control-label" for="field-name">Name</label>
+        <div class="controls">
+          <input type="text" id="field-name" name="field-name" placeholder="Field name...">
+        </div>
+        <label class="control-label" for="searchable">Is it searchable?</label>
+        <div class="controls">
+          <input type="checkbox" id="searchable" name="searchable" value="yes" /> Should Caribou index this field?
+        </div>
+      </div>
+
       <div class="control-group hide" id="association-controls">
         <label class="control-label" for="target">Target</label>
         <select name="target-id" id="target-id">
