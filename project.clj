@@ -15,4 +15,4 @@
          :servlet-name "caribou-admin"
          :init caribou.admin.core/init
          :open-browser? false
-         :port 33663})
+         :port 33773})

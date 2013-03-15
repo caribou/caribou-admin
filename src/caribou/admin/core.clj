@@ -50,6 +50,14 @@
       (controller/redirect (pages/route-for :login {})
                            {:session (:session request)}))))
 
+(defn get-models
+  [handler]
+  (fn [request]
+    (let [models (model/gather :model 
+                               {:where {:locked false :join_model false}
+                                :order {:id :asc}})]
+      (handler (assoc request :user-models models)))))
+
 (defn days-in-seconds
   [days]
   (* 60 60 24 days))
@@ -75,6 +83,7 @@
         (provide-helpers)
         (lichen/wrap-lichen (@config/app :asset-dir))
         (user-required)
+        (get-models)
         (handler/use-public-wrapper (@config/app :public-dir))
         (middleware/wrap-servlet-path-info)
         (request/wrap-request-map)
