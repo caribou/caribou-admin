@@ -32,7 +32,7 @@
             {{#model.fields}}
             <tr data-position='{ "position": {{model_position}}, "id": "{{id}}" }' {{#locked}}class="error"{{/locked}}>
               <td>{{name}}</td>
-              <td>{{type}}</td>
+              <td>{{type}} {{#searchable}}(searchable){{/searchable}}</td>
               <td>
                 {{^locked}}
                   <a href="{{safe-route-for :edit_model_instance params {:slug "field" :id id} }}">Edit</a> | <a href="#delete" data-model="field" data-id="{{id}}" onclick="return window.caribou.models.showDeleteDialog( this );">Delete</a>
