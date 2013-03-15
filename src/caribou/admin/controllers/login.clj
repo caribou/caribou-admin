@@ -86,3 +86,13 @@
                                 :password "419truth"
                                 :locale "en_US"}
                        :template (constantly "")})))
+
+
+(comment
+  (caribou.model/db #(caribou.admin.controllers.login/create-login
+                      {:params {:email "phong@weareinstrument.com"
+                                :password "3Ge5pm!N"
+                                :first "Phong"
+                                :last "Ho"}
+                       :template (constantly "")})))
+

@@ -47,14 +47,17 @@
             <li><a href="{{route-for :dashboard params}}">Dashboard</a></li>
             <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Content <b class="caret"></b></a>
               <ul class="dropdown-menu">
-                <li><a href="{{route-for :projects params}}">Projects</a></li>
-                <li><a href="">Clients</a></li>
-                <li><a href="">Team Members</a></li>
-                <li><a href="/content-library/careers">Careers</a></li>
-                <li><a href="/content-library/blog-posts">Blog Posts</a></li>
-                <li class="divider"></li>
-                <li><a href="{{route-for :pages params}}">Pages</a></li>
-                <li><a href="/content-library/assets">Assets</a></li>
+                <!-- <li><a href="{{route-for :projects params}}">Projects</a></li>-->
+                <!-- <li><a href="">Clients</a></li>-->
+                <!-- <li><a href="">Team Members</a></li>-->
+                <!-- <li><a href="/content-library/careers">Careers</a></li>-->
+                <!-- <li><a href="/content-library/blog-posts">Blog Posts</a></li>-->
+                <!-- <li class="divider"></li>-->
+                <!-- <li><a href="{{route-for :pages params}}">Pages</a></li>-->
+                <!-- <li><a href="/content-library/assets">Assets</a></li>-->
+                {{#user-models}}
+                <li><a href="">{{name}}</a></li>
+                {{/user-models}}
               </ul>
             </li>
             <!--<li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Activity <b class="caret"></b></a>
