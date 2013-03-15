@@ -85,11 +85,10 @@
   ([model content]
     (add model content {}))
   ([model content opts]
-    (if (searchable? model)
+    (when (searchable? model)
       (let [typed (prepare-for-index model content opts)
           indexed (clucy/add index typed)]
-        indexed)
-      nil)))
+        indexed))))
 
 (defn search
   "Searches for content in the index.  Requires a model
@@ -109,13 +108,13 @@
   ([model]
     (add-all model {}))
   ([model opts]
-    (map #(add model % opts) (model/gather (:slug model)))))
+    (when (searchable? model)
+      (map #(add model % opts) (model/gather (:slug model))))))
 
 (defn update-all
   "Use this to reindex all content of a given model."
   ([model]
     (update-all model {}))
   ([model opts]
-    (if (searchable? model)
-      (map #(update model % opts) (model/gather (:slug model)))
-      nil)))
+    (when (searchable? model)
+      (map #(update model % opts) (model/gather (:slug model))))))

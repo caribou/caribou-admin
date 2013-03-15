@@ -380,6 +380,9 @@
         updated (map (fn [x] (vector (:model x) (model/create (keyword (:model x)) (:fields x)))) payload)
         indexed (doall (map (fn [x] (index/update (@model/models (keyword (first x))) (second x))) updated))
         results (map second updated)]
+    ;; TODO: it is expensive to do this every time,
+    ;; so we really should only do it if fields or models
+    ;; are updated.
     (query/clear-queries)
     (model/init)
     (json-response results)))
