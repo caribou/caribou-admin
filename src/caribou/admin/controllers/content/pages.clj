@@ -9,21 +9,12 @@
 
 (defn index
   [params]
-  (let [
-    
-    pages
-    (model/gather 
-      :page
-      {:order {:id :asc}
-       :where {:site_id 1}
-    })
-    
-    admin-pages
-    (model/gather 
-      :page
-      {:order {:id :asc}
-       :where {:site_id 2}
-    })
+  (let [pages (model/gather :page
+                            {:order {:id :asc}
+                             :where {:site_id 1}})
+        admin-pages (model/gather :page
+                                  {:order {:id :asc}
+                                   :where {:site_id 2}})
       
     page-tree
     (add-level (model/arrange-tree pages))

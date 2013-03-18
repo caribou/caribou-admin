@@ -10,3 +10,4 @@ pom.xml
 .lein-plugins
 /resources/config/
 index/
+clucy-index/
