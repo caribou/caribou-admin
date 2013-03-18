@@ -56,7 +56,7 @@
                 <!-- <li><a href="{{route-for :pages params}}">Pages</a></li>-->
                 <!-- <li><a href="/content-library/assets">Assets</a></li>-->
                 {{#user-models}}
-                <li><a href="">{{name}}</a></li>
+                <li><a href="{{route-for :results params {:slug slug} }}">{{name}}</a></li>
                 {{/user-models}}
               </ul>
             </li>

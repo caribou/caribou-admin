@@ -24,9 +24,9 @@
               <th>Fun stuff</th>
             </tr>
           </thead>
-          <tbody class="sortable" data-position='{ "model":"{{order-info.model.slug}}", "offset": {{pager.start-index}}, "field":"{{order-info.field.slug}}", "field-path":"{{order-info.field-path}}" }'>
+          <tbody class="sortable" data-position='{ "model":"{{order-info.model.slug}}", "offset": {{pager.start-index}}, "association":"{{order-info.association }}", "umbrella":{{or order-info.umbrella "null"}} }'>
             {{#pager.results:instance}}
-            <tr data-position='{ "position": {{order-get-in instance order-info.field-path}}, "id": "{{get-in instance order-info.id-path}}" }' {{#locked}}class="error"{{/locked}}>
+            <tr data-position='{ "position": {{order-get-in instance order-info.position-slug}}, "id": "{{get-in instance "id" }}" }' {{#locked}}class="error"{{/locked}}>
               <td><input type="checkbox" name="id" value="{{get-in instance "id" }}" /></td>
               {{#fields}}
                 {{#equals slug "id"}}

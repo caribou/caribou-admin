@@ -19,6 +19,7 @@
   (map #(-> % :slug keyword) (searchable-fields model)))
 
 ;; Some constants
+;; TODO - require locale here (so the corpus can be filtered by locale)
 (def required-keys [:id])
 (def default-limit 10)
 
