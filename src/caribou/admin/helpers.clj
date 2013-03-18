@@ -50,8 +50,7 @@
     (:path asset)))
 
 (defn part-values [field instance]
-  (let [_ (println "getting all results for " field)
-        model (model/pick :model {:where {:id (:target_id field)} :include {:fields {}}})
+  (let [model (model/pick :model {:where {:id (:target_id field)} :include {:fields {}}})
         results (model/gather (:slug model))
         name-field (keyword (:slug (first (:fields model))))
         value-field :id
