@@ -28,7 +28,7 @@
               <th>Actions</th>
             </tr>
           </thead>
-          <tbody class="sortable" data-position='{ "model":"field", "offset": 0, "field":"model_position" }'>
+          <tbody class="sortable" data-position='{ "umbrella": {{model.id}}, "model":"model", "association":"fields", "offset": 0 }'>
             {{#model.fields}}
             <tr data-position='{ "position": {{model_position}}, "id": "{{id}}" }' {{#locked}}class="error"{{/locked}}>
               <td>{{name}}</td>

@@ -1,7 +1,7 @@
 (defproject caribou-admin "0.9.4"
   :description "Generic admin tool for Caribou projects"
   :dependencies [[org.clojure/clojure "1.4.0"]
-                 [antler/caribou-frontend "0.9.12"]
+                 [antler/caribou-frontend "0.9.13"]
                  [antler/lichen "0.3.1"]
                  [clj-stacktrace "0.2.5"]
                  [swank-clojure "1.4.2" :exclusions [clj-stacktrace]]

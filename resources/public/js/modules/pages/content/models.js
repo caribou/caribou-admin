@@ -50,23 +50,30 @@
     }
 
     var updateOrdering = function() {
-      var items = [];
       var selector = $( ".sortable" ).sortable( "option", "items" );
       var parentData = $(".sortable").data("position");
+      var items = [];
+      var payload = { model: parentData.model,
+                      association: parentData.association,
+                      id: parentData.umbrella
+                    };
+
       $(".sortable").find(selector).each( function( index, item ) {
         // only care about items whose position has changed, items whose original position was 0
         // or ... what else?
         var data = $(item).data("position") || {};
         console.log( "Initial is " + data.position + " and index is " + index );
-        if ( data.position !== ( index + parentData.offset ) ) {
-          var fields = { id: data.id };
-          fields[ parentData.field ] = index + parentData.offset;
-          items.push( { model: parentData.model, fields: fields } );
+        if ( data.position !== ( index + parentData.offset + 1 ) ) {
+          //var fields = { id: data.id };
+          //fields[ parentData.field ] = index + parentData.offset;
+          // we add one because position is one-based, not zero-based.
+          items.push( { id: data.id, position: index + parentData.offset + 1 } );
         }
       });
-      console.log(items);
+      payload.items = items;
+      console.log(payload);
       // submit items
-      _post( "update-all", items );
+      _post( "reorder-all", payload );
     }
 
     var showDeleteDialog = function( el, callback ) {

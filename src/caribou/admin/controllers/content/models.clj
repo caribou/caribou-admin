@@ -25,25 +25,18 @@
   (let [target (model/pick :model {:where {:id (:target_id field)} :include {:fields {}}})]
     (-> target :fields first :slug)))
 
-(defn order-info
-  ([model]
-    (let [internal-model (@model/models (keyword (:slug model)))]
-    {:model internal-model :field (-> internal-model :fields :position :row) :field-path "position" :id-path "id"}))
-  ([model association]
-    (let [target (@model/models (-> association :row :target_id))
-          order-model (if (= (-> association :row :type) "link")
-                        (@model/models (link/link-join-name association))
-                        target)
-          position-field-name (keyword (str (-> association :row :slug) "_position"))
-          position-field (-> order-model :fields position-field-name :row)
-          field-path (if (= (-> association :row :type) "link")
-                       (str "join." (-> association :row :slug) "_position")
-                       (str (-> association :row :slug) "_position"))
-          id-path (if (= (-> association :row :type) "link") "join.id" "id")]
-      {:model order-model :field position-field :field-path field-path :id-path id-path})))
-
 (defn order-get-in [thing path]
   (or (helpers/get-in-helper thing path) 0))
+
+(defn order-info
+  ([model]
+    {:model model :association "position" :position-slug "position"})
+  ([model association umbrella]
+    {:model model
+     :umbrella (:id umbrella)
+     :association (or (get-in association [:slug])
+                      (get-in association [:row :slug]))
+     :position-slug (str (:slug association) "_position")}))
 
 (defn field-path
   [field]
@@ -157,7 +150,6 @@
                                                                     :page-slug (-> request :page :slug)
                                                                     :current-page (:page params)})}))))
 
-;; ---- manipulate model attributes ----
 (defn new-field
   [request]
   (let [params (-> request :params)
@@ -185,7 +177,6 @@
                                                        :target-id
                                                        :reciprocal-name)))))
 
-;;-------- *-field should not be needed; everything can be done via model-api.
 
 (defn edit
   [request]
@@ -264,23 +255,16 @@
                        include)
         _ (println join-include)
         where (if (empty? (:id params)) {} {:id (:id params)})
-        ;order (if (:order params) (model/process-order (:order params)) {})
         raw-content (model/gather (:slug model) {:where where
                                                  :include join-include 
                                                  :limit (:limit params) 
                                                  :offset (:offset params)})
         instance (first raw-content)
         associated-content ((keyword assoc-name) instance)
-        ;join-content (if (= assoc-type "link")
-        ;               ((keyword (str assoc-name "_join")) instance)
-        ;               nil)
         content (map #(if (= (:slug model) "asset")
                           (assoc % :path (asset/asset-path %))
                           %) associated-content)]
-        ;joined-content (if (= (count join-content) (count content))
-        ;                 (map (fn [a b] (assoc a :join b)) content join-content)
-        ;                 content)]
-    content))
+    {:instance instance :content content}))
 
 (defn editor-associated-content
   "Associated content has to be handled slightly differently because
@@ -292,12 +276,14 @@
         target (model/pick :model {:where {:id (-> association :row :target_id)} :include {:fields {}}})
         template (template/find-template 
                    (util/pathify ["content" "models" "instance" (or (:template params) "_collection.html")]))
-        content (find-associated-content params)
+        stuff (find-associated-content params)
+        content (:content stuff)
+        instance (:instance stuff)
         pager (helpers/add-pagination content
                 {:page-size (or (:size params) 20)  ;; TODO:kd - put default page size into config
                  :current-page (:page params)})
         friendly-fields (human-friendly-fields target)
-        order-info (order-info model association)
+        order-info (order-info model association instance)
         response {:template (:body (render (merge request {:template template
                                                            :model target
                                                            :fields friendly-fields
@@ -387,6 +373,20 @@
     (model/init)
     (json-response results)))
 
+(defn reorder-all
+  [request]
+  (let [payload (json-payload request)
+        _ (println payload)
+        association-slug (:association payload)
+        id (:id payload)
+        results (if (and association-slug id)
+                  (do
+                    (println (str "reordering " (:association payload) " of " (:model payload) " " (:id payload)
+                     " to " (:items payload)))
+                    (model/order (:model payload) (:id payload) (:association payload) (:items payload)))
+                  (model/order (:model payload) (:items payload)))]
+    (json-response results)))
+
 ; this is too drastic and should probably have some sanity checking.
 (defn delete-all
   [request]
@@ -454,6 +454,7 @@
     "editor-content" (editor-content request)
     "editor-associated-content" (editor-associated-content request)
     "update-all" (update-all request)
+    "reorder-all" (reorder-all request)
     "find-all" (find-all request)
     "find-one" (find-one request)
     "delete-all" (delete-all request)
