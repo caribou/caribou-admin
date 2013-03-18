@@ -92,7 +92,7 @@
         (db/wrap-db @config/db)
         (compojure/api)
         (wrap-session {:store (cookie-store {:key "vEanzxBCC9xkQUoQ"})
-                       :cookie-name "instrumentv3-newadmin-sess"
+                       :cookie-name "caribou-admin-session"
                        :cookie-attrs {:max-age (days-in-seconds 90)}})
         (wrap-cookies)))
 
