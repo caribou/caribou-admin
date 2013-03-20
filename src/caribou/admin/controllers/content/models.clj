@@ -5,12 +5,14 @@
             [caribou.field.link :as link]
             [caribou.app.controller :as controller]
             [clojure.string :as string]
+            [clojure.set :as set]
             [clj-time.core :as timecore]
             [clojure.pprint :as pprint]
             [clojure.walk :as walk]
             [caribou.util :as util]
             [caribou.app.pages :as pages]
             [caribou.app.template :as template]
+            [caribou.app.handler :as handler]
             [caribou.asset :as asset]
             [caribou.config :as config]
             [caribou.admin.index :as index]
@@ -371,6 +373,9 @@
     ;; are updated.
     (query/clear-queries)
     (model/init)
+    (when-not (empty? (set/intersection #{"page"} (set (map :model payload))))
+      (println "RESETTING HANDLER!!")
+      (handler/reset-handler))
     (json-response results)))
 
 (defn reorder-all
