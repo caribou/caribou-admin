@@ -9,7 +9,7 @@
   {{> templates/content/models/collection/_search.html}}
 
   <div class="container-fluid clearfix">
-    <h1 class="pull-left">{{model.name}}</h1>
+    <h1 class="pull-left" id="description">{{model.name}}</h1>
     <a class="pull-right btn btn-large" href="{{safe-route-for :edit_model params {:slug model.slug} }}">Edit Model</a>
   </div>
 </div>

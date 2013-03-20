@@ -11,7 +11,7 @@
 
   <div class="container-fluid clearfix">
     <h1 class="pull-left">{{model.name}}</h1>
-    <a class="pull-right btn btn-large" href="{{route-for :create_model_instance params }}">Create a {{model.name}}</a>
+    <a class="pull-right btn btn-large" href="{{safe-route-for :create_model_instance {:slug model.slug} }}">Create a {{model.name}}</a>
   </div>
 </div>
 

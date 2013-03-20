@@ -11,6 +11,9 @@
                   {{#equals slug "id"}}
                     <th><a href="{{safe-route-for :results params}}?order={{slug}}">{{name}}</a></th>
                   {{/equals slug "id"}}
+                  {{#equals slug "slug"}}
+                    <th>slug</th>
+                  {{/equals slug "slug"}}
                 {{/locked}}
                 {{^locked}}
                   {{#allows-sorting}}
@@ -32,6 +35,11 @@
                 {{#equals slug "id"}}
                   <td>{{get-in instance "id"}}</td>
                 {{/equals slug "id"}}
+                {{#locked}}
+                  {{#equals slug "slug"}}
+                    <td>{{get-in instance "slug"}}</td>
+                  {{/equals slug "slug"}}
+                {{/locked}}
                 {{^locked}}
                 <td>
                   {{> templates/content/models/fields/view/_[[type]].html }}

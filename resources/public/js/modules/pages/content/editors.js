@@ -946,6 +946,7 @@ var editors = (function (global) {
     cancelButton:      function() { return $("#cancel-button"); },
     addNewButton:      function() { return $("#add-new"); },
     commandMenu:       function() { return $("#command-menu"); },
+    description:       function() { return $("#description"); },
     chooseExistingButton: function() { return $("#choose-existing"); },
     attach: function() {
       var self = this;
@@ -1004,6 +1005,7 @@ var editors = (function (global) {
       }
       this.editors.push( editor );
       global.caribou.breadcrumbs.push({ text: editor.description() });
+      this.description().html( editor.description() );
       this.render();
     },
     pop: function( editor ) {
@@ -1011,6 +1013,7 @@ var editors = (function (global) {
       if ( editor ) {
         global.caribou.breadcrumbs.pop();
         this.render();
+        this.description().html( this.activeEditor().description() );
       }
       return editor;
     },
