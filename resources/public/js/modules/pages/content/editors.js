@@ -175,17 +175,17 @@ var editors = (function (global) {
     attach: function() {
       var self = this;
       var el = $( self.selector() );
-      if ( el.find('option').length <= 2 ) {
+      //if ( el.find('option').length <= 2 ) {
         // hide select because there's only one real option
-        el.hide();
-        el.after( el.find("option:last").text() );
-      } else {
+        //el.hide();
+        //el.after( el.find("option:last").text() );
+      //} else {
         var link = $('<a href="" class="btn btn-success">Re-sort</a>').click( function(e) {
           e.preventDefault();
           self.sortOptions();
         });
         $( self.selector() ).after( link );
-      }
+     // }
       $("#add-" + self.model.slug + "-" + self.field.slug).click(function(e) {
         e.preventDefault();
         return self.addNew();
@@ -517,6 +517,51 @@ var editors = (function (global) {
       if (data) { method = "POST" }
       $.ajax({ url: route, type: method, data: data, success: success });
     },
+    // too much copy & paste here - refactor this from here
+    // and from CollectionChooser
+    selected: function() {
+      var self = this;
+      var selected = [];
+      var _content = {};
+      _( self.value ).each( function(c) { _content[ c.id ] = c } );
+      var ids = $("input[name=id]:checked").each( function(index, el) {
+        selected.push(_content[ $(el).val() ]);
+      });
+      return selected;
+    },
+    command: function( command ) {
+      var self = this;
+      var selected = self.selected();
+      console.log("Applying command "+command, selected);
+      // just do edit for now
+      if (command === "edit") {
+        if (selected.length === 0) {
+          global.caribou.status.addErrorMessage("You have to choose at least one!").render();
+        } else if (selected.length === 1) {
+          return self.editExisting( selected[0] );
+        }
+        return self.bulkEdit( selected );
+      }
+      return;
+    },
+    bulkEdit: function( values ) {
+      var self = this;
+      var editor = new BulkModelEditor({
+        model: self.model,
+        ids: _( values ).pluck("id"),
+        submit: function( value, next ) {
+          self.saveChanges( value, next );
+        }
+      });
+
+      editor.load( function(data, error, jqxhr) {
+        editor.template = data.template;
+        editor.value = data.state;
+        editor.syncToChildren();
+        global.caribou.editors.push( editor );
+      });
+    },
+    // end of nasty copy/paste.
     addNew: function() {
       var self = this;
       console.log("Adding new %s!", this.model.slug);

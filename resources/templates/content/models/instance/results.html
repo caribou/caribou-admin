@@ -4,7 +4,7 @@
 <div class="page-header">
   <ul class="breadcrumb">
     <li> <a href="{{route-for :models {:site params.site :locale params.locale} }}">Models</a> <span class="divider">/</span> </li>
-    <li><a href="{{safe-route-for :edit_model params {:slug model.slug} }}">{{model.name}}</a></li>
+    <li>{{> templates/content/models/instance/_action_menu.html }}</li>
   </ul>
 
   {{> templates/content/models/collection/_search.html}}
