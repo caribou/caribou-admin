@@ -1101,6 +1101,22 @@
     }
   });
 
+  function EditorRegistry() {
+    this.map = {};
+  }
+  $.extend( EditorRegistry.prototype, {
+    register: function( model, editorClass ) { this.map[model] = editorClass },
+    editor: function( options ) {
+      var model = options.model;
+      var content = options.value;
+      if ( this.map[model.slug] ) {
+        var editorClass = this.map[model.slug];
+        return new editorClass( options );
+      }
+      return new ModelEditor( options );
+    }
+  });
+
   (function ($) {
     $.fn.editorStack = function( options ) {
       var selector = this.selector;
@@ -1115,6 +1131,7 @@
   // export the classes through the global
   global.caribou = global.caribou || {};
   global.caribou.editors = {
+    registry: new EditorRegistry(),
     Editor: Editor,
     FieldEditor: FieldEditor,
     ModelEditor: ModelEditor,
@@ -1163,7 +1180,7 @@ $(function () {
     options.value = { id: pageInfo.instanceIds[0] };
   }
 
-  var editor = pageInfo.instanceIds.length > 1 ? new window.caribou.editors.BulkModelEditor(options) : new window.caribou.editors.ModelEditor(options);
+  var editor = pageInfo.instanceIds.length > 1 ? new window.caribou.editors.BulkModelEditor(options) : window.caribou.editors.registry.editor(options);
   editor.load( function( data, error, xhr ) {
     editor.value = pageInfo.instanceIds.length? data.state : {};
     editor.syncToChildren();

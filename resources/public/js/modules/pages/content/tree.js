@@ -14,7 +14,7 @@
     this.parentIdKey = options.parentIdKey || "parent_id";
     this.idKey       = options.idKey       || "id";
     this.labelKey    = options.labelKey    || "name";
-
+    this.serverValue = null;
     return this;
   };
 
@@ -42,6 +42,30 @@
       var tree = self._tree[0];
       var dom = self.produce( $("<ul>"), tree ); 
 
+      if ( self.options.expands ) {
+        $(dom).find("li.treenode").each( function(index, el) {
+          var sub = $("ul", this);
+          if (sub.size() > 0) {
+            $(this).prepend( self.options.collapseSign || '<img src="/img/tree/open.png" width="12" height="12" class="expand" />' );
+          } else {
+            $(this).prepend( '<img src="/img/tree/blank.png" width="12" height="12" class="expand" />'  );
+          }
+        });
+
+        $(dom).find('img.expand').click( function() {
+            if (this.src.indexOf('blank') == -1) {
+              var subbranch = $('ul', this.parentNode).eq(0);
+              if (subbranch.css('display') === 'none') {
+                subbranch.show();
+                this.src = '/img/tree/open.png';
+              } else {
+                subbranch.hide();
+                this.src = '/img/tree/closed.png';
+              }
+            }
+        });
+      }
+
       // TODO: should prune the tree first
       // sets up what's draggable
       $(dom).find("li.treenode").Draggable({ revert: true, autoSize: true, ghosting: true }); 
@@ -54,9 +78,9 @@
         ondrop: function(dropped) {
           console.log("Dropped: ", $(dropped).data());
           console.log("Onto: ", $(this).parent().data());
-          if(this.parentNode == dropped) { return }
+          if(this.parentNode === dropped) { return }
 					var subbranch = $('ul', this.parentNode);
-					if (subbranch.size() == 0) {
+					if (subbranch.size() === 0) {
 						$(this).after('<ul></ul>');
 						subbranch = $('ul', this.parentNode);
 					}
@@ -77,7 +101,7 @@
       var nodesById = { 0: {
         parentId: null,
         id: 0,
-        label: "wtf",
+        label: self.model,
         children: [],
         node: { id: 0 }
       } };
@@ -102,6 +126,10 @@
 
     syncFromDOM: function() {
       var self = this;
+
+      // store the original
+      self.serverValue = self.serverValue || global.caribou.api.deepClone( self.value );
+
       var pairs = [];
       $( self.selector ).find("li").each( function( index, el ) {
         var el = $(el);
@@ -121,7 +149,22 @@
           node[self.parentIdKey] = p.parentId;
         }
       });
-      console.log( JSON.stringify( pairs ) );
+    },
+    submit: function( next ) {
+      var self = this;
+      self.syncFromDOM();
+      var diff = global.caribou.api.difference( self.serverValue, self.value );
+
+      // TODO handle complex diffs like additions and removals
+      var diffs = [];
+      _( diff ).map( function( value, key, all ) {
+        var orig = self.serverValue[key][self.idKey] || null;
+        value[self.idKey] = orig;
+        diffs.push({ model: self.model.slug, fields: value });
+      });
+      console.log( "Submitting differences" );
+      console.log( diffs );
+      return diffs;
     }
   });
 

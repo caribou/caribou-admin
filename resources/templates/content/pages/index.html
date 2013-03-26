@@ -8,46 +8,25 @@
   </div>
 </div>
     
+
+{{> templates/status_messages.html }}
+
 <div class="container-fluid">
   <section>
-    
     <div class="row-fluid">
-      
       <div class="span9 column">
-        
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Page</th>
-              <th>Status</th>
-              <th>&nbsp;</th>
-            </tr>
-          </thead>
-          <tbody>
-            {{#pages}}
-            {{> templates/content_library/pages/_table_row.html}}
-            {{/pages}}
-          </tbody>
-        </table>
-        
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Page</th>
-              <th>Status</th>
-              <th>&nbsp;</th>
-            </tr>
-          </thead>
-          <tbody>
-            {{#admin-pages}}
-            {{> templates/content_library/pages/_table_row.html}}
-            {{/admin-pages}}
-          </tbody>
-        </table>
-        
+        <form method="post">
+
+          <div id="all-pages" class="hide">
+            
+          </div>
+
+          <div class="form-actions">
+            <button id="save-changes" type="submit" class="btn btn-primary">Save changes</button>
+          </div>
+        </form>
       </div>
     </div>
-    
   </section>
 </div>
 
