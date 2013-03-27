@@ -18,10 +18,6 @@
             [caribou.admin.index :as index]
             [caribou.admin.helpers :as helpers]))
 
-(defn safe-route-for
-  [slug & args]
-  (pages/route-for slug (pages/select-route slug (apply merge args))))
-
 (defn part-title
   [field]
   (let [target (model/pick :model {:where {:id (:target_id field)} :include {:fields {}}})]
@@ -75,8 +71,7 @@
 
 (defn all-helpers [] 
   ; TODO - other local helpers here
-  (merge (helpers/all) {:safe-route-for safe-route-for
-                        :order-get-in order-get-in}))
+  (merge helpers/all {:order-get-in order-get-in}))
 
 (defn render
   ([content-type params]

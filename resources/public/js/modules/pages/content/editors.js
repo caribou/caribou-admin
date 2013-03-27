@@ -943,19 +943,16 @@
   }
 
   $.extend( EditorStack.prototype, {
-    // These controls should be added by editors, not
-    // hardcoded here, but for now this is in charge of
-    // navigation and management, so it needs to be the
-    // dude who responds.
-    saveChangesButton: function() { return $("#save-changes"); },
-    saveAndNew:        function() { return $("#save-and-new"); },
-    saveAndContinue:   function() { return $("#save-and-continue"); },
-    backButton:        function() { return $("#back-button");  },
-    cancelButton:      function() { return $("#cancel-button"); },
-    addNewButton:      function() { return $("#add-new"); },
-    commandMenu:       function() { return $("#command-menu"); },
-    description:       function() { return $("#description"); },
-    chooseExistingButton: function() { return $("#choose-existing"); },
+    ownedControl:     function(c) { return $(this.options.selector + "-" + c) },
+    saveChangesButton: function() { return this.ownedControl("save-changes"); },
+    saveAndNew:        function() { return this.ownedControl("save-and-new"); },
+    saveAndContinue:   function() { return this.ownedControl("save-and-continue"); },
+    backButton:        function() { return this.ownedControl("back-button");  },
+    cancelButton:      function() { return this.ownedControl("cancel-button"); },
+    addNewButton:      function() { return this.ownedControl("add-new"); },
+    commandMenu:       function() { return this.ownedControl("command-menu"); },
+    description:       function() { return this.ownedControl("description"); },
+    chooseExistingButton: function() { return this.ownedControl("choose-existing"); },
     attach: function() {
       var self = this;
       console.log("Attaching editor stack to DOM");
@@ -1098,6 +1095,11 @@
     submitActiveEditor: function( next ) {
       var active = this.activeEditor();
       return active.submit( next );
+    },
+    clear: function() {
+      while ( this.editors.pop() ) {
+        console.log( "Popping off stale editor" );
+      }
     }
   });
 
@@ -1180,7 +1182,9 @@ $(function () {
     options.value = { id: pageInfo.instanceIds[0] };
   }
 
-  var editor = pageInfo.instanceIds.length > 1 ? new window.caribou.editors.BulkModelEditor(options) : window.caribou.editors.registry.editor(options);
+  var editor = pageInfo.instanceIds.length > 1 ?
+                new window.caribou.editors.BulkModelEditor(options)
+              : window.caribou.editors.registry.editor(options);
   editor.load( function( data, error, xhr ) {
     editor.value = pageInfo.instanceIds.length? data.state : {};
     editor.syncToChildren();

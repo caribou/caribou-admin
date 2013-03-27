@@ -93,6 +93,14 @@
         }
       });
 
+      $(dom).find("span").off("click").on("click", function(e) {
+        e.preventDefault();
+        var data = $(this).parent().data();
+        console.log("Clicked on ", data);
+        if ( self.options.select ) {
+          self.options.select( data );
+        }
+      });
       $(self.selector).empty().append(dom);
     },
 
@@ -101,7 +109,7 @@
       var nodesById = { 0: {
         parentId: null,
         id: 0,
-        label: self.model,
+        label: self.model.slug,
         children: [],
         node: { id: 0 }
       } };

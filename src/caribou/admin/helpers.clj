@@ -1,5 +1,6 @@
 (ns caribou.admin.helpers
   (:require [clj-time.format :as format]
+            [caribou.app.pages :as pages]
             [caribou.model :as model]))
 
 (import java.util.Date)
@@ -40,6 +41,10 @@
   (if-let [date-string (yyyy-mm-dd m key)]
     date-string
     (yyyy-mm-dd {:d (current-date)} :d)))
+
+(defn safe-route-for
+  [slug & args]
+  (pages/route-for slug (pages/select-route slug (apply merge args))))
 
 (defn asset-is-image [m key]
   (if-let [asset (value-for-key m key)]
@@ -126,7 +131,7 @@
      }))
 
 ;; is there an easier way to export all the functions in a map?
-(defn all []
+(def all
 	{:value-for-key value-for-key
 	 :date-year date-year
 	 :date-month date-month
@@ -145,4 +150,5 @@
    :position-of position-of
    :get-in get-in-helper
    :join-model? join-model?
+   :safe-route-for safe-route-for
 	 })

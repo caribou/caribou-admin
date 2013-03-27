@@ -1,7 +1,13 @@
 (ns caribou.admin.controllers.content.pages
-  (:use caribou.app.controller
-        [clojure.string :only (join)])
-  (:require [caribou.model :as model]))
+  (:require [caribou.model :as model]
+            [caribou.app.controller :as controller]
+            [caribou.admin.helpers :as helpers]))
+
+(defn all-helpers [] 
+  helpers/all)
+
+(defn render [params]
+  (controller/render (merge (all-helpers) params)))
 
 (defn index
   [request]
