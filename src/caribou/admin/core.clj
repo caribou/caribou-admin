@@ -90,7 +90,7 @@
    {:reload-pages reload-pages
     :halo-reset handler/reset-handler})
   (def handler
-    (-> (handler/gen-handler)
+    (-> (handler/handler)
         (admin-wrapper)
         ;; (provide-helpers)
         ;; (user-required)
