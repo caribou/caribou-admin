@@ -19,6 +19,7 @@
             [caribou.app.request :as request]
             [caribou.app.handler :as handler]
             [caribou.app.controller :as controller]
+            [caribou.admin.helpers :as helpers]
             [caribou.admin.routes :as routes]))
 
 (declare handler)
@@ -57,7 +58,7 @@
   [handler]
   (fn [request]
     (let [models (model/gather
-                  :model 
+                  :model
                   {:where {:locked false :join_model false}
                    :order {:id :asc}})]
       (handler (assoc request :user-models models)))))
@@ -69,7 +70,7 @@
 (defn provide-helpers
   [handler]
   (fn [request]
-    (let [request (merge request base-helpers)]
+    (let [request (merge request base-helpers helpers/all)]
       (handler request))))
 
 (defn admin-wrapper

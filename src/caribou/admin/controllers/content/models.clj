@@ -70,15 +70,14 @@
     (println (map #(:friendly-path %) filled))
     filled))
 
-(defn all-helpers []
-  ; TODO - other local helpers here
-  (merge helpers/all {:order-get-in order-get-in}))
+(def all-helpers
+  {:order-get-in order-get-in})
 
 (defn render
   ([content-type params]
     (controller/render content-type params))
   ([params]
-    (controller/render (merge (all-helpers) params))))
+    (controller/render (merge all-helpers params))))
 
 (defn json-response
   [data]
