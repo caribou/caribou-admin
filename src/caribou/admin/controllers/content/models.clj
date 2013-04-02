@@ -10,12 +10,13 @@
             [clojure.pprint :as pprint]
             [clojure.walk :as walk]
             [caribou.util :as util]
+            [caribou.logger :as log]
             [caribou.app.pages :as pages]
             [caribou.app.template :as template]
             [caribou.app.handler :as handler]
             [caribou.asset :as asset]
             [caribou.config :as config]
-            [caribou.admin.index :as index]
+            [caribou.index :as index]
             [caribou.admin.helpers :as helpers]))
 
 (defn part-title
@@ -69,7 +70,7 @@
     (println (map #(:friendly-path %) filled))
     filled))
 
-(defn all-helpers [] 
+(defn all-helpers []
   ; TODO - other local helpers here
   (merge helpers/all {:order-get-in order-get-in}))
 
@@ -204,8 +205,7 @@
   [request]
   (let [model-slug (-> request :params :slug)
         edited-instance (dissoc (:params request) :slug)
-        updated-instance (model/create model-slug edited-instance)
-        ]
+        updated-instance (model/create model-slug edited-instance)]
     (println updated-instance)
     (controller/redirect (pages/route-for :edit_model_instance {:id (:id updated-instance) :slug model-slug})
       {:cookies {"success-message" {:value (str "You successfully updated this " model-slug)}}})))
@@ -231,8 +231,8 @@
                 (if (empty? (:id params)) {} {:id (:id params)}))
         order (if (:order params) (model/process-order (:order params)) {})
         raw-content (model/gather (:slug model) {:where where
-                                                 :include include 
-                                                 :limit (:limit params) 
+                                                 :include include
+                                                 :limit (:limit params)
                                                  :offset (:offset params)})
         content (map #(if (= (:slug model) "asset")
                         (assoc % :path (asset/asset-path %))
@@ -253,8 +253,8 @@
         _ (println join-include)
         where (if (empty? (:id params)) {} {:id (:id params)})
         raw-content (model/gather (:slug model) {:where where
-                                                 :include join-include 
-                                                 :limit (:limit params) 
+                                                 :include join-include
+                                                 :limit (:limit params)
                                                  :offset (:offset params)})
         instance (first raw-content)
         associated-content ((keyword assoc-name) instance)
@@ -271,7 +271,7 @@
         model (@model/models (keyword (:model params)))
         association (get-in model [:fields (keyword (:field params))])
         target (model/pick :model {:where {:id (-> association :row :target_id)} :include {:fields {}}})
-        template (template/find-template 
+        template (template/find-template
                    (util/pathify ["content" "models" "instance" (or (:template params) "_collection.html")]))
         stuff (find-associated-content params)
         content (:content stuff)
@@ -296,7 +296,7 @@
   [request]
   (let [params (-> request :params)
         model (model/pick :model {:where {:slug (:model params)} :include {:fields {}}})
-        template (template/find-template 
+        template (template/find-template
                    (util/pathify ["content" "models" "instance" (or (:template params) "_edit.html")]))
         results (find-content params)
         instance (if-not (empty? (:id params))
@@ -329,7 +329,7 @@
                       (if (= (:id a) (:id b)) a nil)
                       (if (= a b) a nil)))
         merged (apply (partial merge-with all-equal) inflated)
-        template (template/find-template 
+        template (template/find-template
                    (util/pathify ["content" "models" "instance" (or (:template params) "_edit.html")]))]
     (json-response
       {:template (:body (render (merge request {:template template
@@ -361,13 +361,11 @@
   [request]
   (let [payload (json-payload request)
         updated (map (fn [x] (vector (:model x) (model/create (keyword (:model x)) (:fields x)))) payload)
-        indexed (doall (map (fn [x] (index/update (@model/models (keyword (first x))) (second x))) updated))
         results (map second updated)]
-    ;; TODO: it is expensive to do this every time,
-    ;; so we really should only do it if fields or models
-    ;; are updated.
-    (query/clear-queries)
-    (model/init)
+    (when-not (empty? (set/intersection #{"model" "field"} (set (map :model payload))))
+      (log/debug "Reloading model, clearing query cache!")
+      (query/clear-queries)
+      (model/init))
     (when-not (empty? (set/intersection #{"page"} (set (map :model payload))))
       (println "RESETTING HANDLER!!")
       (handler/reset-handler))
