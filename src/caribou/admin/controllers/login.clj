@@ -25,7 +25,7 @@
   [request]
   (let [email (-> request :params :email)
         password (-> request :params :password)
-        locale (or (-> request :params :locale) "en_US")
+        locale (or (-> request :params :locale) "global")
         target (or (-> request :params :target)
                    (route-for :models {:locale locale :site "admin"}))
         account (model/pick :account {:where {:email email}})

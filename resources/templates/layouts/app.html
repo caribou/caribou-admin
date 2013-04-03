@@ -30,7 +30,7 @@
   <script src="/js/libs/jquery-1.7.2.min.js"></script>
 	<script src="/js/libs/modernizr-2.5.3-respond-1.1.0.min.js"></script>
 </head>
-<body id="{{page.slug}}" data-controller="{{page.slug}}" data-model="{{model.slug}}" data-api="{{route-for :model_api {:site params.site :locale params.locale} }}" data-instance-ids="{{instance-ids}}">
+<body id="{{page.slug}}" data-controller="{{page.slug}}" data-model="{{model.slug}}" data-api="{{route-for :model_api {:site params.site :locale params.locale} }}" data-instance-ids="{{instance-ids}}" data-locale="{{locale-code params.locale}}">
 <!--[if lt IE 7]><p class=chromeframe>Your browser is <em>ancient!</em> <a href="http://browsehappy.com/">Upgrade to a different browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">install Google Chrome Frame</a> to experience this site.</p><![endif]-->
 
   <div class="navbar navbar-inverse navbar-fixed-top">
@@ -79,7 +79,7 @@
                 <li><a href="#">Contributors</a></li>
                 <li class="divider"></li>
                 <li><a href="#">Sites</a></li>
-                <li><a href="#">Locales</a></li>
+                <li><a href="{{safe-route-for :results params {:slug "locale"} }}">Locales</a></li>
                 <li class="divider"></li>
                 <li><a href="{{safe-route-for :models params}}">Model</a></li>
                 <li><a href="{{safe-route-for :pages params}}">Pages</a></li>
@@ -98,8 +98,11 @@
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown">Locale <b class="caret"></b></a>
               <ul class="dropdown-menu">
-                <li><a href="#settings">Global</a></li>
-                <li><a href="#settings">en_US</a></li>
+                <li><a href="{{route-for page.slug params {:locale "global"} }}">Global</a></li>
+                {{#locales:locale}} 
+                <li><a href="{{route-for page.slug params {:locale locale.code} }}">{{locale.description}} ({{locale.code}})</a></li>
+                {{/locales}}
+                <li><a href="{{safe-route-for :create_model_instance params {:slug "locale"} }}">Create</a></li>
               </ul>
             </li>
             <li class="divider-vertical"></li>

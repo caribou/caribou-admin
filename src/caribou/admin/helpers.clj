@@ -130,7 +130,30 @@
      :opts              opts
      }))
 
-;; is there an easier way to export all the functions in a map?
+(defn system-field? [field]
+  (or (#{"position" "created_at" "updated_at" "locked" "searchable" "distinct"} (:slug field))
+          (.endsWith (:slug field) "_id")
+          (.endsWith (:slug field) "_position")))
+
+
+;; -------- locale helpers --------
+
+(defn locales []
+  (model/gather :locale))
+
+(defn localized-models []
+  (model/gather :model {:where {:localized true}}))
+
+(defn locale-code
+  "This is the actual locale code - for 'global', this
+  will be blank, and for all others it will be the code"
+  [code]
+  (if (or (nil? code) (empty? code) (= "global" code))
+    ""
+    code))
+
+;; --------------------------------
+
 (def all
 	{:value-for-key value-for-key
 	 :date-year date-year
@@ -151,4 +174,8 @@
    :get-in get-in-helper
    :join-model? join-model?
    :safe-route-for safe-route-for
+   :system-field? system-field?
+   :locales locales
+   :localized-models localized-models
+   :locale-code locale-code
 	 })

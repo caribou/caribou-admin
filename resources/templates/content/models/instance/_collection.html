@@ -6,24 +6,24 @@
               <th>
                &nbsp;
               </th>
-              {{#fields}}
-                {{#locked}}
-                  {{#equals slug "id"}}
-                    <th><a href="{{safe-route-for :results params}}?order={{slug}}">{{name}}</a></th>
-                  {{/equals slug "id"}}
-                  {{#equals slug "slug"}}
-                    <th>slug</th>
-                  {{/equals slug "slug"}}
-                {{/locked}}
-                {{^locked}}
+              {{#fields:field}}
+                {{#system-field? field}}
+                  {{!#equals field.slug "id"}}
+                  {{!<th><a href="{safe-route-for :results params}?order={field.slug}">{field.name}</a></th>}}
+                  {{!/equals field.slug "id"}}
+                  {{!#equals field.slug "slug"}}
+                  {{!<th>slug</th>}}
+                  {{!/equals field.slug "slug"}}
+                {{/system-field? field}}
+                {{^system-field? field}}
                   {{#allows-sorting}}
-                    <th><a href="{{safe-route-for :results params}}?order={{slug}}">{{name}}</a></th>
+                    <th><a href="{{safe-route-for :results params}}?order={{field.slug}}">{{field.name}}</a></th>
                   {{/allows-sorting}}
                   {{^allows-sorting}}
-                    <th>{{name}}</th>
+                    <th>{{field.name}}</th>
                   {{/allows-sorting}}
-                {{/locked}}
-              {{/fields}}
+                {{/system-field? field}}
+              {{/fields:field}}
               <th>Fun stuff</th>
             </tr>
           </thead>
@@ -31,28 +31,28 @@
             {{#pager.results:instance}}
             <tr data-position='{ "position": {{order-get-in instance order-info.position-slug}}, "id": "{{get-in instance "id" }}" }' {{#locked}}class="error"{{/locked}}>
               <td><input type="checkbox" name="id" value="{{get-in instance "id" }}" /></td>
-              {{#fields}}
-                {{#equals slug "id"}}
-                  <td>{{get-in instance "id"}}</td>
-                {{/equals slug "id"}}
-                {{#locked}}
-                  {{#equals slug "slug"}}
-                    <td>{{get-in instance "slug"}}</td>
-                  {{/equals slug "slug"}}
-                {{/locked}}
-                {{^locked}}
+              {{#fields:field}}
+                {{!#equals field.slug "id"}}
+                {{!<td>{get-in instance "id"}</td>}}
+                {{!/equals field.slug "id"}}
+                {{#system-field? field}}
+                  {{!#equals field.slug "slug"}}
+                  {{!<td>{get-in instance "slug"}</td>}}
+                  {{!/equals field.slug "slug"}}
+                {{/system-field? field}}
+                {{^system-field? field}}
                 <td>
                   {{> templates/content/models/fields/view/_[[type]].html }}
                 </td>
-                {{/locked}}
-              {{/fields}}
+                {{/system-field? field}}
+              {{/fields:field}}
               <td>
-                {{^locked}}
+                {{^field.locked}}
                   <a class="choose-link hide" href="#choose" data-model="{{model.slug}}" data-id="{{id}}">Choose</a>
                   <a class="edit-link" href="{{safe-route-for :edit_model_instance params {:id id} }}" data-model="{{model.slug}}" data-id="{{id}}">Edit</a>
                   <a class="remove-link hide" href="#remove" data-toggle="tooltip" title="Doesn't delete the content, just removes its association." data-model="{{model.slug}}" data-id="{{id}}">Remove</a>
                   <a class="delete-link" href="#destroy" data-model="{{model.slug}}" data-id="{{id}}">Destroy</a>
-                {{/locked}}
+                {{/field.locked}}
               </td>
             </tr>
             {{/pager.results:instance}}

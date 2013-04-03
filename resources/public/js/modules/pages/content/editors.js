@@ -5,8 +5,9 @@
     if ( options.from ) {
       self.initFrom( options.from );
     }
-    self.model = options.model || self.model;
-    self.value = options.value || self.value;
+    self.model  = options.model || self.model;
+    self.value  = options.value || self.value;
+    self.locale = options.locale || self.locale;
     self.options = options;
 
     // the stack is discovered this way, see stack() below
@@ -23,6 +24,7 @@
       self.parent = parent;
       self.model = parent.model;
       self.value = parent.value;
+      self.locale = parent.locale;
     },
 
      // retrieves a value from the editor's state
@@ -406,7 +408,7 @@
         self.set( child.field.slug, value.value );
         self.set( child.field.slug + "_id", value.id );
       } else {
-        self.set( child.field.slug, value ); 
+        self.set( child.field.slug, value );
       }
       if (next) next( value );
     },
@@ -877,7 +879,7 @@
       if (self.multiple) {
         self.value = self.selected();
       }
-      self.callback("submit", next); 
+      self.callback("submit", next);
     }
   });
 
@@ -900,7 +902,7 @@
     },
     syncFromChild: function( child, value, next ) {
       var self = this;
-      var checkboxes = $("input[name='caribou-update'][value='" + child.field.slug + "']:checked"); 
+      var checkboxes = $("input[name='caribou-update'][value='" + child.field.slug + "']:checked");
       if (checkboxes.length) {
         ModelEditor.prototype.syncFromChild.call( this, child, value, next );
       }
@@ -1159,6 +1161,7 @@ $(function () {
   // ack
   var options = {
     model: api.model( pageInfo.model ),
+    locale: (pageInfo.locale === "global" ? null : pageInfo.locale),
     submit: function( value, next ) {
       console.log("Holy smokes, batman!", value);
       var values = _.isArray( value ) ? value : [value];
