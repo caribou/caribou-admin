@@ -1,0 +1,45 @@
+@import "compass/css3";
+@import "variables";
+
+.navbar-fixed-top .brand {
+  font-weight: bold;
+  color: #777;
+  @include text-shadow(0 1px 0 rgba(255,255,255,.1), 0 0 30px rgba(255,255,255,.125));
+  @include transition(all .2s linear);
+}
+
+.navbar-fixed-top .brand:hover {
+  text-decoration: none;
+}
+.dropdown-menu li > a:hover,
+.dropdown-menu li > a:focus,
+.dropdown-submenu:hover > a {
+    background-color: $primary;
+    background-image: none;
+    @include box-shadow($innerShadow);
+    @include text-shadow(none);
+}
+.navbar-inverse .navbar-inner {
+  background-color: $secondary;
+  @include background(linear-gradient(lighten($secondary,10),$secondary));
+}
+//Never show the breadcrumb divider in a nav dropdown
+.dropdown-menu .divider {
+    display: none;
+}
+
+/* Custom: Status Banner
+-------------------------------------------------- */
+.status {
+  position: absolute;
+  top: 12px;
+  right: -38px;
+  width: 120px;
+  text-align: center;
+  -webkit-transform: rotate(45deg);
+  padding: 12px 12px;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.85);
+  font-size: 10px;
+  font-weight: normal;
+}

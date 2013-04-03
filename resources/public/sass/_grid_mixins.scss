@@ -1,0 +1,68 @@
+@mixin grid-columns {
+    /* Container for columns. Needs clearfix as cols are floated. */
+    .grid-block {
+        @include pie-clearfix;
+    }
+
+    /* This is where the column widths and classes get built */
+    @for $colSize from 1 through $columns {
+        .col-#{$colSize} {
+            width: ($colSize * $grid-width) - $gutter-width;
+        }
+    }
+    /* Styling for all columns, regardless of width. */
+    div[class^="col"] {
+        float: left;
+        margin-left: $gutter-width;
+        &:first-child {
+            margin-left: auto;
+        }
+    }
+    /* Styling for all columns that will be centered. */
+    div[class*="center-col"] {
+      float: none;
+      display: block;
+      margin-right: auto;
+      margin-left: auto;
+    }
+}
+@mixin alter-grid-for-media {
+    .media-one-half div[class^="col"] {
+        width: (($columns * $grid-width) / 2) - $gutter-width;
+    }
+    .media-one-third div[class^="col"] {
+        width: (($columns * $grid-width) / 3) - $gutter-width;
+    }
+    .media-one-fourth div[class^="col"] {
+        width: (($columns * $grid-width) / 4) - $gutter-width;
+    }
+    .media-full div[class^="col"] {
+        width: 100%;
+        float: none;
+        margin: $gutter-width auto auto auto;
+    }
+}
+
+// Media Query Sizes //
+$portrait-small-device-start:      321px!default;
+$landscape-small-device-end:       480px!default;
+$portrait-tablet-device-start:     768px!default;
+$desk-start:                       1024px!default;
+$landscape-tablet-device-end:      $desk-start - 1px;
+
+@mixin media-query($media-query){
+
+    @if $media-query == small {
+        @media only screen and (max-width:$landscape-small-device-end) { @content; }
+    }
+    @if $media-query == tablet {
+        @media only screen and (min-width:$portrait-tablet-device-start) and (max-width:$landscape-tablet-device-end) { @content; }
+    }
+    @if $media-query == small-and-tablet {
+        @media only screen and (max-width:$landscape-tablet-device-end) { @content; }
+    }
+    @if $media-query == desk{
+        @media only screen and (min-width:$desk-start) { @content; }
+    }
+}
+
