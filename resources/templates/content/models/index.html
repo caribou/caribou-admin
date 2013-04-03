@@ -3,8 +3,8 @@
 
 <div class="page-header">
   <div class="container-fluid clearfix">
-    <h1 class="pull-left">Models</h1>
-    <a class="pull-right btn btn-large" data-toggle="modal" data-target="#new-model" >New Model</a>
+    <h1>Models</h1>
+    <a class="btn" data-toggle="modal" data-target="#new-model" >New Model</a>
   </div>
 </div>
 
@@ -28,7 +28,7 @@
           </thead>
           <tbody class="sortable" data-position-field="position" data-position-model="model">
             {{#unlocked}}
-            <tr {{#join_model}}class="error"{{/join_model}}>
+            <tr {{#join_model}}class="disabled_bg"{{/join_model}}>
               <td>{{id}}</td>
               <td>{{name}}</td>
               <td>{{created_at}}</td>
@@ -46,7 +46,7 @@
           </tbody>
         </table>
         {{^unlocked}}
-          <div class="alert alert-error">Oh no!  Nobody has created any models yet!</div>
+          <div class="alert alert-error"><span class="instrument-icon-circle-exclamation"></span> &nbsp;Oh no!  Nobody has created any models yet!</div>
         {{/unlocked}}
         
         <h2>System Models</h2>

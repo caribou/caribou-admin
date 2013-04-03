@@ -10,3 +10,7 @@ pom.xml
 .lein-plugins
 /resources/config/
 index/
+.lein-repl-history
+.sass-cache/
+caribou_admin.h2.db
+caribou_admin.trace.db

@@ -1,0 +1,33 @@
+@import "variables";
+@import "compass/css3/";
+
+@mixin gradient-bg-color($background-color) {
+    background-color: #{$background-color};
+    &:hover {
+        background: darken($background-color, 5);
+    }
+}
+a.btn {
+    text-decoration: none;
+}
+.btn, .btn-primary, .btn-secondary, .btn-success, .btn-warning, .btn-error {
+    @include box-shadow($innerShadow);
+    background-image: none;
+}
+.btn {
+    @include gradient-bg-color(lighten($secondary,82));
+}
+.btn-primary {
+    @include gradient-bg-color($primary);
+}
+
+.btn-success {
+    @include gradient-bg-color($success);
+}
+
+.btn-warning {
+    @include gradient-bg-color($warning);
+}
+.btn-danger {
+    @include gradient-bg-color($error);
+}

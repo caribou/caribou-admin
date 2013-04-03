@@ -9,38 +9,38 @@
   {{> templates/content/models/collection/_search.html}}
 
   <div class="container-fluid clearfix">
-    <h1 class="pull-left" id="description">{{model.name}}</h1>
-    <a class="pull-right btn btn-large" href="{{safe-route-for :edit_model params {:slug model.slug} }}">Edit Model</a>
+    <h1 id="description">{{model.name}}</h1>
+    <a class="btn" href="{{safe-route-for :edit_model params {:slug model.slug} }}">Edit Model</a>
   </div>
 </div>
 
 {{> templates/status_messages.html }}
 
-<div class="container-fluid">
-  <section>
-    <div class="row-fluid">
-      <div class="span9 column">
-        <form method="post">
+<form method="post">
+  <div class="container-fluid">
+    <section>
+            <div class="row-fluid">
+              <div class="span9 column">
 
-          {{> templates/content/models/collection/_commands.html}}
+                  {{> templates/content/models/collection/_commands.html}}
 
-          <div id="editor" class="hide">
-            {{> templates/content/models/instance/_edit.html}}
-          </div>
+                  <div id="editor" class="hide">
+                    {{> templates/content/models/instance/_edit.html}}
+                  </div>
 
-          <div class="form-actions">
-            <button id="save-changes" type="submit" class="btn btn-primary">Save changes</button>
-            <button id="save-and-new" type="submit" class="btn btn-primary hide">Save then add another</button>
-            <button id="save-and-continue" type="submit" class="btn btn-primary hide">Save then continue editing</button>
-            <button id="back-button" type="submit" class="btn btn-primary hide">&lt;&lt; Save &amp; return</button>
-            <button id="add-new" type="submit" class="btn btn-success hide">+ new</button>
-            <button id="choose-existing" type="submit" class="btn btn-success hide">+ existing</button>
-            <button id="cancel-button" type="submit" class="btn btn-danger hide pull-right">&lt;&lt; Don't save</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </section>
-</div>
+              </div>
+            </div>
+    </section>
+  </div>
+  <div class="form-actions">
+    <button id="save-changes" type="submit" class="btn btn-primary">Save changes</button>
+    <button id="save-and-new" type="submit" class="btn btn-primary hide">Save then add another</button>
+    <button id="save-and-continue" type="submit" class="btn btn-primary hide">Save then continue editing</button>
+    <button id="back-button" type="submit" class="btn btn-primary hide">&lt;&lt; Save &amp; return</button>
+    <button id="add-new" type="submit" class="btn btn-success hide">+ new</button>
+    <button id="choose-existing" type="submit" class="btn btn-success hide">+ existing</button>
+    <button id="cancel-button" type="submit" class="btn btn-danger hide pull-right">&lt;&lt; Don't save</button>
+  </div>
+</form>
 
 {{/content}}
