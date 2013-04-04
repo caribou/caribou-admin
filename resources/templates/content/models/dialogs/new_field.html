@@ -12,7 +12,7 @@
         <div class="controls">
           <select name="field-type" id="field-type">
             {{! TODO: where do i get this list from? }}
-            <option value="">What type of field?</option>
+            <!-- option value="">What type of field?</option -->
             <option value="string">A single text string</option>
             <option value="text">A body of text</option>
             <option value="boolean">Boolean (Yes/No) field</option>
@@ -22,7 +22,7 @@
             <option value="asset">Asset (like an Image or Video)</option>
             <option value="link">Link to other models</option>
             <option value="collection">Collection of other model things</option>
-            <option value="part">A single associate model</option>
+            <option value="part">A single associated model</option>
           </select>
         </div>
       </div>
@@ -34,7 +34,7 @@
         </div>
         <label class="control-label" for="searchable">Is it searchable?</label>
         <div class="controls">
-          <input type="checkbox" id="searchable" name="searchable" value="yes" /> Should Caribou index this field?
+          <input type="checkbox" id="searchable" name="searchable" value="yes" checked="checked" /> Should Caribou index this field?
         </div>
       </div>
 

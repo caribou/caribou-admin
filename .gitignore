@@ -5,6 +5,7 @@
 pom.xml
 *.jar
 *.class
+.DS_Store
 .lein-deps-sum
 .lein-failures
 .lein-plugins

@@ -43,7 +43,7 @@ table td {
 -------------------------------------------------- */
 .navbar-fixed-top .brand {
   font-weight: bold;
-  color: #000;
+  color: #777;
   text-shadow: 0 1px 0 rgba(255,255,255,.1), 0 0 30px rgba(255,255,255,.125);
   -webkit-transition: all .2s linear;
      -moz-transition: all .2s linear;
@@ -57,7 +57,6 @@ table td {
 .navbar-inner {
   background-image: url("/admin/img/pizazz-dark.png");
 }
-
 
 
 
@@ -75,4 +74,20 @@ table td {
   background: rgba(0, 0, 0, 0.85);
   font-size: 10px;
   font-weight: normal;
+}
+
+
+/* Custom tree control styles */
+
+ul.treenode {
+  list-style: none;
+}
+
+img.expand {
+  /* margin-right: 4px; */
+}
+
+li.treenode {
+  list-style: none;
+  border-top: 1px dotted #eee;
 }

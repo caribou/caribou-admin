@@ -2,8 +2,8 @@
 {{%content}}
 <div class="page-header">
   <ul class="breadcrumb">
-    <li> <a href="{{safe-route-for :models params}}">Models</a> <span class="divider">/</span> </li>
-    <li class="active">{{model.name}}</li>
+    <li> <a href="{{safe-route-for :models params}}">Models</a> <span class="divider">/</span></li>
+    <li class="active">{{> templates/content/models/instance/_action_menu.html}}</li>
   </ul>
 
   {{> templates/content/models/collection/_search.html}}

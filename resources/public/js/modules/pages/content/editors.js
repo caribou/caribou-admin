@@ -1,4 +1,4 @@
-var editors = (function (global) {
+(function (global) {
   function Editor( options ) {
     var self = this;
 
@@ -8,6 +8,9 @@ var editors = (function (global) {
     self.model = options.model || self.model;
     self.value = options.value || self.value;
     self.options = options;
+
+    // the stack is discovered this way, see stack() below
+    self._stack = null;
 
     return self;
   }
@@ -53,6 +56,11 @@ var editors = (function (global) {
       $(selector).empty().html( this.template );
       this.syncToDOM();
     },
+    stack: function() {
+      if ( this._stack ) { return this._stack }
+      return this.parent.stack();
+    },
+    setStack: function(s) { this._stack = s },
     _callback: function( name, value, next ) {
       var f = this.options[name] || function ( value, next ) { if (next) { next( value ) } };
       f( value, next );
@@ -83,7 +91,7 @@ var editors = (function (global) {
     attach:      function() {},
     syncToDOM:   function() {},
     syncFromDOM: function() {},
-    load:        function() {},
+    load:        function( success ) {},
     refresh:     function( success ) {
       var self = this;
       self.load( function( data, error, jqxhr ) {
@@ -175,17 +183,17 @@ var editors = (function (global) {
     attach: function() {
       var self = this;
       var el = $( self.selector() );
-      if ( el.find('option').length <= 2 ) {
+      //if ( el.find('option').length <= 2 ) {
         // hide select because there's only one real option
-        el.hide();
-        el.after( el.find("option:last").text() );
-      } else {
+        //el.hide();
+        //el.after( el.find("option:last").text() );
+      //} else {
         var link = $('<a href="" class="btn btn-success">Re-sort</a>').click( function(e) {
           e.preventDefault();
           self.sortOptions();
         });
         $( self.selector() ).after( link );
-      }
+     // }
       $("#add-" + self.model.slug + "-" + self.field.slug).click(function(e) {
         e.preventDefault();
         return self.addNew();
@@ -226,7 +234,7 @@ var editors = (function (global) {
 
       editor.load( function(data, error, xhr) {
         editor.template = data.template;
-        global.caribou.editors.push( editor );
+        self.stack().push( editor );
       });
     }
   });
@@ -265,7 +273,7 @@ var editors = (function (global) {
       editor.load( function( data, error, jqxhr ) {
         editor.template = data.template;
         editor.value = data.state || editor.value;
-        global.caribou.editors.push( editor );
+        self.stack().push( editor );
       });
 
       return false;
@@ -309,7 +317,7 @@ var editors = (function (global) {
       editor.load( function( data, error, jqxhr ) {
         editor.template = data.template;
         editor.value = data.value || editor.value;
-        global.caribou.editors.push( editor );
+        self.stack().push( editor );
       });
     }
   });
@@ -517,6 +525,51 @@ var editors = (function (global) {
       if (data) { method = "POST" }
       $.ajax({ url: route, type: method, data: data, success: success });
     },
+    // too much copy & paste here - refactor this from here
+    // and from CollectionChooser
+    selected: function() {
+      var self = this;
+      var selected = [];
+      var _content = {};
+      _( self.value ).each( function(c) { _content[ c.id ] = c } );
+      var ids = $("input[name=id]:checked").each( function(index, el) {
+        selected.push(_content[ $(el).val() ]);
+      });
+      return selected;
+    },
+    command: function( command ) {
+      var self = this;
+      var selected = self.selected();
+      console.log("Applying command "+command, selected);
+      // just do edit for now
+      if (command === "edit") {
+        if (selected.length === 0) {
+          global.caribou.status.addErrorMessage("You have to choose at least one!").render();
+        } else if (selected.length === 1) {
+          return self.editExisting( selected[0] );
+        }
+        return self.bulkEdit( selected );
+      }
+      return;
+    },
+    bulkEdit: function( values ) {
+      var self = this;
+      var editor = new BulkModelEditor({
+        model: self.model,
+        ids: _( values ).pluck("id"),
+        submit: function( value, next ) {
+          self.saveChanges( value, next );
+        }
+      });
+
+      editor.load( function(data, error, jqxhr) {
+        editor.template = data.template;
+        editor.value = data.state;
+        editor.syncToChildren();
+        self.stack().push( editor );
+      });
+    },
+    // end of nasty copy/paste.
     addNew: function() {
       var self = this;
       console.log("Adding new %s!", this.model.slug);
@@ -540,7 +593,7 @@ var editors = (function (global) {
 
       editor.load( function(data, error, xhr) {
         editor.template = data.template;
-        global.caribou.editors.push( editor );
+        self.stack().push( editor );
       });
 
       return false;
@@ -559,7 +612,7 @@ var editors = (function (global) {
         editor.template = data.template;
         editor.value = data.state;
         editor.syncToChildren();
-        global.caribou.editors.push( editor );
+        self.stack().push( editor );
       });
     },
     removeExisting: function( existing ) {
@@ -614,7 +667,7 @@ var editors = (function (global) {
       });
       chooser.load( function(data, error, jqxhr) {
         chooser.template = data.template;
-        global.caribou.editors.push( chooser );
+        self.stack().push( chooser );
       });
     },
     saveChanges: function( value, next ) {
@@ -747,7 +800,7 @@ var editors = (function (global) {
         editor.template = data.template;
         editor.value = data.state;
         editor.syncToChildren();
-        global.caribou.editors.push( editor );
+        self.stack().push( editor );
       });
     },
     bulkEdit: function( values ) {
@@ -764,7 +817,7 @@ var editors = (function (global) {
         editor.template = data.template;
         editor.value = data.state;
         editor.syncToChildren();
-        global.caribou.editors.push( editor );
+        self.stack().push( editor );
       });
     },
     saveChanges: function( value, next ) {
@@ -890,18 +943,16 @@ var editors = (function (global) {
   }
 
   $.extend( EditorStack.prototype, {
-    // These controls should be added by editors, not
-    // hardcoded here, but for now this is in charge of
-    // navigation and management, so it needs to be the
-    // dude who responds.
-    saveChangesButton: function() { return $("#save-changes"); },
-    saveAndNew:        function() { return $("#save-and-new"); },
-    saveAndContinue:   function() { return $("#save-and-continue"); },
-    backButton:        function() { return $("#back-button");  },
-    cancelButton:      function() { return $("#cancel-button"); },
-    addNewButton:      function() { return $("#add-new"); },
-    commandMenu:       function() { return $("#command-menu"); },
-    chooseExistingButton: function() { return $("#choose-existing"); },
+    ownedControl:     function(c) { return $(this.options.selector + "-" + c) },
+    saveChangesButton: function() { return this.ownedControl("save-changes"); },
+    saveAndNew:        function() { return this.ownedControl("save-and-new"); },
+    saveAndContinue:   function() { return this.ownedControl("save-and-continue"); },
+    backButton:        function() { return this.ownedControl("back-button");  },
+    cancelButton:      function() { return this.ownedControl("cancel-button"); },
+    addNewButton:      function() { return this.ownedControl("add-new"); },
+    commandMenu:       function() { return this.ownedControl("command-menu"); },
+    description:       function() { return this.ownedControl("description"); },
+    chooseExistingButton: function() { return this.ownedControl("choose-existing"); },
     attach: function() {
       var self = this;
       console.log("Attaching editor stack to DOM");
@@ -957,8 +1008,10 @@ var editors = (function (global) {
       if ( active ) {
         active.syncFromDOM();
       }
+      editor.setStack( this );
       this.editors.push( editor );
       global.caribou.breadcrumbs.push({ text: editor.description() });
+      this.description().html( editor.description() );
       this.render();
     },
     pop: function( editor ) {
@@ -966,6 +1019,7 @@ var editors = (function (global) {
       if ( editor ) {
         global.caribou.breadcrumbs.pop();
         this.render();
+        this.description().html( this.activeEditor().description() );
       }
       return editor;
     },
@@ -1041,10 +1095,45 @@ var editors = (function (global) {
     submitActiveEditor: function( next ) {
       var active = this.activeEditor();
       return active.submit( next );
+    },
+    clear: function() {
+      while ( this.editors.pop() ) {
+        console.log( "Popping off stale editor" );
+      }
     }
   });
 
-  return {
+  function EditorRegistry() {
+    this.map = {};
+  }
+  $.extend( EditorRegistry.prototype, {
+    register: function( model, editorClass ) { this.map[model] = editorClass },
+    editor: function( options ) {
+      var model = options.model;
+      var content = options.value;
+      if ( this.map[model.slug] ) {
+        var editorClass = this.map[model.slug];
+        return new editorClass( options );
+      }
+      return new ModelEditor( options );
+    }
+  });
+
+  (function ($) {
+    $.fn.editorStack = function( options ) {
+      var selector = this.selector;
+      var opts = $.extend( options, { selector: selector } );
+      var stack = new EditorStack( opts );
+      this.data({ stack: stack });
+      stack.attach();
+      return stack;
+    }
+  })(jQuery);
+
+  // export the classes through the global
+  global.caribou = global.caribou || {};
+  global.caribou.editors = {
+    registry: new EditorRegistry(),
     Editor: Editor,
     FieldEditor: FieldEditor,
     ModelEditor: ModelEditor,
@@ -1065,8 +1154,7 @@ $(function () {
   var pageInfo = $('body').data();
   var ids = pageInfo.instanceIds || [];
   var api = window.caribou.api;
-  var stack = window.caribou.editors = new editors.EditorStack({ selector: "#editor" });
-  stack.attach();
+  var stack = $("#editor").editorStack();
 
   // ack
   var options = {
@@ -1094,7 +1182,9 @@ $(function () {
     options.value = { id: pageInfo.instanceIds[0] };
   }
 
-  var editor = pageInfo.instanceIds.length > 1 ? new editors.BulkModelEditor(options) : new editors.ModelEditor(options);
+  var editor = pageInfo.instanceIds.length > 1 ?
+                new window.caribou.editors.BulkModelEditor(options)
+              : window.caribou.editors.registry.editor(options);
   editor.load( function( data, error, xhr ) {
     editor.value = pageInfo.instanceIds.length? data.state : {};
     editor.syncToChildren();

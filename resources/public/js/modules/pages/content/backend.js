@@ -47,6 +47,27 @@
           });
           return guess;
         },
+        // if you have a better way to do this, please
+        // let me know...
+        deepClone: function( obj ) {
+          return JSON.parse( JSON.stringify( obj ) );
+        },
+        difference: function(template, override) {
+          var ret = {};
+          for (var name in template) {
+            if (name in override) {
+              if (_.isObject(override[name]) && !_.isArray(override[name])) {
+                var diff = self.difference(template[name], override[name]);
+                if (!_.isEmpty(diff)) {
+                  ret[name] = diff;
+                }
+              } else if (!_.isEqual(template[name], override[name])) {
+                ret[name] = override[name];
+              }
+            }
+          }
+          return ret;
+        },
         post: function( data, success, failure ) {
           success = success || function( data ) {
             location.reload(); // what's the kosher way to do this again?

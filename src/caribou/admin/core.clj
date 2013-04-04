@@ -18,7 +18,8 @@
             [caribou.app.middleware :as middleware]
             [caribou.app.request :as request]
             [caribou.app.handler :as handler]
-            [caribou.app.controller :as controller]))
+            [caribou.app.controller :as controller]
+            [caribou.admin.routes :as routes]))
 
 (declare handler)
 
@@ -31,31 +32,34 @@
 
 (defn reload-pages
   []
-  (pages/create-page-routes
-   (model/arrange-tree
-    (model/db
-     #(model/gather :page {:where {:site_id 2}})))))
+  (pages/add-page-routes routes/admin-routes 'caribou.admin.controllers ""))
 
-(def open-pages
-  #{"/login" "/logout" "/forgot-password" "/submit-login"})
+(defn open-page?
+  [uri]
+  (contains?
+   #{(pages/route-for :login {})
+     (pages/route-for :logout {})
+     (pages/route-for :forgot_password {})
+     (pages/route-for :submit_login {})}
+   uri))
 
 (defn user-required
   [handler]
   (fn [request]
-    ;;(println "REQUEST")
-    ;;(clojure.pprint/pprint request)
-    (if (or (contains? open-pages (:uri request))
-            (seq (-> request :session :user)))
+    (if (or (seq (-> request :session :user))
+            (open-page? (:uri request)))
       (handler request)
-      (controller/redirect (pages/route-for :login {})
-                           {:session (:session request)}))))
+      (controller/redirect
+       (pages/route-for :login {})
+       {:session (:session request)}))))
 
 (defn get-models
   [handler]
   (fn [request]
-    (let [models (model/gather :model 
-                               {:where {:locked false :join_model false}
-                                :order {:id :asc}})]
+    (let [models (model/gather
+                  :model 
+                  {:where {:locked false :join_model false}
+                   :order {:id :asc}})]
       (handler (assoc request :user-models models)))))
 
 (defn days-in-seconds
@@ -67,6 +71,13 @@
   (fn [request]
     (let [request (merge request base-helpers)]
       (handler request))))
+
+(defn admin-wrapper
+  [handler]
+  (-> handler
+      (provide-helpers)
+      (user-required)
+      (get-models)))
 
 (defn init
   []
@@ -80,10 +91,11 @@
     :halo-reset handler/reset-handler})
   (def handler
     (-> (handler/gen-handler)
-        (provide-helpers)
+        (admin-wrapper)
+        ;; (provide-helpers)
+        ;; (user-required)
+        ;; (get-models)
         (lichen/wrap-lichen (@config/app :asset-dir))
-        (user-required)
-        (get-models)
         (handler/use-public-wrapper (@config/app :public-dir))
         (middleware/wrap-servlet-path-info)
         (request/wrap-request-map)
@@ -92,7 +104,7 @@
         (db/wrap-db @config/db)
         (compojure/api)
         (wrap-session {:store (cookie-store {:key "vEanzxBCC9xkQUoQ"})
-                       :cookie-name "instrumentv3-newadmin-sess"
+                       :cookie-name "caribou-admin-session"
                        :cookie-attrs {:max-age (days-in-seconds 90)}})
         (wrap-cookies)))
 

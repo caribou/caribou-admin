@@ -44,11 +44,11 @@
         <a class="brand" href="{{route-for :dashboard params}}">THIS. IS. CARIBOU.</a>
         <div class="nav-collapse">
           <ul class="nav">
-            <li><a href="{{route-for :dashboard params}}">Dashboard</a></li>
+            <li><a href="{{safe-route-for :dashboard params}}">Dashboard</a></li>
             <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Content <b class="caret"></b></a>
               <ul class="dropdown-menu">
                 {{#user-models}}
-                <li><a href="{{route-for :results params {:slug slug} }}">{{name}}</a></li>
+                <li><a href="{{safe-route-for :results params {:slug slug} }}">{{name}}</a></li>
                 {{/user-models}}
               </ul>
             </li>
@@ -73,7 +73,8 @@
                 <li><a href="#">Sites</a></li>
                 <li><a href="#">Locales</a></li>
                 <li class="divider"></li>
-                <li><a href="{{route-for :models params}}">Model</a></li>
+                <li><a href="{{safe-route-for :models params}}">Model</a></li>
+                <li><a href="{{safe-route-for :pages params}}">Pages</a></li>
               </ul>
             </li>
             <li><a href="{{route-for :pages params}}">Pages</a></li>
@@ -130,11 +131,14 @@
   <script src="/js/libs/underscore-min.js"></script>
   <script src="/js/libs/pluralize.js"></script>
   <script src="/js/libs/jquery.ajaxfileupload.js"></script>
+  <script src="/js/libs/interface.js"></script>
   
   <script src="/js/modules/pages/content/util.js"></script>
   <script src="/js/modules/pages/content/backend.js"></script>
   <script src="/js/modules/pages/content/editors.js"></script>
+  <script src="/js/modules/pages/content/tree.js"></script>
   <script src="/js/modules/pages/content/models.js"></script>
+  <script src="/js/modules/pages/content/pages.js"></script>
   <script src="/js/modules/pages/content/breadcrumbs.js"></script>
   <script src="/js/modules/pages/content/status.js"></script>
 

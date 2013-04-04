@@ -27,7 +27,7 @@
         password (-> request :params :password)
         locale (or (-> request :params :locale) "en_US")
         target (or (-> request :params :target)
-                   (route-for :dashboard {:locale locale :site "admin"}))
+                   (route-for :models {:locale locale :site "admin"}))
         account (model/pick :account {:where {:email email}})
         match? (and (seq password)
                     (seq (:crypted_password account))

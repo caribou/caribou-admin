@@ -5,20 +5,18 @@
             [caribou.field.link :as link]
             [caribou.app.controller :as controller]
             [clojure.string :as string]
+            [clojure.set :as set]
             [clj-time.core :as timecore]
             [clojure.pprint :as pprint]
             [clojure.walk :as walk]
             [caribou.util :as util]
             [caribou.app.pages :as pages]
             [caribou.app.template :as template]
+            [caribou.app.handler :as handler]
             [caribou.asset :as asset]
             [caribou.config :as config]
             [caribou.admin.index :as index]
             [caribou.admin.helpers :as helpers]))
-
-(defn safe-route-for
-  [slug & args]
-  (pages/route-for slug (pages/select-route slug (apply merge args))))
 
 (defn part-title
   [field]
@@ -73,8 +71,7 @@
 
 (defn all-helpers [] 
   ; TODO - other local helpers here
-  (merge (helpers/all) {:safe-route-for safe-route-for
-                        :order-get-in order-get-in}))
+  (merge helpers/all {:order-get-in order-get-in}))
 
 (defn render
   ([content-type params]
@@ -322,9 +319,10 @@
 
 (defn bulk-editor-content
   [request]
-  (let [model-slug (-> request :params :model)
+  (let [params (:params request)
+        model-slug (:model params)
         model (model/pick :model {:where {:slug model-slug} :include {:fields {}}})
-        id-list (clojure.string/split (-> request :params :id) #"[,:]")
+        id-list (clojure.string/split (:id params) #"[,:]")
         inflated (remove nil? (map #(model/pick model-slug {:where {:id %}}) id-list))
         all-equal (fn [a b]
                     (if (map? a)
@@ -332,14 +330,13 @@
                       (if (= a b) a nil)))
         merged (apply (partial merge-with all-equal) inflated)
         template (template/find-template 
-                   (util/pathify ["content" "models" "instance" (or (-> request :params :template) "_edit.html")]))
-        ]
+                   (util/pathify ["content" "models" "instance" (or (:template params) "_edit.html")]))]
     (json-response
       {:template (:body (render (merge request {:template template
                                                 :model model
                                                 :instance merged
                                                 :bulk? true
-                                                :ids (-> request :param :id)
+                                                :ids (:id params)
                                                 :fields (human-friendly-fields model)
                                                 :order-info (order-info model)
                                                 })))
@@ -371,20 +368,26 @@
     ;; are updated.
     (query/clear-queries)
     (model/init)
+    (when-not (empty? (set/intersection #{"page"} (set (map :model payload))))
+      (println "RESETTING HANDLER!!")
+      (handler/reset-handler))
     (json-response results)))
 
 (defn reorder-all
   [request]
   (let [payload (json-payload request)
-        _ (println payload)
         association-slug (:association payload)
         id (:id payload)
+        items (doall (map (fn [x] {:id (Integer/parseInt (:id x)) :position (:position x)}) (:items payload)))
         results (if (and association-slug id)
                   (do
                     (println (str "reordering " (:association payload) " of " (:model payload) " " (:id payload)
-                     " to " (:items payload)))
-                    (model/order (:model payload) (:id payload) (:association payload) (:items payload)))
-                  (model/order (:model payload) (:items payload)))]
+                     " to " items))
+                    (model/order (:model payload)
+                                 (:id payload)
+                                 (:association payload)
+                                 items))
+                  (model/order (:model payload) items))]
     (json-response results)))
 
 ; this is too drastic and should probably have some sanity checking.
