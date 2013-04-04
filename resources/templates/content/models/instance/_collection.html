@@ -6,7 +6,7 @@
               <th>
                &nbsp;
               </th>
-              {{#fields:field}}
+              {{#model.fields:field}}
                 {{#system-field? field}}
                   {{!#equals field.slug "id"}}
                   {{!<th><a href="{safe-route-for :results params}?order={field.slug}">{field.name}</a></th>}}
@@ -23,7 +23,7 @@
                     <th>{{field.name}}</th>
                   {{/allows-sorting}}
                 {{/system-field? field}}
-              {{/fields:field}}
+              {{/model.fields:field}}
               <th>Fun stuff</th>
             </tr>
           </thead>
@@ -31,7 +31,7 @@
             {{#pager.results:instance}}
             <tr data-position='{ "position": {{order-get-in instance order-info.position-slug}}, "id": "{{get-in instance "id" }}" }' {{#locked}}class="error"{{/locked}}>
               <td><input type="checkbox" name="id" value="{{get-in instance "id" }}" /></td>
-              {{#fields:field}}
+              {{#model.fields:field}}
                 {{!#equals field.slug "id"}}
                 {{!<td>{get-in instance "id"}</td>}}
                 {{!/equals field.slug "id"}}
@@ -45,7 +45,7 @@
                   {{> templates/content/models/fields/view/_[[type]].html }}
                 </td>
                 {{/system-field? field}}
-              {{/fields:field}}
+              {{/model.fields:field}}
               <td>
                 {{^field.locked}}
                   <a class="choose-link hide" href="#choose" data-model="{{model.slug}}" data-id="{{id}}">Choose</a>

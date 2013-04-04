@@ -78,7 +78,8 @@
   ([thing path]
     (get-in-helper thing path nil))
   ([thing path default]
-    (let [spl (clojure.string/split path #"\.")
+    (let [spath (or path "")
+          spl (clojure.string/split spath #"\.")
           bits (map keyword spl)]
       (get-in thing bits default))))
 

@@ -359,6 +359,7 @@
 (defn update-all
   [request]
   (let [payload (json-payload request)
+        _ (log/debug payload)
         updated (map (fn [x] (vector (:model x) (model/create (keyword (:model x)) (:fields x)))) payload)
         results (map second updated)]
     (when-not (empty? (set/intersection #{"model" "field"} (set (map :model payload))))
