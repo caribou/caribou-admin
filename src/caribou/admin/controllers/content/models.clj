@@ -19,6 +19,15 @@
             [caribou.index :as index]
             [caribou.admin.helpers :as helpers]))
 
+
+(defn inflate-request
+  [request]
+  (let [locale-code (-> request :params :locale)
+        locale (if (or (nil? locale-code) (empty? locale-code) (= "global" locale-code))
+                 nil
+                 (model/pick :locale {:where {:code locale-code}}))]
+    (assoc request :locale locale)))
+
 (defn part-title
   [field]
   (let [target (model/pick :model {:where {:id (:target_id field)} :include {:fields {}}})]
@@ -114,10 +123,10 @@
 (defn keyword-results
   "This inefficiently inflates search results into
   real content directly from the DB, one-by-one"
-  [kw slug]
+  [kw slug opts]
   (let [m (@model/models (keyword slug))
         ;; TODO - remove this hardcoded limit and make it work with pagination
-        raw (index/search m kw {:limit 200})
+        raw (index/search m kw (assoc opts :limit 200))
         _ (println raw)
         includes (build-includes m)
         inflated (map (fn [r] (model/pick slug {:where {:id (:id r)} :include includes})) raw)]
@@ -125,19 +134,26 @@
 
 (defn view-results
   [request]
-  (let [params (-> request :params)
+  (let [request (inflate-request request)
+        locale (:locale request)
+        params (-> request :params)
         model (model/pick :model {:where {:slug (:slug params)} :include {:fields {}}})
-        ;; this needs to delegate to someone else to find the list of things to show
         includes (build-includes model)
         order (or (:order params) "position")
         kw-results (when-not (empty? (:keyword params))
-                     (keyword-results (:keyword params) (:slug params)))
-        results (or kw-results (model/gather (-> request :params :slug) {:limit (:limit params)
-                                                          :offset (:offset params)
-                                                          :include includes
-                                                          :order (model/process-order order)}))
+                     (keyword-results (:keyword params) (:slug params) {:locale (-> locale :code)}))
+        spec {:limit (:limit params)
+              :offset (:offset params)
+              :include includes
+              :locale (-> locale :code)
+              :order (model/process-order order)}
+        _ (log/debug spec)
+        results (or kw-results (model/gather (-> request :params :slug) spec))
         friendly-fields (human-friendly-fields model)
         order-info (order-info model)]
+    (if-let [locale (-> request :locale)]
+      (log/debug (str "Locale is " (:code locale)))
+      (log/debug "Locale is global"))
     (render (merge request {:results results
                             :model model
                             :fields friendly-fields

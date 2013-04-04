@@ -73,6 +73,7 @@
     (let [request (merge request base-helpers helpers/all)]
       (handler request))))
 
+
 (defn admin-wrapper
   [handler]
   (-> handler
@@ -93,9 +94,6 @@
   (def handler
     (-> (handler/gen-handler)
         (admin-wrapper)
-        ;; (provide-helpers)
-        ;; (user-required)
-        ;; (get-models)
         (lichen/wrap-lichen (@config/app :asset-dir))
         (handler/use-public-wrapper (@config/app :public-dir))
         (middleware/wrap-servlet-path-info)
