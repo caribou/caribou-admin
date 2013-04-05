@@ -413,7 +413,7 @@
           value = null;
         }
       }
-      if ( child.field.type === "asset" || child.field.type === "part" ) {
+      if ( value && (child.field.type === "asset" || child.field.type === "part") ) {
         self.set( child.field.slug, value.value );
         self.set( child.field.slug + "_id", value.id );
       } else {
