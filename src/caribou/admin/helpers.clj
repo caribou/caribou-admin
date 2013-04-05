@@ -179,4 +179,5 @@
    :locales locales
    :localized-models localized-models
    :locale-code locale-code
+   :equals =
 	 })

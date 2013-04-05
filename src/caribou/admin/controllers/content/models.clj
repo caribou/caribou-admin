@@ -76,7 +76,7 @@
                                (= (:type %) "link")
                                (= (:type %) "boolean")) fields)
         filled (map #(assoc % :friendly-path (field-path %)) stripped)]
-    (println (map #(:friendly-path %) filled))
+    (println (map :friendly-path filled))
     filled))
 
 (def all-helpers
@@ -197,7 +197,8 @@
 
 (defn edit-instance
   [request]
-  (let [model-slug (-> request :params :slug)
+  (let [request (inflate-request request)
+        model-slug (-> request :params :slug)
         model (model/pick :model {:where {:slug model-slug} :include {:fields {}}})
         model-fields (:fields model)
         id-param (-> request :params :id)
@@ -466,18 +467,19 @@
   ;; Cheesy way to create only one route for many functions.
   ;; This will go away, don't worry.  Just doing this to get up and running quickly.
   [request]
-  (condp = (-> request :params :action)
-    "editor-for" (editor-for request)
-    "editor-content" (editor-content request)
-    "editor-associated-content" (editor-associated-content request)
-    "update-all" (update-all request)
-    "reorder-all" (reorder-all request)
-    "find-all" (find-all request)
-    "find-one" (find-one request)
-    "delete-all" (delete-all request)
-    "to-route" (to-route request)
-    "upload-asset" (upload-asset request)
-    "remove-link" (remove-link request)
-    "reindex" (reindex request)
-    "bulk-editor-content" (bulk-editor-content request)
-    {:status 404 :body "Awwwwww snap!"}))
+  (let [request (inflate-request request)]
+    (condp = (-> request :params :action)
+      "editor-for" (editor-for request)
+      "editor-content" (editor-content request)
+      "editor-associated-content" (editor-associated-content request)
+      "update-all" (update-all request)
+      "reorder-all" (reorder-all request)
+      "find-all" (find-all request)
+      "find-one" (find-one request)
+      "delete-all" (delete-all request)
+      "to-route" (to-route request)
+      "upload-asset" (upload-asset request)
+      "remove-link" (remove-link request)
+      "reindex" (reindex request)
+      "bulk-editor-content" (bulk-editor-content request)
+      {:status 404 :body "Awwwwww snap!"})))

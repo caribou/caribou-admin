@@ -42,13 +42,18 @@
 <table class="table table-striped table-bordered">
   <thead>
     <tr>
-      <th>This content can be localized</th>
+      <th>This content can be localized.</th>
     </tr>
   </thead>
   <tbody>
     <tr>
       <td>
-
+        <select name="locale">
+          <option value="">Global</option>
+          {{#locales:item}}
+          <option value="{{item.code}}" {{#equals item.code locale.code}}selected{{/equals item.code locale.code}}>{{item.code}}{{#item.language}} ({{item.language}}){{/item.language}} {{#item.region}} ({{item.region}}){{/item.region}}</option>
+          {{/locales:item}}
+        </select> 
       </td>
     </tr>
   </tbody>
