@@ -33,10 +33,10 @@
               <td>{{name}}</td>
               <td>{{created_at}}</td>
               <td>{{^join_model}}
-                  <a href='{{safe-route-for :results params {:slug slug} }}'>See all</a>
-                | <a href='{{safe-route-for :edit_model params {:slug slug} }}'>Tweak fields</a>
-                | <a href="{{safe-route-for :edit_model_instance params {:slug "model" :id id} }}">Edit</a>
-                | <a href="{{route-for :model_api params {:action "reindex" :slug slug} }}">Reindex</a>
+                  <a href='{{safe-route-for :admin.results params {:slug slug} }}'>See all</a>
+                | <a href='{{safe-route-for :admin.edit_model params {:slug slug} }}'>Tweak fields</a>
+                | <a href="{{safe-route-for :admin.edit_model_instance params {:slug "model" :id id} }}">Edit</a>
+                | <a href="{{route-for :admin.model_api params {:action "reindex" :slug slug} }}">Reindex</a>
                 | <a href="#" class="delete-link" data-model="model" data-id="{{id}}">Delete</a>
                 {{/join_model}}
                 {{#join_model}}Join models are locked{{/join_model}}
@@ -65,7 +65,7 @@
               <td>{{id}}</td>
               <td>{{name}}</td>
               <td>{{created_at}}</td>
-              <td><a href="{{route-for :edit_model params {:slug slug} }}">View fields</a></td>
+              <td><a href="{{route-for :admin.edit_model params {:slug slug} }}">View fields</a></td>
             </tr>
             {{/locked}}
           </tbody>

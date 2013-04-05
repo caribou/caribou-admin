@@ -2,7 +2,7 @@
 {{%content}}
 <div class="page-header">
   <ul class="breadcrumb">
-    <li><a href="{{route-for :models {:site params.site :locale params.locale} }}">Models</a> <span class="divider">/</span> </li>
+    <li><a href="{{route-for :admin.models {:site params.site :locale params.locale} }}">Models</a> <span class="divider">/</span> </li>
     <li>{{> templates/content/models/instance/_action_menu.html }} <span class="divider">/</span></li>
   </ul>
 
@@ -10,7 +10,7 @@
 
   <div class="container-fluid clearfix">
     <h1 class="pull-left" id="description">{{model.name}}</h1>
-    <a class="pull-right btn btn-large" href="{{safe-route-for :edit_model params {:slug model.slug} }}">Edit Model</a>
+    <a class="pull-right btn btn-large" href="{{safe-route-for :admin.edit_model params {:slug model.slug} }}">Edit Model</a>
   </div>
 </div>
 

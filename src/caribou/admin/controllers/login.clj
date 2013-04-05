@@ -27,13 +27,13 @@
         password (-> request :params :password)
         locale (or (-> request :params :locale) "en_US")
         target (or (-> request :params :target)
-                   (route-for :models {:locale locale :site "admin"}))
+                   (route-for :admin.models {:locale locale :site "admin"}))
         account (model/pick :account {:where {:email email}})
         match? (and (seq password)
                     (seq (:crypted_password account))
                     (check-pw password (:crypted_password account)))
         target (if-not match?
-                 (str (route-for :login {:locale locale :site "admin"})
+                 (str (route-for :admin.login {:locale locale :site "admin"})
                       "&target=" target)
                  target)
         login (if match? "success" "failure")
@@ -56,7 +56,7 @@
                                         :first_name first
                                         :last_name last
                                         :crypted_password hash})
-        target (route-for :new_account (select-keys request [:site :locale]))
+        target (route-for :admin.new_account (select-keys request [:site :locale]))
         user (dissoc account :created_at :updated_at)]
     (redirect target {:session (:session request) :user user})))
 

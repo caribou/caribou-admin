@@ -37,10 +37,10 @@
 (defn open-page?
   [uri]
   (contains?
-   #{(pages/route-for :login {})
-     (pages/route-for :logout {})
-     (pages/route-for :forgot_password {})
-     (pages/route-for :submit_login {})}
+   #{(pages/route-for :admin.login {})
+     (pages/route-for :admin.logout {})
+     (pages/route-for :admin.forgot_password {})
+     (pages/route-for :admin.submit_login {})}
    uri))
 
 (defn user-required
@@ -50,7 +50,7 @@
             (open-page? (:uri request)))
       (handler request)
       (controller/redirect
-       (pages/route-for :login {})
+       (pages/route-for :admin.login {})
        {:session (:session request)}))))
 
 (defn get-models
