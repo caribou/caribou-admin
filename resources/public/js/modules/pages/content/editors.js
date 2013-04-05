@@ -407,12 +407,19 @@
     },
     syncFromChild: function( child, value, next ) {
       var self = this;
+      if ( self.locale ) {
+        var checkboxes = $("input[name='caribou-use-global'][value='" + child.field.slug + "']:checked");
+        if (checkboxes.length) {
+          value = null;
+        }
+      }
       if ( child.field.type === "asset" || child.field.type === "part" ) {
         self.set( child.field.slug, value.value );
         self.set( child.field.slug + "_id", value.id );
       } else {
         self.set( child.field.slug, value );
       }
+
       if (next) next( value );
     },
     attach: function() {
@@ -425,6 +432,12 @@
         e.preventDefault();
         self.setLocale( $(this).val() );
       }).val( self.locale );
+
+      $( self.children ).each( function(index, child) {
+        child.on("caribou:edit", function(e) {
+          $("input[name='caribou-use-global'][value='" + child.field.slug + "']").prop("checked", false);
+        });
+      });
     },
     setLocale: function( v ) {
       var self = this;

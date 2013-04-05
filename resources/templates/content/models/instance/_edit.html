@@ -4,6 +4,11 @@
       <th>Field</th>
       <th>Type</th>
       {{#bulk?}}<th>Update?</th>{{/bulk?}}
+      {{#model.localized}}
+        {{^global?}}
+          <th>global</th>
+        {{/global?}}
+      {{/model.localized}}
       <th>Value</th>
     </tr>
   </thead>
@@ -21,15 +26,14 @@
         <td>{{name}}</td>
         <td>{{type}}</td>
         {{#bulk?}}<td><input type="checkbox" value="{{field.slug}}" name="caribou-update" /></td>{{/bulk?}}
+        {{#model.localized}}
+          {{^global?}}
+            <td><input type="checkbox" value="{{field.slug}}" name="caribou-use-global" 
+              {{^get-in instance field.slug}}checked="checked"{{/get-in instance field.slug}} /></td>
+          {{/global?}}
+        {{/model.localized}}
         <td>
-          {{! show the edit template for editable fields }}
-          {{!#editable}}
-            {{> templates/content/models/fields/edit/_[[type]].html }}
-          {{!/editable}}
-          {{! and the view template for non-editable fields - TODO:kd - do we even want to show these? }}
-          {{!^editable}}
-          {{!> templates/content/models/fields/view/_[[type]].html }}
-          {{!/editable}}
+          {{> templates/content/models/fields/edit/_[[type]].html }}
         </td>
       </tr>
       {{/join-model? field}}

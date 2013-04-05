@@ -233,7 +233,8 @@
 (defn editor-for
   ;; given a model slug, generates an editor for that model
   [request]
-  (let [model (model/pick :model {:where {:slug (-> request :params :model)} :include {:fields {}}})
+  (let [request (inflate-request request)
+        model (model/pick :model {:where {:slug (-> request :params :model)} :include {:fields {}}})
         template (template/find-template (util/pathify ["content" "models" "instance" "_edit.html"]))]
     (render (merge request {:template template :model model}))))
 
@@ -253,6 +254,7 @@
                                                  :include include
                                                  :limit (:limit params)
                                                  :offset (:offset params)
+                                                 :results :clean
                                                  :locale locale-code})
         content (map #(if (= (:slug model) "asset")
                         (assoc % :path (asset/asset-path %))
@@ -272,10 +274,15 @@
                        include)
         _ (println join-include)
         where (if (empty? (:id params)) {} {:id (:id params)})
+        locale-code (if (or (nil? (:locale-code params)) (empty? (:locale-code params)))
+                      nil
+                      (:locale-code params))
         raw-content (model/gather (:slug model) {:where where
                                                  :include join-include
                                                  :limit (:limit params)
-                                                 :offset (:offset params)})
+                                                 :offset (:offset params)
+                                                 :results :clean
+                                                 :locale (:locale-code params)})
         instance (first raw-content)
         associated-content ((keyword assoc-name) instance)
         content (map #(if (= (:slug model) "asset")
@@ -301,12 +308,14 @@
                  :current-page (:page params)})
         friendly-fields (human-friendly-fields target)
         order-info (order-info model association instance)
+        global? (or (nil? (:locale request)) (and (contains? params :locale-code) (empty? (:locale-code params))))
         response {:template (:body (render (merge request {:template template
                                                            :model target
                                                            :fields friendly-fields
                                                            :order-info order-info
                                                            :pager pager
                                                            :results (:results pager)
+                                                           :global? global?
                                                            })))
                   :model target
                   :state (:results pager)}]
@@ -314,7 +323,8 @@
 
 (defn editor-content
   [request]
-  (let [params (-> request :params)
+  (let [request (inflate-request request)
+        params (-> request :params)
         model (model/pick :model {:where {:slug (:model params)} :include {:fields {}}})
         template (template/find-template
                    (util/pathify ["content" "models" "instance" (or (:template params) "_edit.html")]))
@@ -322,6 +332,7 @@
         instance (if-not (empty? (:id params))
                    (first results))
         friendly-fields (human-friendly-fields model)
+        global? (or (nil? (:locale request)) (and (contains? params :locale-code) (empty? (:locale-code params))))
         pager (helpers/add-pagination results
                 {:page-size (or (:size params) 20)  ; TODO:kd - put default page size into config
                   :current-page (:page params)})]
@@ -333,13 +344,15 @@
                                                 :order-info (order-info model)
                                                 :pager pager
                                                 :results (:results pager)
+                                                :global? global?
                                                 })))
        :model model
        :state (if-not (contains? params :id) (:results pager) instance)})))
 
 (defn bulk-editor-content
   [request]
-  (let [params (:params request)
+  (let [request (inflate-request request)
+        params (:params request)
         model-slug (:model params)
         model (model/pick :model {:where {:slug model-slug} :include {:fields {}}})
         id-list (clojure.string/split (:id params) #"[,:]")
@@ -349,6 +362,7 @@
                       (if (= (:id a) (:id b)) a nil)
                       (if (= a b) a nil)))
         merged (apply (partial merge-with all-equal) inflated)
+        global? (or (nil? (:locale request)) (and (contains? params :locale-code) (empty? (:locale-code params))))
         template (template/find-template
                    (util/pathify ["content" "models" "instance" (or (:template params) "_edit.html")]))]
     (json-response
@@ -359,6 +373,7 @@
                                                 :ids (:id params)
                                                 :fields (human-friendly-fields model)
                                                 :order-info (order-info model)
+                                                :global? global?
                                                 })))
        :model model
        :state merged
