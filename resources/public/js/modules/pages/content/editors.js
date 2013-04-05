@@ -413,9 +413,18 @@
       if (next) next( value );
     },
     attach: function() {
+      var self = this;
       $( this.children ).each( function( index, child ) {
         child.attach();
       });
+
+      $( this.selector ).find("select[name=locale]").on("change", function(e) {
+        e.preventDefault();
+        self.setLocale( $(this).val() );
+      });
+    },
+    setLocale: function( v ) {
+      console.log("Setting locale to " + v);
     },
     submit: function( next ) {
       var self = this;
