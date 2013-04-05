@@ -381,7 +381,10 @@
       var self = this;
       var route = self.api().routeFor( "editor-content", {
         model: self.model.slug,
-        id: self.value && self.value.id ? self.value.id : null
+        id: self.value && self.value.id ? self.value.id : null,
+        // if we call it "locale" it will get stomped on by the
+        // locale in the URL itself.
+        "locale-code": (self.locale? self.locale : "")
       });
       $.ajax({ url: route, success: success });
     },
@@ -421,10 +424,19 @@
       $( this.selector ).find("select[name=locale]").on("change", function(e) {
         e.preventDefault();
         self.setLocale( $(this).val() );
-      });
+      }).val( self.locale );
     },
     setLocale: function( v ) {
+      var self = this;
       console.log("Setting locale to " + v);
+      var oldLocale = self.locale;
+      if (oldLocale !== v) {
+        self.locale = v;
+        self.refresh( function(data) {
+          self.value = data.state;
+          console.log("Loaded data for locale: " + v);
+        } );
+      }
     },
     submit: function( next ) {
       var self = this;
@@ -1167,15 +1179,19 @@ $(function () {
   var api = window.caribou.api;
   var stack = $("#editor").editorStack();
 
-  // ack
+  var editor;
   var options = {
     model: api.model( pageInfo.model ),
     locale: (pageInfo.locale === "global" ? null : pageInfo.locale),
     submit: function( value, next ) {
       console.log("Holy smokes, batman!", value);
       var values = _.isArray( value ) ? value : [value];
+      var opts = {};
+      if (editor.locale && editor.locale !== "") {
+        opts.locale = editor.locale;
+      }
       var data = _.map( values, function(v) {
-        return { model: pageInfo.model, fields: editor.prepareForUpdate( v ) };
+        return { model: pageInfo.model, fields: editor.prepareForUpdate( v ), opts: opts };
       });
       api.post( data, function( d ) {
         console.log(d);
@@ -1194,9 +1210,9 @@ $(function () {
     options.value = { id: pageInfo.instanceIds[0] };
   }
 
-  var editor = pageInfo.instanceIds.length > 1 ?
-                new window.caribou.editors.BulkModelEditor(options)
-              : window.caribou.editors.registry.editor(options);
+  editor = pageInfo.instanceIds.length > 1 ?
+             new window.caribou.editors.BulkModelEditor(options)
+           : window.caribou.editors.registry.editor(options);
   editor.load( function( data, error, xhr ) {
     editor.value = pageInfo.instanceIds.length? data.state : {};
     editor.syncToChildren();

@@ -246,10 +246,14 @@
                 (model/process-where (:where params))
                 (if (empty? (:id params)) {} {:id (:id params)}))
         order (if (:order params) (model/process-order (:order params)) {})
+        locale-code (if (or (nil? (:locale-code params)) (empty? (:locale-code params)))
+                      nil
+                      (:locale-code params))
         raw-content (model/gather (:slug model) {:where where
                                                  :include include
                                                  :limit (:limit params)
-                                                 :offset (:offset params)})
+                                                 :offset (:offset params)
+                                                 :locale locale-code})
         content (map #(if (= (:slug model) "asset")
                         (assoc % :path (asset/asset-path %))
                         %) raw-content)]
@@ -377,7 +381,11 @@
   [request]
   (let [payload (json-payload request)
         _ (log/debug payload)
-        updated (map (fn [x] (vector (:model x) (model/create (keyword (:model x)) (:fields x)))) payload)
+        updated (map (fn [x]
+                      (vector
+                       (:model x)
+                       (model/create (keyword (:model x)) (:fields x) (or (:opts x) {}))))
+                        payload)
         results (map second updated)]
     (when-not (empty? (set/intersection #{"model" "field"} (set (map :model payload))))
       (log/debug "Reloading model, clearing query cache!")
