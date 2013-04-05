@@ -9,6 +9,7 @@ pom.xml
 .lein-deps-sum
 .lein-failures
 .lein-plugins
+clucy-index/
 /resources/config/
 index/
 clucy-index/
