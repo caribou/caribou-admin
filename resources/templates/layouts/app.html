@@ -30,7 +30,7 @@
   <script src="/js/libs/jquery-1.7.2.min.js"></script>
 	<script src="/js/libs/modernizr-2.5.3-respond-1.1.0.min.js"></script>
 </head>
-<body id="{{page.slug}}" data-controller="{{page.slug}}" data-model="{{model.slug}}" data-api="{{route-for :model_api {:site params.site :locale params.locale} }}" data-instance-ids="{{instance-ids}}" data-locale="{{locale-code params.locale}}">
+<body id="{{page.slug}}" data-controller="{{page.slug}}" data-model="{{model.slug}}" data-api="{{safe-route-for :admin.model_api params}}" data-instance-ids="{{instance-ids}}" data-locale="{{locale-code params.locale}}">
 <!--[if lt IE 7]><p class=chromeframe>Your browser is <em>ancient!</em> <a href="http://browsehappy.com/">Upgrade to a different browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">install Google Chrome Frame</a> to experience this site.</p><![endif]-->
 
   <div class="navbar navbar-inverse navbar-fixed-top">
@@ -41,14 +41,14 @@
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
         </a>
-        <a class="brand" href="{{safe-route-for :dashboard params}}">THIS. IS. CARIBOU.</a>
+        <a class="brand" href="{{safe-route-for :admin.dashboard params}}">THIS. IS. CARIBOU.</a>
         <div class="nav-collapse">
           <ul class="nav">
-            <li><a href="{{safe-route-for :dashboard params}}">Dashboard</a></li>
+            <li><a href="{{safe-route-for :admin.dashboard params}}">Dashboard</a></li>
             <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Content <b class="caret"></b></a>
               <ul class="dropdown-menu">
                 {{#user-models}}
-                <li><a href="{{safe-route-for :results params {:slug slug} }}">{{name}}</a></li>
+                <li><a href="{{safe-route-for :admin.results params {:slug slug} }}">{{name}}</a></li>
                 {{/user-models}}
               </ul>
             </li>
@@ -70,11 +70,11 @@
                 <li><a href="#">Domains</a></li>
                 <li><a href="#">Contributors</a></li>
                 <li class="divider"></li> -->
-                <li><a href="{{safe-route-for :results params {:slug "site"} }}">Sites</a></li>
-                <li><a href="{{safe-route-for :results params {:slug "locale"} }}">Locales</a></li>
+                <li><a href="{{safe-route-for :admin.results params {:slug "site"} }}">Sites</a></li>
+                <li><a href="{{safe-route-for :admin.results params {:slug "locale"} }}">Locales</a></li>
                 <li class="divider"></li>
-                <li><a href="{{safe-route-for :models params}}">Model</a></li>
-                <li><a href="{{safe-route-for :pages params}}">Pages</a></li>
+                <li><a href="{{safe-route-for :admin.models params}}">Model</a></li>
+                <li><a href="{{safe-route-for :admin.pages params}}">Pages</a></li>
               </ul>
             </li>
             <li><a href="{{safe-route-for :pages params}}">Pages</a></li>

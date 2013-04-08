@@ -2,7 +2,7 @@
 {{%content}}
 <div class="page-header">
   <ul class="breadcrumb">
-    <li> <a href="{{safe-route-for :models params}}">Models</a> <span class="divider">/</span></li>
+    <li> <a href="{{safe-route-for :admin.models params}}">Models</a> <span class="divider">/</span></li>
     <li class="active">{{> templates/content/models/instance/_action_menu.html}}</li>
   </ul>
 
@@ -10,7 +10,7 @@
 
   <div class="container-fluid clearfix">
     <h1 class="pull-left">{{model.name}}</h1>
-    <a class="pull-right btn btn-large" href="{{safe-route-for :create_model_instance params }}">Create a {{model.name}}</a>
+    <a class="pull-right btn btn-large" href="{{safe-route-for :admin.create_model_instance params }}">Create a {{model.name}}</a>
   </div>
 
 </div>
@@ -35,7 +35,7 @@
               <td>{{type}} {{#searchable}}(searchable){{/searchable}}</td>
               <td>
                 {{^locked}}
-                  <a href="{{safe-route-for :edit_model_instance params {:slug "field" :id id} }}">Edit</a> | <a href="#delete" data-model="field" data-id="{{id}}" onclick="return window.caribou.models.showDeleteDialog( this );">Delete</a>
+                  <a href="{{safe-route-for :admin.edit_model_instance params {:slug "field" :id id} }}">Edit</a> | <a href="#delete" data-model="field" data-id="{{id}}" onclick="return window.caribou.models.showDeleteDialog( this );">Delete</a>
                 {{/locked}}
               </td>
             </tr>

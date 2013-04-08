@@ -110,7 +110,7 @@
   (let [new-model-name (-> request :params :model-name)
         ; validate here
         new-model (model/create :model {:name (string/capitalize new-model-name)})]
-    (controller/redirect (pages/route-for :edit_model (dissoc (merge {:slug (:slug new-model)} (:params request)) :model-name)))))
+    (controller/redirect (pages/route-for :admin.edit_model (dissoc (merge {:slug (:slug new-model)} (:params request)) :model-name)))))
 
 (defn view
   [request]
@@ -183,7 +183,7 @@
                      :searchable searchable
                      :type field-type})
         new-model (model/update :model (:id model) {:fields [ new-field ] })]
-      (controller/redirect (pages/route-for :edit_model
+      (controller/redirect (pages/route-for :admin.edit_model
                              (dissoc (:params request) :field-name
                                                        :field-type
                                                        :searchable
@@ -223,7 +223,7 @@
         edited-instance (dissoc (:params request) :slug)
         updated-instance (model/create model-slug edited-instance)]
     (println updated-instance)
-    (controller/redirect (pages/route-for :edit_model_instance {:id (:id updated-instance) :slug model-slug})
+    (controller/redirect (pages/route-for :admin.edit_model_instance {:id (:id updated-instance) :slug model-slug})
       {:cookies {"success-message" {:value (str "You successfully updated this " model-slug)}}})))
 
 (defn create-instance
@@ -459,7 +459,7 @@
   [request]
   (let [model (@model/models (keyword (-> request :params :slug)))]
     (println (index/update-all model))
-    (controller/redirect (pages/route-for :models (dissoc (:params request) :action :slug)))))
+    (controller/redirect (pages/route-for :admin.models (dissoc (:params request) :action :slug)))))
 
 (defn slugify-filename
   [s]

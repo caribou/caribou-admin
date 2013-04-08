@@ -9,7 +9,7 @@
               {{#model.fields:field}}
                 {{#system-field? field}}
                   {{!#equals field.slug "id"}}
-                  {{!<th><a href="{safe-route-for :results params}?order={field.slug}">{field.name}</a></th>}}
+                  {{!<th><a href="{safe-route-for :admin.results params}?order={field.slug}">{field.name}</a></th>}}
                   {{!/equals field.slug "id"}}
                   {{!#equals field.slug "slug"}}
                   {{!<th>slug</th>}}
@@ -17,7 +17,7 @@
                 {{/system-field? field}}
                 {{^system-field? field}}
                   {{#allows-sorting}}
-                    <th><a href="{{safe-route-for :results params}}?order={{field.slug}}">{{field.name}}</a></th>
+                    <th><a href="{{safe-route-for :admin.results params}}?order={{field.slug}}">{{field.name}}</a></th>
                   {{/allows-sorting}}
                   {{^allows-sorting}}
                     <th>{{field.name}}</th>
@@ -49,7 +49,7 @@
               <td>
                 {{^field.locked}}
                   <a class="choose-link hide" href="#choose" data-model="{{model.slug}}" data-id="{{id}}">Choose</a>
-                  <a class="edit-link" href="{{safe-route-for :edit_model_instance params {:id id} }}" data-model="{{model.slug}}" data-id="{{id}}">Edit</a>
+                  <a class="edit-link" href="{{safe-route-for :admin.edit_model_instance params {:id id} }}" data-model="{{model.slug}}" data-id="{{id}}">Edit</a>
                   <a class="remove-link hide" href="#remove" data-toggle="tooltip" title="Doesn't delete the content, just removes its association." data-model="{{model.slug}}" data-id="{{id}}">Remove</a>
                   <a class="delete-link" href="#destroy" data-model="{{model.slug}}" data-id="{{id}}">Destroy</a>
                 {{/field.locked}}
