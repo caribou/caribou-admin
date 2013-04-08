@@ -77,7 +77,7 @@
                 <li><a href="{{safe-route-for :admin.pages params}}">Pages</a></li>
               </ul>
             </li>
-            <li><a href="{{safe-route-for :pages params}}">Pages</a></li>
+            <li><a href="{{safe-route-for :admin.pages params}}">Pages</a></li>
           </ul>
           <ul class="nav pull-right">
             <li class="dropdown">
@@ -95,7 +95,7 @@
                 {{#locales:locale}} 
                 <li><a href="{{route-for page.slug params {:locale locale.code} }}">{{locale.description}} ({{locale.code}})</a></li>
                 {{/locales}}
-                <li><a href="{{safe-route-for :create_model_instance params {:slug "locale"} }}">Create</a></li>
+                <li><a href="{{safe-route-for :admin.create_model_instance params {:slug "locale"} }}">Create</a></li>
               </ul>
             </li>
             <li class="divider-vertical"></li>

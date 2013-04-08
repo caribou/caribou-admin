@@ -1211,7 +1211,7 @@ $(function () {
         if (next) {
           next( d.length > 1 ? d : d[0] );
         } else {
-          location.href = api.routeFor( "to-route", { page: "results", slug: pageInfo.model } );
+          location.href = api.routeFor( "to-route", { page: "admin.results", slug: pageInfo.model } );
         }
       });
     }
