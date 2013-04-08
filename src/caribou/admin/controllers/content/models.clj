@@ -308,7 +308,7 @@
                  :current-page (:page params)})
         friendly-fields (human-friendly-fields target)
         order-info (order-info model association instance)
-        global? (or (nil? (:locale request)) (and (contains? params :locale-code) (empty? (:locale-code params))))
+        global? (or (and (contains? params :locale-code) (empty? (:locale-code params))) (nil? (:locale params)))
         response {:template (:body (render (merge request {:template template
                                                            :model target
                                                            :fields friendly-fields
