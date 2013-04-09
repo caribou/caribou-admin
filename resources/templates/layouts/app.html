@@ -41,10 +41,9 @@
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
         </a>
-        <a class="brand" href="{{safe-route-for :admin.dashboard params}}">THIS. IS. CARIBOU.</a>
+        <a class="brand" href="{{safe-route-for :admin.models params}}">THIS. IS. CARIBOU.</a>
         <div class="nav-collapse">
           <ul class="nav">
-            <li><a href="{{safe-route-for :admin.dashboard params}}">Dashboard</a></li>
             <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Content <b class="caret"></b></a>
               <ul class="dropdown-menu">
                 {{#user-models}}
@@ -52,17 +51,6 @@
                 {{/user-models}}
               </ul>
             </li>
-            <!--<li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Activity <b class="caret"></b></a>
-              <ul class="dropdown-menu">
-                <li><a href="#">Traffic Overview</a></li>
-                <li><a href="#">Referrers</a></li>
-                <li><a href="#">Popular Content</a></li>
-                <li><a href="#">Search Queries</a></li>
-                <li><a href="#">Detailed Activity</a></li>
-                <li class="divider"></li>
-                <li><a href="#">Comments</a></li>
-              </ul>
-            </li>-->
             <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Settings <b class="caret"></b></a>
               <ul class="dropdown-menu">
                 <!-- <li><a href="#">General</a></li>
@@ -92,7 +80,7 @@
               <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{#locale.code}}{{locale.code}}{{/locale.code}}{{^locale.code}}Locale{{/locale.code}} <b class="caret"></b></a>
               <ul class="dropdown-menu">
                 <li><a href="{{route-for page.slug params {:locale "global"} }}">Global</a></li>
-                {{#locales:locale}} 
+                {{#locales:locale}}
                 <li><a href="{{route-for page.slug params {:locale locale.code} }}">{{locale.description}} ({{locale.code}})</a></li>
                 {{/locales}}
                 <li><a href="{{safe-route-for :admin.create_model_instance params {:slug "locale"} }}">Create</a></li>
@@ -115,17 +103,17 @@
       </div>
     </div>
   </div>
-  
+
 	{{/is_xhr}}
 	  {{%content}}{{/content}}
 	{{^is_xhr}}
-	
+
 	<hr>
-  
+
   <footer>
-  
+
   </footer>
-  
+
   <script src="/js/libs/jqueryui/1.10.0/jquery-ui.min.js"></script>
 
   <script src="/js/libs/bootstrap/bootstrap.js"></script>
