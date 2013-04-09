@@ -2,7 +2,7 @@
 {{%content}}
 <div class="page-header">
   <ul class="breadcrumb">
-    <li><a href="{{route-for :admin.models {:site params.site :locale params.locale} }}">Models</a> <span class="divider">/</span> </li>
+    <li><a href="{{safe-route-for :admin.models params}}">Models</a> <span class="divider">/</span> </li>
     <li>{{> templates/content/models/instance/_action_menu.html }} <span class="divider">/</span></li>
   </ul>
 
@@ -33,13 +33,13 @@
     </section>
   </div>
   <div class="form-actions">
-    <button id="save-changes" type="submit" class="btn btn-primary">Save changes</button>
-    <button id="save-and-new" type="submit" class="btn btn-primary hide">Save and add another</button>
-    <button id="save-and-continue" type="submit" class="btn btn-primary hide">Save and continue editing</button>
-    <button id="back-button" type="submit" class="btn btn-primary hide">&lt;&lt; Save &amp; return</button>
-    <button id="add-new" type="submit" class="btn btn-success hide">+ new</button>
-    <button id="choose-existing" type="submit" class="btn btn-success hide">+ existing</button>
-    <button id="cancel-button" type="submit" class="btn btn-danger hide pull-right">&lt;&lt; Don't save</button>
+    <button id="editor-save-changes" type="submit" class="btn btn-primary">Save changes</button>
+    <button id="editor-save-and-new" type="submit" class="btn btn-primary hide">Save and add another</button>
+    <button id="editor-save-and-continue" type="submit" class="btn btn-primary hide">Save and continue editing</button>
+    <button id="editor-back-button" type="submit" class="btn btn-primary hide">&lt;&lt; Save &amp; return</button>
+    <button id="editor-add-new" type="submit" class="btn btn-success hide">+ new</button>
+    <button id="editor-choose-existing" type="submit" class="btn btn-success hide">+ existing</button>
+    <button id="editor-cancel-button" type="submit" class="btn btn-danger hide pull-right">&lt;&lt; Don't save</button>
   </div>
 </form>
 

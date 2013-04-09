@@ -4,7 +4,7 @@
     <h3 id="newModelLabel">Create New Model</h3>
   </div>
 
-  <form action="{{route-for :admin.new_model params }}" method="POST">
+  <form action="{{safe-route-for :admin.new_model params }}" method="POST">
     <div class="modal-body">
       <fieldset>
         <label>Model name</label>
