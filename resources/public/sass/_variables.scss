@@ -18,18 +18,7 @@ $grayLighter: lighten($black, 90%);
 $grayLightest: lighten($black, 95%);
 
 //Button/Message Shadows
-$lightShadowTop: 0 1px 0px 0px rgba(255, 255, 255, 0.50) inset;
-$darkShadowTop: 0 1px 0px 0px rgba(0, 0, 0, 0.2) inset;
-$darkShadowBottom: 0 -1px 0px 0px rgba(0, 0, 0, 0.2) inset;
-$lightShadowBottom: 0 -1px 0px 0px rgba(0, 0, 0, 0.1) inset;
 $innerShadow: 0 -26px 25px -13px rgba(0, 0, 0, 0.2) inset;
-$insetHover: rgba(#000, 0.05) 0 0 20px inset;
-$insetShadow: 0 0 5px rgba(0, 0, 0, 0.2) inset;
-$dropShadow: 1px 0 rgba(0,0,0,.1);
-
-$lightShadowTopActive: 0 1px 0px 0px rgba(0, 0, 0, 0.1) inset;
-$InsetActive: rgba(#000, 0.1) 0 0 20px inset;
-$lightShadowBottomActive: 0 -1px 0px 0px rgba(255, 255, 255, 0.35) inset;
 
 // Links
 $linkColor: $primary;
@@ -39,9 +28,7 @@ $linkColorHover: darken($linkColor, 10);
 //Fields, Inputs
 $inputBorderColor: #ccc;
 $inputPlaceholderColor: #ccc;
-$inputBGColor: #ccc;
-$inputActiveBGColor: #fff;
-$inputActiveColor: #333;
+$inputBGColor: #efefef;
 $inputShadow: 0 0 3px rgba(0,0,0,0.2) inset;
 
 

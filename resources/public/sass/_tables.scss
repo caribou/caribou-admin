@@ -12,6 +12,9 @@
         cursor: move;
         tr {
             background-color: white;
+            &:hover {
+                background-color: $grayLightest;
+            }
         }
     }
     //Remove the icon if you can't move row up or down
@@ -40,9 +43,6 @@
     tbody tr.disabled_bg {
         background-color: $grayLighter;
         @include transition(background-color 0.5s);
-        &:hover {
-            background-color: $grayLightest;
-        }
     }
     //Add flash of color to row once it's dropped.
     tbody tr.ui-sortable-highlight {

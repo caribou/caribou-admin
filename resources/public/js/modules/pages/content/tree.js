@@ -21,13 +21,17 @@
   $.extend( TreeEditor.prototype, editors.Editor.prototype, {
     _makeNode: function( node ) {
       var self = this;
-      return $('<li class="treenode" data-id="' + (node.id || "") + '"><span>' + (node.label || "...") + '</span></li>');
+      //TODO Add correct path for route.
+      return $('<li class="treenode" data-id="' + (node.id || "") + '"><span class="page-label">' + (node.label || "...") + '<span class="page-info">something/something/' + (node.label || "...") +'</span><span class="page-controls pull-right"><span class="instrument-icon-pencil"></span></span></span></li>');
     },
+    instanceCount: 0,
     produce: function( dom, node ) {
+
       var self = this;
       var me = self._makeNode( node );
       if (node.children && node.children.length) {
-        var children = $('<ul>');
+        self.instanceCount++;
+        var children = $('<ul class="page-subtree_' + self.instanceCount + '">');
         _( node.children ).each( function(c) {
           self.produce( children, c );
         });
@@ -40,49 +44,64 @@
       var self = this;
       self._tree = this.arrange( self.value || [] );
       var tree = self._tree[0];
-      var dom = self.produce( $("<ul>"), tree ); 
+      var dom = self.produce( $("<ul class=\"page-tree\">"), tree ); 
 
       if ( self.options.expands ) {
         $(dom).find("li.treenode").each( function(index, el) {
           var sub = $("ul", this);
           if (sub.size() > 0) {
-            $(this).prepend( self.options.collapseSign || '<img src="/img/tree/open.png" width="12" height="12" class="expand" />' );
+            $(this).prepend( '<span class="instrument-icon-expand collapseable"></span>' );
+// TODO Add plus icon to create a page under the selected node.
+//            $(this).append('<span class="instrument-icon-circle-plus"></span>');
           } else {
-            $(this).prepend( '<img src="/img/tree/blank.png" width="12" height="12" class="expand" />'  );
+            $(this).prepend('<span class="instrument-icon-expand collapseable hide"></span>');
+//            $("page-controls").append('<span class="instrument-icon-circle-plus hide"></span>');
           }
         });
 
-        $(dom).find('img.expand').click( function() {
-            if (this.src.indexOf('blank') == -1) {
+        $(dom).find('.collapseable').click( function() {
+           if ($(this).hasClass('collapseable')) {
+              var self = this;
               var subbranch = $('ul', this.parentNode).eq(0);
               if (subbranch.css('display') === 'none') {
                 subbranch.show();
-                this.src = '/img/tree/open.png';
+                $(this).addClass("instrument-icon-expand").removeClass("instrument-icon-collapse");
               } else {
                 subbranch.hide();
-                this.src = '/img/tree/closed.png';
+                $(this).addClass("instrument-icon-collapse").removeClass("instrument-icon-expand");
               }
             }
         });
       }
 
+
+
       // TODO: should prune the tree first
       // sets up what's draggable
-      $(dom).find("li.treenode").Draggable({ revert: true, autoSize: true, ghosting: true }); 
-
+      $(dom).find("li.treenode").Draggable({
+        revert: true,
+        ghosting: true,
+        start: function(event, ui) {
+          $this.addClass('ui-draggable-dragging');
+        }
+      });
       // sets up what's droppable
-      $(dom).find("span").Droppable({
+      $(dom).find("span.page-label").Droppable({
         accept: "treenode",
         hoverclass: "dropOver",
         tolerance: "pointer",
         ondrop: function(dropped) {
+          self.instanceCount++;
           console.log("Dropped: ", $(dropped).data());
           console.log("Onto: ", $(this).parent().data());
           if(this.parentNode === dropped) { return }
 					var subbranch = $('ul', this.parentNode);
+          var collapse = $('span', this.parentNode)
 					if (subbranch.size() === 0) {
-						$(this).after('<ul></ul>');
+            instanceCount: 0,
+						$(this).after('<ul class="page-subtree_' + self.instanceCount + '"></ul>');
 						subbranch = $('ul', this.parentNode);
+            collapse.removeClass('hide' );
 					}
 					oldParent = dropped.parentNode;
 					subbranch.eq(0).append(dropped);
@@ -93,12 +112,15 @@
         }
       });
 
-      $(dom).find("span").off("click").on("click", function(e) {
+      $(dom).find("span.instrument-icon-pencil").off("click").on("click", function(e) {
         e.preventDefault();
-        var data = $(this).parent().data();
+        var data = $(this).parent().parent().parent().data();
         console.log("Clicked on ", data);
         if ( self.options.select ) {
           self.options.select( data );
+           var parentLI = $(this).parent().parent();
+         $("span.active").removeClass("active");
+         $(parentLI).addClass('active');
         }
       });
       $(self.selector).empty().append(dom);
