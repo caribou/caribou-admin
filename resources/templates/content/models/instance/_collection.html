@@ -1,65 +1,64 @@
     <div class="row-fluid">
       <div class="span9 column">
-        <table class="table table-striped table-bordered" style="max-width:none; width:auto;">
+        <div class="status-messages alert alert-error alert-block hide changeOrderMessage clearfix">
+          You've changed the order. Be sure to save!
+          <button class='btn btn-danger' onclick='window.caribou.models.updateOrdering();'>Save</button>
+        </div>
+        <p class="clearfix">
+          <a href="{{safe-route-for :admin.pages params}}" class="pull-right btn">View/Edit Site Structure</a>
+        </p>
+        <table class="table table-striped table-bordered">
           <thead>
             <tr>
-              <th>
-               &nbsp;
-              </th>
-              {{#fields}}
-                {{#locked}}
-                  {{#equals slug "id"}}
-                    <th><a href="{{safe-route-for :results params}}?order={{slug}}">{{name}}</a></th>
-                  {{/equals slug "id"}}
-                  {{#equals slug "slug"}}
-                    <th>slug</th>
-                  {{/equals slug "slug"}}
-                {{/locked}}
-                {{^locked}}
+              <th>&nbsp;</th>
+              <th>&nbsp;</th>
+              {{#fields:field}}
+                {{^system-field? field}}
                   {{#allows-sorting}}
-                    <th><a href="{{safe-route-for :results params}}?order={{slug}}">{{name}}</a></th>
+                    <th><a href="{{safe-route-for :admin.results params}}?order={{field.friendly-path}}{{#equals field.friendly-path params.order}}%20desc{{/equals field.friendly-path params.order}}">{{field.name}}</a>
+                    {{#equals field.friendly-path order.slug}}
+                      {{#equals "asc" order.direction}}
+                      <i class="icon-up-arrow"></i>^
+                      {{/equals "asc" order.direction}}
+                      {{#equals "desc" order.direction}}
+                      <i class="icon-down-arrow"></i>v
+                      {{/equals "desc" order.direction}}
+                    {{/equals field.friendly-path order.slug}}</th>
                   {{/allows-sorting}}
                   {{^allows-sorting}}
-                    <th>{{name}}</th>
+                    <th>{{field.name}}</th>
                   {{/allows-sorting}}
-                {{/locked}}
-              {{/fields}}
+                {{/system-field? field}}
+              {{/fields:field}}
               <th>Fun stuff</th>
             </tr>
           </thead>
           <tbody class="sortable" data-position='{ "model":"{{order-info.model.slug}}", "offset": {{pager.start-index}}, "association":"{{order-info.association }}", "umbrella":{{or order-info.umbrella "null"}} }'>
             {{#pager.results:instance}}
-            <tr data-position='{ "position": {{order-get-in instance order-info.position-slug}}, "id": "{{get-in instance "id" }}" }' {{#locked}}class="error"{{/locked}}>
+            <tr data-position='{ "position": {{order-get-in instance order-info.position-slug}}, "id": "{{get-in instance "id" }}" }' {{#locked}}class="disable_bg"{{/locked}}>
+              <td class="sort"><span class="instrument-icon-up"></span><span class="instrument-icon-down"></span></td>
               <td><input type="checkbox" name="id" value="{{get-in instance "id" }}" /></td>
-              {{#fields}}
-                {{#equals slug "id"}}
-                  <td>{{get-in instance "id"}}</td>
-                {{/equals slug "id"}}
-                {{#locked}}
-                  {{#equals slug "slug"}}
-                    <td>{{get-in instance "slug"}}</td>
-                  {{/equals slug "slug"}}
-                {{/locked}}
-                {{^locked}}
+              {{#fields:field}}
+                {{^system-field? field}}
                 <td>
                   {{> templates/content/models/fields/view/_[[type]].html }}
                 </td>
-                {{/locked}}
-              {{/fields}}
+                {{/system-field? field}}
+              {{/fields:field}}
               <td>
-                {{^locked}}
-                  <a class="choose-link hide" href="#choose" data-model="{{model.slug}}" data-id="{{id}}">Choose</a>
-                  <a class="edit-link" href="{{safe-route-for :edit_model_instance params {:id id} }}" data-model="{{model.slug}}" data-id="{{id}}">Edit</a>
-                  <a class="remove-link hide" href="#remove" data-toggle="tooltip" title="Doesn't delete the content, just removes its association." data-model="{{model.slug}}" data-id="{{id}}">Remove</a>
-                  <a class="delete-link" href="#destroy" data-model="{{model.slug}}" data-id="{{id}}">Destroy</a>
-                {{/locked}}
+                {{^field.locked}}
+                  <a class="choose-link hide icon-container" href="#choose" data-model="{{model.slug}}" data-id="{{id}}"><span class="instrument-icon-check"></span></a>
+                  <a class="edit-link icon-container" href="{{safe-route-for :admin.edit_model_instance params {:id id} }}" data-model="{{model.slug}}" data-id="{{id}}"><span class="instrument-icon-pencil"></span></a>
+                  <a class="remove-link hide icon-container" href="#remove" data-toggle="tooltip" title="Doesn't delete the content, just removes its association." data-model="{{model.slug}}" data-id="{{id}}"><span class="instrument-icon-close"></span></a>
+                  <a class="delete-link icon-container" href="#destroy" data-model="{{model.slug}}" data-id="{{id}}"><span class="instrument-icon-trash"></span></a>
+                {{/field.locked}}
               </td>
             </tr>
             {{/pager.results:instance}}
           </tbody>
         </table>
         {{^pager.results}}
-          <div class="alert alert-error">Oh no!  Nobody has entered a {{model.slug}} yet!</div>
+          <div class="alert alert-error"><span class="instrument-icon-circle-exclamation"></span> &nbsp;Oh no!  Nobody has entered a {{model.slug}} yet!</div>
         {{/pager.results}}
       </div>
     </div>

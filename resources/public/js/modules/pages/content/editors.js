@@ -1,13 +1,17 @@
-var editors = (function (global) {
+(function (global) {
   function Editor( options ) {
     var self = this;
 
     if ( options.from ) {
       self.initFrom( options.from );
     }
-    self.model = options.model || self.model;
-    self.value = options.value || self.value;
+    self.model  = options.model || self.model;
+    self.value  = options.value || self.value;
+    self.locale = options.locale || self.locale;
     self.options = options;
+
+    // the stack is discovered this way, see stack() below
+    self._stack = null;
 
     return self;
   }
@@ -20,6 +24,7 @@ var editors = (function (global) {
       self.parent = parent;
       self.model = parent.model;
       self.value = parent.value;
+      self.locale = parent.locale;
     },
 
      // retrieves a value from the editor's state
@@ -53,6 +58,11 @@ var editors = (function (global) {
       $(selector).empty().html( this.template );
       this.syncToDOM();
     },
+    stack: function() {
+      if ( this._stack ) { return this._stack }
+      return this.parent.stack();
+    },
+    setStack: function(s) { this._stack = s },
     _callback: function( name, value, next ) {
       var f = this.options[name] || function ( value, next ) { if (next) { next( value ) } };
       f( value, next );
@@ -83,7 +93,7 @@ var editors = (function (global) {
     attach:      function() {},
     syncToDOM:   function() {},
     syncFromDOM: function() {},
-    load:        function() {},
+    load:        function( success ) {},
     refresh:     function( success ) {
       var self = this;
       self.load( function( data, error, jqxhr ) {
@@ -226,7 +236,7 @@ var editors = (function (global) {
 
       editor.load( function(data, error, xhr) {
         editor.template = data.template;
-        global.caribou.editors.push( editor );
+        self.stack().push( editor );
       });
     }
   });
@@ -265,7 +275,7 @@ var editors = (function (global) {
       editor.load( function( data, error, jqxhr ) {
         editor.template = data.template;
         editor.value = data.state || editor.value;
-        global.caribou.editors.push( editor );
+        self.stack().push( editor );
       });
 
       return false;
@@ -309,7 +319,7 @@ var editors = (function (global) {
       editor.load( function( data, error, jqxhr ) {
         editor.template = data.template;
         editor.value = data.value || editor.value;
-        global.caribou.editors.push( editor );
+        self.stack().push( editor );
       });
     }
   });
@@ -371,7 +381,10 @@ var editors = (function (global) {
       var self = this;
       var route = self.api().routeFor( "editor-content", {
         model: self.model.slug,
-        id: self.value && self.value.id ? self.value.id : null
+        id: self.value && self.value.id ? self.value.id : null,
+        // if we call it "locale" it will get stomped on by the
+        // locale in the URL itself.
+        "locale-code": (self.locale? self.locale : "")
       });
       $.ajax({ url: route, success: success });
     },
@@ -394,18 +407,49 @@ var editors = (function (global) {
     },
     syncFromChild: function( child, value, next ) {
       var self = this;
-      if ( child.field.type === "asset" || child.field.type === "part" ) {
+      if ( self.locale ) {
+        var checkboxes = $("input[name='caribou-use-global'][value='" + child.field.slug + "']:checked");
+        if (checkboxes.length) {
+          value = null;
+        }
+      }
+      if ( value && (child.field.type === "asset" || child.field.type === "part") ) {
         self.set( child.field.slug, value.value );
         self.set( child.field.slug + "_id", value.id );
       } else {
-        self.set( child.field.slug, value ); 
+        self.set( child.field.slug, value );
       }
+
       if (next) next( value );
     },
     attach: function() {
+      var self = this;
       $( this.children ).each( function( index, child ) {
         child.attach();
       });
+
+      $( this.selector ).find("select[name=locale]").on("change", function(e) {
+        e.preventDefault();
+        self.setLocale( $(this).val() );
+      }).val( self.locale );
+
+      $( self.children ).each( function(index, child) {
+        child.on("caribou:edit", function(e) {
+          $("input[name='caribou-use-global'][value='" + child.field.slug + "']").prop("checked", false);
+        });
+      });
+    },
+    setLocale: function( v ) {
+      var self = this;
+      console.log("Setting locale to " + v);
+      var oldLocale = self.locale;
+      if (oldLocale !== v) {
+        self.locale = v;
+        self.refresh( function(data) {
+          self.value = data.state;
+          console.log("Loaded data for locale: " + v);
+        } );
+      }
     },
     submit: function( next ) {
       var self = this;
@@ -558,7 +602,7 @@ var editors = (function (global) {
         editor.template = data.template;
         editor.value = data.state;
         editor.syncToChildren();
-        global.caribou.editors.push( editor );
+        self.stack().push( editor );
       });
     },
     // end of nasty copy/paste.
@@ -585,7 +629,7 @@ var editors = (function (global) {
 
       editor.load( function(data, error, xhr) {
         editor.template = data.template;
-        global.caribou.editors.push( editor );
+        self.stack().push( editor );
       });
 
       return false;
@@ -604,7 +648,7 @@ var editors = (function (global) {
         editor.template = data.template;
         editor.value = data.state;
         editor.syncToChildren();
-        global.caribou.editors.push( editor );
+        self.stack().push( editor );
       });
     },
     removeExisting: function( existing ) {
@@ -659,7 +703,7 @@ var editors = (function (global) {
       });
       chooser.load( function(data, error, jqxhr) {
         chooser.template = data.template;
-        global.caribou.editors.push( chooser );
+        self.stack().push( chooser );
       });
     },
     saveChanges: function( value, next ) {
@@ -792,7 +836,7 @@ var editors = (function (global) {
         editor.template = data.template;
         editor.value = data.state;
         editor.syncToChildren();
-        global.caribou.editors.push( editor );
+        self.stack().push( editor );
       });
     },
     bulkEdit: function( values ) {
@@ -809,7 +853,7 @@ var editors = (function (global) {
         editor.template = data.template;
         editor.value = data.state;
         editor.syncToChildren();
-        global.caribou.editors.push( editor );
+        self.stack().push( editor );
       });
     },
     saveChanges: function( value, next ) {
@@ -869,7 +913,7 @@ var editors = (function (global) {
       if (self.multiple) {
         self.value = self.selected();
       }
-      self.callback("submit", next); 
+      self.callback("submit", next);
     }
   });
 
@@ -892,7 +936,7 @@ var editors = (function (global) {
     },
     syncFromChild: function( child, value, next ) {
       var self = this;
-      var checkboxes = $("input[name='caribou-update'][value='" + child.field.slug + "']:checked"); 
+      var checkboxes = $("input[name='caribou-update'][value='" + child.field.slug + "']:checked");
       if (checkboxes.length) {
         ModelEditor.prototype.syncFromChild.call( this, child, value, next );
       }
@@ -935,19 +979,16 @@ var editors = (function (global) {
   }
 
   $.extend( EditorStack.prototype, {
-    // These controls should be added by editors, not
-    // hardcoded here, but for now this is in charge of
-    // navigation and management, so it needs to be the
-    // dude who responds.
-    saveChangesButton: function() { return $("#save-changes"); },
-    saveAndNew:        function() { return $("#save-and-new"); },
-    saveAndContinue:   function() { return $("#save-and-continue"); },
-    backButton:        function() { return $("#back-button");  },
-    cancelButton:      function() { return $("#cancel-button"); },
-    addNewButton:      function() { return $("#add-new"); },
-    commandMenu:       function() { return $("#command-menu"); },
-    description:       function() { return $("#description"); },
-    chooseExistingButton: function() { return $("#choose-existing"); },
+    ownedControl:     function(c) { return $(this.options.selector + "-" + c) },
+    saveChangesButton: function() { return this.ownedControl("save-changes"); },
+    saveAndNew:        function() { return this.ownedControl("save-and-new"); },
+    saveAndContinue:   function() { return this.ownedControl("save-and-continue"); },
+    backButton:        function() { return this.ownedControl("back-button");  },
+    cancelButton:      function() { return this.ownedControl("cancel-button"); },
+    addNewButton:      function() { return this.ownedControl("add-new"); },
+    commandMenu:       function() { return this.ownedControl("command-menu"); },
+    description:       function() { return this.ownedControl("description"); },
+    chooseExistingButton: function() { return this.ownedControl("choose-existing"); },
     attach: function() {
       var self = this;
       console.log("Attaching editor stack to DOM");
@@ -1003,6 +1044,7 @@ var editors = (function (global) {
       if ( active ) {
         active.syncFromDOM();
       }
+      editor.setStack( this );
       this.editors.push( editor );
       global.caribou.breadcrumbs.push({ text: editor.description() });
       this.description().html( editor.description() );
@@ -1089,10 +1131,45 @@ var editors = (function (global) {
     submitActiveEditor: function( next ) {
       var active = this.activeEditor();
       return active.submit( next );
+    },
+    clear: function() {
+      while ( this.editors.pop() ) {
+        console.log( "Popping off stale editor" );
+      }
     }
   });
 
-  return {
+  function EditorRegistry() {
+    this.map = {};
+  }
+  $.extend( EditorRegistry.prototype, {
+    register: function( model, editorClass ) { this.map[model] = editorClass },
+    editor: function( options ) {
+      var model = options.model;
+      var content = options.value;
+      if ( this.map[model.slug] ) {
+        var editorClass = this.map[model.slug];
+        return new editorClass( options );
+      }
+      return new ModelEditor( options );
+    }
+  });
+
+  (function ($) {
+    $.fn.editorStack = function( options ) {
+      var selector = this.selector;
+      var opts = $.extend( options, { selector: selector } );
+      var stack = new EditorStack( opts );
+      this.data({ stack: stack });
+      stack.attach();
+      return stack;
+    }
+  })(jQuery);
+
+  // export the classes through the global
+  global.caribou = global.caribou || {};
+  global.caribou.editors = {
+    registry: new EditorRegistry(),
     Editor: Editor,
     FieldEditor: FieldEditor,
     ModelEditor: ModelEditor,
@@ -1113,24 +1190,28 @@ $(function () {
   var pageInfo = $('body').data();
   var ids = pageInfo.instanceIds || [];
   var api = window.caribou.api;
-  var stack = window.caribou.editors = new editors.EditorStack({ selector: "#editor" });
-  stack.attach();
+  var stack = $("#editor").editorStack();
 
-  // ack
+  var editor;
   var options = {
     model: api.model( pageInfo.model ),
+    locale: (pageInfo.locale === "global" ? null : pageInfo.locale),
     submit: function( value, next ) {
       console.log("Holy smokes, batman!", value);
       var values = _.isArray( value ) ? value : [value];
+      var opts = {};
+      if (editor.locale && editor.locale !== "") {
+        opts.locale = editor.locale;
+      }
       var data = _.map( values, function(v) {
-        return { model: pageInfo.model, fields: editor.prepareForUpdate( v ) };
+        return { model: pageInfo.model, fields: editor.prepareForUpdate( v ), opts: opts };
       });
       api.post( data, function( d ) {
         console.log(d);
         if (next) {
           next( d.length > 1 ? d : d[0] );
         } else {
-          location.href = api.routeFor( "to-route", { page: "results", slug: pageInfo.model } );
+          location.href = api.routeFor( "to-route", { page: "admin.results", slug: pageInfo.model } );
         }
       });
     }
@@ -1142,7 +1223,9 @@ $(function () {
     options.value = { id: pageInfo.instanceIds[0] };
   }
 
-  var editor = pageInfo.instanceIds.length > 1 ? new editors.BulkModelEditor(options) : new editors.ModelEditor(options);
+  editor = pageInfo.instanceIds.length > 1 ?
+             new window.caribou.editors.BulkModelEditor(options)
+           : window.caribou.editors.registry.editor(options);
   editor.load( function( data, error, xhr ) {
     editor.value = pageInfo.instanceIds.length? data.state : {};
     editor.syncToChildren();

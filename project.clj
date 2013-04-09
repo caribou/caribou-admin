@@ -6,7 +6,6 @@
                  [clj-stacktrace "0.2.5"]
                  [swank-clojure "1.4.2" :exclusions [clj-stacktrace]]
                  [clj-time "0.4.4"]
-                 [clucy "0.3.0"]
                  [org.mindrot/jbcrypt "0.3m"]]
   :jvm-opts ["-agentlib:jdwp=transport=dt_socket,server=y,suspend=n" "-Xmx2g"]
   :source-paths ["src" "../src"]

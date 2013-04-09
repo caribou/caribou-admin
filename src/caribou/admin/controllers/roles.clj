@@ -63,5 +63,5 @@
               orig-perm (key old-perms)
               id (second orig-perm)]
           (model/update :permission id {:mask (second perm)})))))
-  (redirect (route-for :edit_roles (select-route :edit_roles (:params request)))
+  (redirect (route-for :admin.edit_roles (select-route :edit_roles (:params request)))
                        (:session request)))

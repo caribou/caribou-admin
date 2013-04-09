@@ -1,0 +1,58 @@
+@import "compass/utilities/";
+@import "compass/css3/";
+@import "_grid_mixins";
+@import "_variables";
+
+/* Number of desired columns. Everything else will be calculated. Yay math! */
+$columns: 12;
+/* Width of gutter between columns. */
+$gutter-width: 2%;
+/* DO NOT MODIFY - This is where the calculation happens. - DO NOT MODIFY */
+$grid-width: (100 + $gutter-width) / $columns;
+
+/* This is what generates all of the classes necessary to make this work. */
+@include grid-columns;
+
+/* Smaller devices and tablets (portrait and landscape) */
+@include media-query(small-and-tablet) {
+    /* This is where the "media-" classes are used to make specific cols recalulate their widths for smaller screens. */
+    @include alter-grid-for-media;
+}
+/* Small devices (portrait and landscape) */
+@include media-query(small) {
+    div[class*="media-"] div[class^="col"] {
+        width: 100%;
+        float: none;
+        margin: $gutter-width auto auto auto;
+    }
+}
+/* Tablet devices (portrait and landscape) */
+@include media-query(tablet) {
+}
+/* Desktop devices (landscape) */
+@include media-query(desk) {
+}
+
+.page-header h1 {
+    @include inline-block;
+    margin-bottom: 0;
+    margin-right: 10px;
+}
+
+//media object
+.media {
+    margin: 1em;
+    @include pie-clearfix;
+}
+
+.media_visual {
+    float: left;
+    margin-right: 1em;
+    img {
+        display: block;
+    }
+}
+
+.media_body {
+    overflow: hidden;
+}

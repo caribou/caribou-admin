@@ -2,15 +2,15 @@
 {{%content}}
 <div class="page-header">
   <ul class="breadcrumb">
-    <li> <a href="{{safe-route-for :models params}}">Models</a> <span class="divider">/</span></li>
+    <li> <a href="{{safe-route-for :admin.models params}}">Models</a> <span class="divider">/</span></li>
     <li class="active">{{> templates/content/models/instance/_action_menu.html}}</li>
   </ul>
 
   {{> templates/content/models/collection/_search.html}}
 
   <div class="container-fluid clearfix">
-    <h1 class="pull-left">{{model.name}}</h1>
-    <a class="pull-right btn btn-large" href="{{safe-route-for :create_model_instance params }}">Create a {{model.name}}</a>
+    <h1>{{model.name}}</h1>
+    <a class="btn" href="{{safe-route-for :create_model_instance params }}">Create a {{model.name}}</a>
   </div>
 
 </div>
@@ -19,10 +19,18 @@
   <section>
     <div class="row-fluid">
       <div class="span9 column">
-        <h2>Attributes</h2>
+        <div class="clearfix">
+          <h2 class="pull-left">Attributes</h2>
+            <a href="#" role="button" class="btn btn-success pull-right" data-model="{{model.slug}}" onclick="return window.caribou.models.showAddFieldDialog( this );"><span class="instrument-icon-circle-plus"></span> Add attribute</a>
+        </div>
+        <div class="status-messages alert alert-error alert-block hide changeOrderMessage clearfix">
+          You've changed the order. Be sure to save!
+          <button class='btn btn-danger' onclick='window.caribou.models.updateOrdering();'>Save</button>
+        </div>
         <table class="table table-striped table-bordered">
           <thead>
             <tr>
+              <th>&nbsp;</th>
               <th>Field</th>
               <th>Type</th>
               <th>Actions</th>
@@ -30,12 +38,13 @@
           </thead>
           <tbody class="sortable" data-position='{ "umbrella": {{model.id}}, "model":"model", "association":"fields", "offset": 0 }'>
             {{#model.fields}}
-            <tr data-position='{ "position": {{model_position}}, "id": "{{id}}" }' {{#locked}}class="error"{{/locked}}>
+            <tr data-position='{ "position": {{model_position}}, "id": "{{id}}" }' {{#locked}}class="disabled_bg"{{/locked}}>
+              <td class="sort"><span class="instrument-icon-up"></span><span class="instrument-icon-down"></span></td>
               <td>{{name}}</td>
               <td>{{type}} {{#searchable}}(searchable){{/searchable}}</td>
               <td>
                 {{^locked}}
-                  <a href="{{safe-route-for :edit_model_instance params {:slug "field" :id id} }}">Edit</a> | <a href="#delete" data-model="field" data-id="{{id}}" onclick="return window.caribou.models.showDeleteDialog( this );">Delete</a>
+                  <a href="{{safe-route-for :admin.edit_model_instance params {:slug "field" :id id} }}" class="icon-container"><span class="instrument-icon-pencil" title="Edit"></span></a> &nbsp; <a href="#delete" class="icon-container" data-model="field" data-id="{{id}}" onclick="return window.caribou.models.showDeleteDialog( this );"><span class="instrument-icon-trash" title="Delete"></span></a>
                 {{/locked}}
               </td>
             </tr>
@@ -44,7 +53,7 @@
         </table>
       </div>
     </div>
-    <a href="#" role="button" class="btn btn-success" data-model="{{model.slug}}" onclick="return window.caribou.models.showAddFieldDialog( this );">+ attribute</a>
+    <a href="#" role="button" class="btn btn-success" data-model="{{model.slug}}" onclick="return window.caribou.models.showAddFieldDialog( this );"><span class="instrument-icon-circle-plus"></span> Add attribute</a>
   </section>
 </div>
 

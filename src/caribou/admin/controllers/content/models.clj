@@ -10,17 +10,23 @@
             [clojure.pprint :as pprint]
             [clojure.walk :as walk]
             [caribou.util :as util]
+            [caribou.logger :as log]
             [caribou.app.pages :as pages]
             [caribou.app.template :as template]
             [caribou.app.handler :as handler]
             [caribou.asset :as asset]
             [caribou.config :as config]
-            [caribou.admin.index :as index]
+            [caribou.index :as index]
             [caribou.admin.helpers :as helpers]))
 
-(defn safe-route-for
-  [slug & args]
-  (pages/route-for slug (pages/select-route slug (apply merge args))))
+
+(defn inflate-request
+  [request]
+  (let [locale-code (-> request :params :locale)
+        locale (if (or (nil? locale-code) (empty? locale-code) (= "global" locale-code))
+                 nil
+                 (model/pick :locale {:where {:code locale-code}}))]
+    (assoc request :locale locale)))
 
 (defn part-title
   [field]
@@ -70,19 +76,17 @@
                                (= (:type %) "link")
                                (= (:type %) "boolean")) fields)
         filled (map #(assoc % :friendly-path (field-path %)) stripped)]
-    (println (map #(:friendly-path %) filled))
+    (println (map :friendly-path filled))
     filled))
 
-(defn all-helpers [] 
-  ; TODO - other local helpers here
-  (merge (helpers/all) {:safe-route-for safe-route-for
-                        :order-get-in order-get-in}))
+(def all-helpers
+  {:order-get-in order-get-in})
 
 (defn render
   ([content-type params]
     (controller/render content-type params))
   ([params]
-    (controller/render (merge (all-helpers) params))))
+    (controller/render (merge all-helpers params))))
 
 (defn json-response
   [data]
@@ -106,7 +110,7 @@
   (let [new-model-name (-> request :params :model-name)
         ; validate here
         new-model (model/create :model {:name (string/capitalize new-model-name)})]
-    (controller/redirect (pages/route-for :edit_model (dissoc (merge {:slug (:slug new-model)} (:params request)) :model-name)))))
+    (controller/redirect (pages/route-for :admin.edit_model (dissoc (merge {:slug (:slug new-model)} (:params request)) :model-name)))))
 
 (defn view
   [request]
@@ -119,10 +123,10 @@
 (defn keyword-results
   "This inefficiently inflates search results into
   real content directly from the DB, one-by-one"
-  [kw slug]
+  [kw slug opts]
   (let [m (@model/models (keyword slug))
         ;; TODO - remove this hardcoded limit and make it work with pagination
-        raw (index/search m kw {:limit 200})
+        raw (index/search m kw (assoc opts :limit 200))
         _ (println raw)
         includes (build-includes m)
         inflated (map (fn [r] (model/pick slug {:where {:id (:id r)} :include includes})) raw)]
@@ -130,23 +134,34 @@
 
 (defn view-results
   [request]
-  (let [params (-> request :params)
+  (let [request (inflate-request request)
+        locale (:locale request)
+        params (-> request :params)
         model (model/pick :model {:where {:slug (:slug params)} :include {:fields {}}})
-        ;; this needs to delegate to someone else to find the list of things to show
         includes (build-includes model)
-        order (or (:order params) "position")
+        order-default (or (:order params) "position")
+        order {:slug (first (clojure.string/split order-default #" "))
+               :direction (if (.endsWith order-default "desc") "desc" "asc")}
+        _ (println order-default order)
         kw-results (when-not (empty? (:keyword params))
-                     (keyword-results (:keyword params) (:slug params)))
-        results (or kw-results (model/gather (-> request :params :slug) {:limit (:limit params)
-                                                          :offset (:offset params)
-                                                          :include includes
-                                                          :order (model/process-order order)}))
+                     (keyword-results (:keyword params) (:slug params) {:locale (-> locale :code)}))
+        spec {:limit (:limit params)
+              :offset (:offset params)
+              :include includes
+              :locale (-> locale :code)
+              :order (model/process-order order-default)}
+        _ (log/debug spec)
+        results (or kw-results (model/gather (-> request :params :slug) spec))
         friendly-fields (human-friendly-fields model)
         order-info (order-info model)]
+    (if-let [locale (-> request :locale)]
+      (log/debug (str "Locale is " (:code locale)))
+      (log/debug "Locale is global"))
     (render (merge request {:results results
                             :model model
                             :fields friendly-fields
                             :allows-sorting true
+                            :order order
                             :order-info order-info
                             :pager (helpers/add-pagination results {:page-size (or (:size params) 20)
                                                                     :page-slug (-> request :page :slug)
@@ -172,7 +187,7 @@
                      :searchable searchable
                      :type field-type})
         new-model (model/update :model (:id model) {:fields [ new-field ] })]
-      (controller/redirect (pages/route-for :edit_model
+      (controller/redirect (pages/route-for :admin.edit_model
                              (dissoc (:params request) :field-name
                                                        :field-type
                                                        :searchable
@@ -186,7 +201,8 @@
 
 (defn edit-instance
   [request]
-  (let [model-slug (-> request :params :slug)
+  (let [request (inflate-request request)
+        model-slug (-> request :params :slug)
         model (model/pick :model {:where {:slug model-slug} :include {:fields {}}})
         model-fields (:fields model)
         id-param (-> request :params :id)
@@ -209,10 +225,9 @@
   [request]
   (let [model-slug (-> request :params :slug)
         edited-instance (dissoc (:params request) :slug)
-        updated-instance (model/create model-slug edited-instance)
-        ]
+        updated-instance (model/create model-slug edited-instance)]
     (println updated-instance)
-    (controller/redirect (pages/route-for :edit_model_instance {:id (:id updated-instance) :slug model-slug})
+    (controller/redirect (pages/route-for :admin.edit_model_instance {:id (:id updated-instance) :slug model-slug})
       {:cookies {"success-message" {:value (str "You successfully updated this " model-slug)}}})))
 
 (defn create-instance
@@ -222,7 +237,8 @@
 (defn editor-for
   ;; given a model slug, generates an editor for that model
   [request]
-  (let [model (model/pick :model {:where {:slug (-> request :params :model)} :include {:fields {}}})
+  (let [request (inflate-request request)
+        model (model/pick :model {:where {:slug (-> request :params :model)} :include {:fields {}}})
         template (template/find-template (util/pathify ["content" "models" "instance" "_edit.html"]))]
     (render (merge request {:template template :model model}))))
 
@@ -235,10 +251,15 @@
                 (model/process-where (:where params))
                 (if (empty? (:id params)) {} {:id (:id params)}))
         order (if (:order params) (model/process-order (:order params)) {})
+        locale-code (if (or (nil? (:locale-code params)) (empty? (:locale-code params)))
+                      nil
+                      (:locale-code params))
         raw-content (model/gather (:slug model) {:where where
-                                                 :include include 
-                                                 :limit (:limit params) 
-                                                 :offset (:offset params)})
+                                                 :include include
+                                                 :limit (:limit params)
+                                                 :offset (:offset params)
+                                                 :results :clean
+                                                 :locale locale-code})
         content (map #(if (= (:slug model) "asset")
                         (assoc % :path (asset/asset-path %))
                         %) raw-content)]
@@ -257,10 +278,15 @@
                        include)
         _ (println join-include)
         where (if (empty? (:id params)) {} {:id (:id params)})
+        locale-code (if (or (nil? (:locale-code params)) (empty? (:locale-code params)))
+                      nil
+                      (:locale-code params))
         raw-content (model/gather (:slug model) {:where where
-                                                 :include join-include 
-                                                 :limit (:limit params) 
-                                                 :offset (:offset params)})
+                                                 :include join-include
+                                                 :limit (:limit params)
+                                                 :offset (:offset params)
+                                                 :results :clean
+                                                 :locale (:locale-code params)})
         instance (first raw-content)
         associated-content ((keyword assoc-name) instance)
         content (map #(if (= (:slug model) "asset")
@@ -276,7 +302,7 @@
         model (@model/models (keyword (:model params)))
         association (get-in model [:fields (keyword (:field params))])
         target (model/pick :model {:where {:id (-> association :row :target_id)} :include {:fields {}}})
-        template (template/find-template 
+        template (template/find-template
                    (util/pathify ["content" "models" "instance" (or (:template params) "_collection.html")]))
         stuff (find-associated-content params)
         content (:content stuff)
@@ -286,12 +312,14 @@
                  :current-page (:page params)})
         friendly-fields (human-friendly-fields target)
         order-info (order-info model association instance)
+        global? (or (and (contains? params :locale-code) (empty? (:locale-code params))) (nil? (:locale params)))
         response {:template (:body (render (merge request {:template template
                                                            :model target
                                                            :fields friendly-fields
                                                            :order-info order-info
                                                            :pager pager
                                                            :results (:results pager)
+                                                           :global? global?
                                                            })))
                   :model target
                   :state (:results pager)}]
@@ -299,14 +327,16 @@
 
 (defn editor-content
   [request]
-  (let [params (-> request :params)
+  (let [request (inflate-request request)
+        params (-> request :params)
         model (model/pick :model {:where {:slug (:model params)} :include {:fields {}}})
-        template (template/find-template 
+        template (template/find-template
                    (util/pathify ["content" "models" "instance" (or (:template params) "_edit.html")]))
         results (find-content params)
         instance (if-not (empty? (:id params))
                    (first results))
         friendly-fields (human-friendly-fields model)
+        global? (or (nil? (:locale request)) (and (contains? params :locale-code) (empty? (:locale-code params))))
         pager (helpers/add-pagination results
                 {:page-size (or (:size params) 20)  ; TODO:kd - put default page size into config
                   :current-page (:page params)})]
@@ -318,13 +348,15 @@
                                                 :order-info (order-info model)
                                                 :pager pager
                                                 :results (:results pager)
+                                                :global? global?
                                                 })))
        :model model
        :state (if-not (contains? params :id) (:results pager) instance)})))
 
 (defn bulk-editor-content
   [request]
-  (let [params (:params request)
+  (let [request (inflate-request request)
+        params (:params request)
         model-slug (:model params)
         model (model/pick :model {:where {:slug model-slug} :include {:fields {}}})
         id-list (clojure.string/split (:id params) #"[,:]")
@@ -334,7 +366,8 @@
                       (if (= (:id a) (:id b)) a nil)
                       (if (= a b) a nil)))
         merged (apply (partial merge-with all-equal) inflated)
-        template (template/find-template 
+        global? (or (nil? (:locale request)) (and (contains? params :locale-code) (empty? (:locale-code params))))
+        template (template/find-template
                    (util/pathify ["content" "models" "instance" (or (:template params) "_edit.html")]))]
     (json-response
       {:template (:body (render (merge request {:template template
@@ -344,6 +377,7 @@
                                                 :ids (:id params)
                                                 :fields (human-friendly-fields model)
                                                 :order-info (order-info model)
+                                                :global? global?
                                                 })))
        :model model
        :state merged
@@ -365,14 +399,17 @@
 (defn update-all
   [request]
   (let [payload (json-payload request)
-        updated (map (fn [x] (vector (:model x) (model/create (keyword (:model x)) (:fields x)))) payload)
-        indexed (doall (map (fn [x] (index/update (@model/models (keyword (first x))) (second x))) updated))
+        _ (log/debug payload)
+        updated (map (fn [x]
+                      (vector
+                       (:model x)
+                       (model/create (keyword (:model x)) (:fields x) (or (:opts x) {}))))
+                        payload)
         results (map second updated)]
-    ;; TODO: it is expensive to do this every time,
-    ;; so we really should only do it if fields or models
-    ;; are updated.
-    (query/clear-queries)
-    (model/init)
+    (when-not (empty? (set/intersection #{"model" "field"} (set (map :model payload))))
+      (log/debug "Reloading model, clearing query cache!")
+      (query/clear-queries)
+      (model/init))
     (when-not (empty? (set/intersection #{"page"} (set (map :model payload))))
       (println "RESETTING HANDLER!!")
       (handler/reset-handler))
@@ -426,7 +463,7 @@
   [request]
   (let [model (@model/models (keyword (-> request :params :slug)))]
     (println (index/update-all model))
-    (controller/redirect (pages/route-for :models (dissoc (:params request) :action :slug)))))
+    (controller/redirect (pages/route-for :admin.models (dissoc (:params request) :action :slug)))))
 
 (defn slugify-filename
   [s]
@@ -457,18 +494,19 @@
   ;; Cheesy way to create only one route for many functions.
   ;; This will go away, don't worry.  Just doing this to get up and running quickly.
   [request]
-  (condp = (-> request :params :action)
-    "editor-for" (editor-for request)
-    "editor-content" (editor-content request)
-    "editor-associated-content" (editor-associated-content request)
-    "update-all" (update-all request)
-    "reorder-all" (reorder-all request)
-    "find-all" (find-all request)
-    "find-one" (find-one request)
-    "delete-all" (delete-all request)
-    "to-route" (to-route request)
-    "upload-asset" (upload-asset request)
-    "remove-link" (remove-link request)
-    "reindex" (reindex request)
-    "bulk-editor-content" (bulk-editor-content request)
-    {:status 404 :body "Awwwwww snap!"}))
+  (let [request (inflate-request request)]
+    (condp = (-> request :params :action)
+      "editor-for" (editor-for request)
+      "editor-content" (editor-content request)
+      "editor-associated-content" (editor-associated-content request)
+      "update-all" (update-all request)
+      "reorder-all" (reorder-all request)
+      "find-all" (find-all request)
+      "find-one" (find-one request)
+      "delete-all" (delete-all request)
+      "to-route" (to-route request)
+      "upload-asset" (upload-asset request)
+      "remove-link" (remove-link request)
+      "reindex" (reindex request)
+      "bulk-editor-content" (bulk-editor-content request)
+      {:status 404 :body "Awwwwww snap!"})))

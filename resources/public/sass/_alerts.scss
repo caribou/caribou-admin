@@ -1,0 +1,25 @@
+@import "variables";
+
+.alert {
+  background-color: lighten($warning, 50);
+  border: 1px solid $warning;
+}
+
+.alert-success {
+  background-color: lighten($success, 45);
+  border-color: $success;
+  color: $success;
+}
+
+.alert-danger,
+.alert-error {
+  background-color: lighten($error, 50);
+  border-color: $error;
+  color: $error;
+}
+
+.alert-info {
+  background-color: lighten($secondary, 80);
+  border-color: $secondary;
+  color: $secondary;
+}

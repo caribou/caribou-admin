@@ -1,5 +1,6 @@
 (ns caribou.admin.helpers
   (:require [clj-time.format :as format]
+            [caribou.app.pages :as pages]
             [caribou.model :as model]))
 
 (import java.util.Date)
@@ -41,6 +42,10 @@
     date-string
     (yyyy-mm-dd {:d (current-date)} :d)))
 
+(defn safe-route-for
+  [slug & args]
+  (pages/route-for slug (pages/select-route slug (apply merge args))))
+
 (defn asset-is-image [m key]
   (if-let [asset (value-for-key m key)]
     (.startsWith (or (:content_type asset) "") "image")))
@@ -73,7 +78,8 @@
   ([thing path]
     (get-in-helper thing path nil))
   ([thing path default]
-    (let [spl (clojure.string/split path #"\.")
+    (let [spath (or path "")
+          spl (clojure.string/split spath #"\.")
           bits (map keyword spl)]
       (get-in thing bits default))))
 
@@ -125,8 +131,31 @@
      :opts              opts
      }))
 
-;; is there an easier way to export all the functions in a map?
-(defn all []
+(defn system-field? [field]
+  (or (#{"position" "created_at" "updated_at" "locked" "searchable" "distinct"} (:slug field))
+          (.endsWith (:slug field) "_id")
+          (.endsWith (:slug field) "_position")))
+
+
+;; -------- locale helpers --------
+
+(defn locales []
+  (model/gather :locale))
+
+(defn localized-models []
+  (model/gather :model {:where {:localized true}}))
+
+(defn locale-code
+  "This is the actual locale code - for 'global', this
+  will be blank, and for all others it will be the code"
+  [code]
+  (if (or (nil? code) (empty? code) (= "global" code))
+    ""
+    code))
+
+;; --------------------------------
+
+(def all
 	{:value-for-key value-for-key
 	 :date-year date-year
 	 :date-month date-month
@@ -145,4 +174,10 @@
    :position-of position-of
    :get-in get-in-helper
    :join-model? join-model?
+   :safe-route-for safe-route-for
+   :system-field? system-field?
+   :locales locales
+   :localized-models localized-models
+   :locale-code locale-code
+   :equals =
 	 })

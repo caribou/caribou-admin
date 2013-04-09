@@ -1,10 +1,10 @@
 <span class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{model.name}} <b class="caret"></b></a>
   <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu">
-    <li><a tabindex="-1" href="{{safe-route-for :create_model_instance {:slug model.slug} }}">Create new</a></li>
-    <li><a tabindex="-1" href="{{safe-route-for :results params {:slug model.slug} }}">See All</a></li>
-    <li><a tabindex="-1" href="{{safe-route-for :edit_model params {:slug model.slug} }}">Tweak fields</a></li>
-    <li><a tabindex="-1" href="{{safe-route-for :edit_model_instance {:slug "model" :id model.id} }}">Edit Model</a></li>
-    <li><a tabindex="-1" href="{{route-for :model_api params {:action "reindex" :slug model.slug} }}">Reindex</a></li>
+    <li><a tabindex="-1" href="{{safe-route-for :admin.create_model_instance params {:slug model.slug} }}">Create new</a></li>
+    <li><a tabindex="-1" href="{{safe-route-for :admin.results params {:slug model.slug} }}">See All</a></li>
+    <li><a tabindex="-1" href="{{safe-route-for :admin.edit_model params {:slug model.slug} }}">Tweak fields</a></li>
+    <li><a tabindex="-1" href="{{safe-route-for :admin.edit_model_instance params {:slug "model" :id model.id} }}">Edit Model</a></li>
+    <li><a tabindex="-1" href="{{safe-route-for :admin.model_api params {:action "reindex" :slug model.slug} }}">Reindex</a></li>
   </ul>
 </span>

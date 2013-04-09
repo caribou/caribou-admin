@@ -1,10 +1,10 @@
 <div id="new-model" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="newModelLabel" aria-hidden="true">
   <div class="modal-header">
-    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><span class="instrument-icon-close"></span></button>
     <h3 id="newModelLabel">Create New Model</h3>
   </div>
 
-  <form action="{{route-for :new_model params }}" method="POST">
+  <form action="{{safe-route-for :admin.new_model params }}" method="POST">
     <div class="modal-body">
       <fieldset>
         <label>Model name</label>

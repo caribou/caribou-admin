@@ -60,7 +60,6 @@ table td {
 
 
 
-
 /* Custom: Status Banner
 -------------------------------------------------- */
 .status {
@@ -75,4 +74,20 @@ table td {
   background: rgba(0, 0, 0, 0.85);
   font-size: 10px;
   font-weight: normal;
+}
+
+
+/* Custom tree control styles */
+
+ul.treenode {
+  list-style: none;
+}
+
+img.expand {
+  /* margin-right: 4px; */
+}
+
+li.treenode {
+  list-style: none;
+  border-top: 1px dotted #eee;
 }

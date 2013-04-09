@@ -1,6 +1,6 @@
 <div class="container-fluid clearfix pull-right">
-  <form class="form-search" action="{{safe-route-for :results params }}" method="GET">
+  <form class="form-search" action="{{safe-route-for :admin.results params }}" method="GET">
     <input type="text" class="input-medium search-query" name="keyword" placeholder="{{or model.slug "Find"}}..." />
-    <button type="submit" class="btn">Search</button>
+    <button type="submit" class="btn"><span class="instrument-icon-search"></span></button>
   </form>
 </div>

@@ -1,0 +1,31 @@
+$iconStandardSizes: 24 32 48;
+@mixin icon-size {
+    @each $iconSize in $iconStandardSizes {
+        .instrument-icon-#{$iconSize} {
+            font-size: 0px + $iconSize;
+            line-height: $iconSize / $iconSize;
+        }
+    }
+}
+
+
+// Icon font
+$icons: (collapse,\e001),(grid,\e002),(create-user,\e003),(database,\e004),(down,\e005),(dropdown,\e006),
+(expand,\e007),(fill,\e008),(forward,\e009),(mail,\e00a),(data-point,\e00b),(power,\e00c),(refresh,\e00d),
+(rss,\e00e),(small-screen,\e00f),(up,\e010),(wand,\e011),(video,\e012),(unlock,\e013),(trash,\e014),
+(ticket,\e015),(target,\e016),(tag,\e017),(tablet,\e018),(search,\e019),(circle-question,\e01a),(circle-plus,\e01b),
+(phone,\e01c),(person,\e01d),(people,\e01e),(pencil,\e01f),(documents,\e020),(email,\e021),(circle-info,\e022),
+(id,\e023),(home,\e024),(support,\e025),(gears,\e026),(gear,\e027),(gauge,\e028),(box,\e029),(fire,\e02a),
+(close,\e02b),(circle-close,\e02c),(circle-exclamation,\e02d),(file,\e02e),(desktop,\e02f),(stop,\e030),(site,\e031),
+(conversation,\e032),(book,\e033),(full-screen,\e034),(battery,\e035),(bar-graph,\e036),(warning,\e038),(sliders,\e039),
+(address-book,\e03a),(android,\e03b),(lock,\e03d),(social,\e03e),(apple,\e03f),(check,\e040),(cloud,\e041),(wrench,\e042),
+(clock,\e043),(circle-check,\e044),(chart,\e045),(list,\e046),(link,\e047),(line-graph,\e048),(key,\e049),(code,\e04a),
+(date,\e04b),(bullhorn,\e04c),(paint,\e04d),(back,\e000);
+
+@each $icon in $icons {
+    $name: nth($icon, 1);
+    $character: nth($icon, 2);
+    .instrument-icon-#{$name}:before {
+        content: "#{$character}";
+    }
+}

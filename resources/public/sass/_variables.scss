@@ -1,0 +1,37 @@
+// Pallette
+$primary: #1db7cb; //instrument blue
+$secondary: #231F20; //instrument gray
+$error: #CB311C;
+$warning: #E9A22F;
+$success: #6BC235;
+
+/*/ Colors /*/
+$text-color: $secondary;
+
+// Grays
+$black: #000;
+$grayDark: lighten($black, 25%);
+$grayDarker: lighten($black, 20%);
+$gray: lighten($black, 50%);
+$grayLight: lighten($black, 85%);
+$grayLighter: lighten($black, 90%);
+$grayLightest: lighten($black, 95%);
+
+//Button/Message Shadows
+$innerShadow: 0 -26px 25px -13px rgba(0, 0, 0, 0.2) inset;
+
+// Links
+$linkColor: $primary;
+$linkVisited: darken($linkColor,10);
+$linkColorHover: darken($linkColor, 10);
+
+//Fields, Inputs
+$inputBorderColor: #ccc;
+$inputPlaceholderColor: #ccc;
+$inputBGColor: #efefef;
+$inputShadow: 0 0 3px rgba(0,0,0,0.2) inset;
+
+
+// Baseline grid
+$basefont: 14px;
+$baseline: 17px;

@@ -1,10 +1,10 @@
 <div id="new-field" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="newFieldLabel" aria-hidden="true">
   <div class="modal-header">
-    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><span class="instrument-icon-close"></span></button>
     <h3 id="newFieldLabel">Add New Field</h3>
   </div>
 
-  <form action="{{route-for :new_model_field params }}" method="POST">
+  <form action="{{safe-route-for :admin.new_model_field params }}" method="POST">
     <div class="modal-body">
 
       <div class="control-group">

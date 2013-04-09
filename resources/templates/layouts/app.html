@@ -14,23 +14,23 @@
 
 	<meta name="viewport" content="width=device-width" />
 
-	<link rel="stylesheet" href="/css/bootstrap.min.css" />
+	<link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css" />
 	<style>
 	body {
 	  padding-top: 40px;
 	  padding-bottom: 40px;
 	}
 	</style>
-	<link rel="stylesheet" href="/css/bootstrap-responsive.min.css" />
-	<link rel="stylesheet" href="/css/style.css" />
-  <link rel="stylesheet" href="/css/datepicker.css" />
-  <link rel="stylesheet" href="/css/image-picker.css" />
+	<link rel="stylesheet" type="text/css" href="/css/bootstrap-responsive.min.css" />
+  <link rel="stylesheet" type="text/css" href="/css/instrument-ui.css" />
+  <link rel="stylesheet" type="text/css" href="/css/datepicker.css" />
+  <link rel="stylesheet" type="text/css" href="/css/image-picker.css" />
 
   <!-- jquery moved to top so a page can include scripts that fire on page ready -->
   <script src="/js/libs/jquery-1.7.2.min.js"></script>
 	<script src="/js/libs/modernizr-2.5.3-respond-1.1.0.min.js"></script>
 </head>
-<body id="{{page.slug}}" data-controller="{{page.slug}}" data-model="{{model.slug}}" data-api="{{route-for :model_api {:site params.site :locale params.locale} }}" data-instance-ids="{{instance-ids}}">
+<body id="{{page.slug}}" data-controller="{{page.slug}}" data-model="{{model.slug}}" data-api="{{safe-route-for :admin.model_api params}}" data-instance-ids="{{instance-ids}}" data-locale="{{locale-code params.locale}}">
 <!--[if lt IE 7]><p class=chromeframe>Your browser is <em>ancient!</em> <a href="http://browsehappy.com/">Upgrade to a different browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">install Google Chrome Frame</a> to experience this site.</p><![endif]-->
 
   <div class="navbar navbar-inverse navbar-fixed-top">
@@ -41,49 +41,31 @@
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
         </a>
-        <a class="brand" href="{{route-for :dashboard params}}">THIS. IS. CARIBOU.</a>
+        <a class="brand" href="{{safe-route-for :admin.models params}}">THIS. IS. CARIBOU.</a>
         <div class="nav-collapse">
           <ul class="nav">
-            <li><a href="{{route-for :dashboard params}}">Dashboard</a></li>
             <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Content <b class="caret"></b></a>
               <ul class="dropdown-menu">
-                <!-- <li><a href="{{route-for :projects params}}">Projects</a></li>-->
-                <!-- <li><a href="">Clients</a></li>-->
-                <!-- <li><a href="">Team Members</a></li>-->
-                <!-- <li><a href="/content-library/careers">Careers</a></li>-->
-                <!-- <li><a href="/content-library/blog-posts">Blog Posts</a></li>-->
-                <!-- <li class="divider"></li>-->
-                <!-- <li><a href="{{route-for :pages params}}">Pages</a></li>-->
-                <!-- <li><a href="/content-library/assets">Assets</a></li>-->
                 {{#user-models}}
-                <li><a href="{{route-for :results params {:slug slug} }}">{{name}}</a></li>
+                <li><a href="{{safe-route-for :admin.results params {:slug slug} }}">{{name}}</a></li>
                 {{/user-models}}
               </ul>
             </li>
-            <!--<li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Activity <b class="caret"></b></a>
-              <ul class="dropdown-menu">
-                <li><a href="#">Traffic Overview</a></li>
-                <li><a href="#">Referrers</a></li>
-                <li><a href="#">Popular Content</a></li>
-                <li><a href="#">Search Queries</a></li>
-                <li><a href="#">Detailed Activity</a></li>
-                <li class="divider"></li>
-                <li><a href="#">Comments</a></li>
-              </ul>
-            </li>-->
             <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Settings <b class="caret"></b></a>
               <ul class="dropdown-menu">
-                <li><a href="#">General</a></li>
+                <!-- <li><a href="#">General</a></li>
                 <li><a href="#">Time / Geography</a></li>
                 <li><a href="#">Domains</a></li>
                 <li><a href="#">Contributors</a></li>
+                <li class="divider"></li> -->
+                <li><a href="{{safe-route-for :admin.results params {:slug "site"} }}">Sites</a></li>
+                <li><a href="{{safe-route-for :admin.results params {:slug "locale"} }}">Locales</a></li>
                 <li class="divider"></li>
-                <li><a href="#">Sites</a></li>
-                <li><a href="#">Locales</a></li>
-                <li class="divider"></li>
-                <li><a href="{{route-for :models params}}">Model</a></li>
+                <li><a href="{{safe-route-for :admin.models params}}">Model</a></li>
+                <li><a href="{{safe-route-for :admin.pages params}}">Pages</a></li>
               </ul>
             </li>
+            <li><a href="{{safe-route-for :admin.pages params}}">Pages</a></li>
           </ul>
           <ul class="nav pull-right">
             <li class="dropdown">
@@ -95,10 +77,13 @@
             </li>
             <li class="divider-vertical"></li>
             <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Locale <b class="caret"></b></a>
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{#locale.code}}{{locale.code}}{{/locale.code}}{{^locale.code}}Locale{{/locale.code}} <b class="caret"></b></a>
               <ul class="dropdown-menu">
-                <li><a href="#settings">Global</a></li>
-                <li><a href="#settings">en_US</a></li>
+                <li><a href="{{route-for page.slug params {:locale "global"} }}">Global</a></li>
+                {{#locales:locale}}
+                <li><a href="{{route-for page.slug params {:locale locale.code} }}">{{locale.description}} ({{locale.code}})</a></li>
+                {{/locales}}
+                <li><a href="{{safe-route-for :admin.create_model_instance params {:slug "locale"} }}">Create</a></li>
               </ul>
             </li>
             <li class="divider-vertical"></li>
@@ -118,17 +103,17 @@
       </div>
     </div>
   </div>
-  
+
 	{{/is_xhr}}
 	  {{%content}}{{/content}}
 	{{^is_xhr}}
-	
+
 	<hr>
-  
+
   <footer>
-  
+
   </footer>
-  
+
   <script src="/js/libs/jqueryui/1.10.0/jquery-ui.min.js"></script>
 
   <script src="/js/libs/bootstrap/bootstrap.js"></script>
@@ -137,11 +122,14 @@
   <script src="/js/libs/underscore-min.js"></script>
   <script src="/js/libs/pluralize.js"></script>
   <script src="/js/libs/jquery.ajaxfileupload.js"></script>
+  <script src="/js/libs/interface.js"></script>
   
   <script src="/js/modules/pages/content/util.js"></script>
   <script src="/js/modules/pages/content/backend.js"></script>
   <script src="/js/modules/pages/content/editors.js"></script>
+  <script src="/js/modules/pages/content/tree.js"></script>
   <script src="/js/modules/pages/content/models.js"></script>
+  <script src="/js/modules/pages/content/pages.js"></script>
   <script src="/js/modules/pages/content/breadcrumbs.js"></script>
   <script src="/js/modules/pages/content/status.js"></script>
 

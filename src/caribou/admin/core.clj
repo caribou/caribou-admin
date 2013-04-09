@@ -19,6 +19,7 @@
             [caribou.app.request :as request]
             [caribou.app.handler :as handler]
             [caribou.app.controller :as controller]
+            [caribou.admin.helpers :as helpers]
             [caribou.admin.routes :as routes]))
 
 (declare handler)
@@ -37,10 +38,10 @@
 (defn open-page?
   [uri]
   (contains?
-   #{(pages/route-for :login {})
-     (pages/route-for :logout {})
-     (pages/route-for :forgot_password {})
-     (pages/route-for :submit_login {})}
+   #{(pages/route-for :admin.login {})
+     (pages/route-for :admin.logout {})
+     (pages/route-for :admin.forgot_password {})
+     (pages/route-for :admin.submit_login {})}
    uri))
 
 (defn user-required
@@ -50,14 +51,14 @@
             (open-page? (:uri request)))
       (handler request)
       (controller/redirect
-       (pages/route-for :login {})
+       (pages/route-for :admin.login {})
        {:session (:session request)}))))
 
 (defn get-models
   [handler]
   (fn [request]
     (let [models (model/gather
-                  :model 
+                  :model
                   {:where {:locked false :join_model false}
                    :order {:id :asc}})]
       (handler (assoc request :user-models models)))))
@@ -69,8 +70,9 @@
 (defn provide-helpers
   [handler]
   (fn [request]
-    (let [request (merge request base-helpers)]
+    (let [request (merge request base-helpers helpers/all)]
       (handler request))))
+
 
 (defn admin-wrapper
   [handler]
@@ -92,9 +94,6 @@
   (def handler
     (-> (handler/handler)
         (admin-wrapper)
-        ;; (provide-helpers)
-        ;; (user-required)
-        ;; (get-models)
         (lichen/wrap-lichen (@config/app :asset-dir))
         (handler/use-public-wrapper (@config/app :public-dir))
         (middleware/wrap-servlet-path-info)

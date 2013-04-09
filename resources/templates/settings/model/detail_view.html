@@ -6,8 +6,8 @@
     <li class="active">{{model.name}}</li>
   </ul>
   <div class="container-fluid clearfix">
-    <h1 class="pull-left">{{model.name}}</h1>
-    <a class="pull-right btn btn-large" href="settings/models/{{model.id}}/edit">Edit Model</a>
+    <h1>{{model.name}}</h1>
+    <a class="btn" href="settings/models/{{model.id}}/edit">Edit Model</a>
   </div>
 </div>
     
@@ -29,6 +29,7 @@
           <tbody>
             {{#model.fields}}
             <tr data-model-id="{{model.id}}" data-attr-id="{{id}}" data-attr-name="{{name}}"class="{{#locked}}locked{{/locked}}">
+              <td class="sort"><span class="instrument-icon-up"></span><span class="instrument-icon-down"></span></td>
               <td>{{name}}</td>
               <td>{{type}}</td>
               <td>Default Value</td>
@@ -47,7 +48,7 @@
     </div>
     <div class="modal hide fade" id="attribute-detail">
       <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal">×</button>
+        <button type="button" class="close" data-dismiss="modal"><span class="icon-close"></span></button>
         <h3></h3>
       </div>
       <div class="modal-body">

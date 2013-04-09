@@ -1,0 +1,39 @@
+@import "variables";
+@import "compass/css3";
+
+.modal form {
+    margin-bottom: 0;
+}
+
+textarea,
+input[type="text"],
+input[type="password"],
+input[type="datetime"],
+input[type="datetime-local"],
+input[type="date"],
+input[type="month"],
+input[type="time"],
+input[type="week"],
+input[type="number"],
+input[type="email"],
+input[type="url"],
+input[type="search"],
+input[type="tel"],
+input[type="color"],
+.uneditable-input{
+    border-color: $inputBorderColor;
+    background-color: $inputBGColor;
+    &:focus {
+        border-color: $primary;
+        background-color: white;
+        @include box-shadow (inset 0 1px 1px rgba(0,0,0,0.075),0 0 8px rgba($primary,0.6));
+    }
+    .disabled_bg & {
+        background-color: white;
+    }
+}
+
+//Holy crap bootstraps adds a lot of radius to search boxes
+input.search-query {
+    @include border-radius(5px);
+}
