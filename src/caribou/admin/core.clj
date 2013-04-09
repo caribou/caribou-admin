@@ -2,10 +2,12 @@
   (:use [ring.middleware.json-params :only (wrap-json-params)]
         [ring.middleware.multipart-params :only (wrap-multipart-params)]
         [ring.middleware.session :only (wrap-session)]
+        [ring.middleware.params :only (wrap-params)]
+        [ring.middleware.nested-params :only (wrap-nested-params)]
+        [ring.middleware.keyword-params :only (wrap-keyword-params)]
         [ring.middleware.cookies :only (wrap-cookies)]
         [ring.middleware.session.cookie :only (cookie-store)])
-  (:require [compojure.handler :as compojure]
-            [clojure.string :as string]
+  (:require [clojure.string :as string]
             [swank.swank :as swank]
             [lichen.core :as lichen]
             [caribou.config :as config]
@@ -100,8 +102,10 @@
         (request/wrap-request-map)
         (wrap-json-params)
         (wrap-multipart-params)
+        (wrap-keyword-params)
+        (wrap-nested-params)
+        (wrap-params)
         (db/wrap-db @config/db)
-        (compojure/api)
         (wrap-session {:store (cookie-store {:key "vEanzxBCC9xkQUoQ"})
                        :cookie-name "caribou-admin-session"
                        :cookie-attrs {:max-age (days-in-seconds 90)}})
