@@ -1,0 +1,79 @@
+@import "variables";
+@import "compass/css3";
+
+.table {
+    th {
+        background-color: $secondary;
+        color: white;
+        border-color: $grayLight;
+    }
+    //Add a move cursor to items that are sortable.
+    tbody.sortable {
+        cursor: move;
+        tr {
+            background-color: white;
+            &:hover {
+                background-color: $grayLightest;
+            }
+        }
+    }
+    //Remove the icon if you can't move row up or down
+    tr:first-child .instrument-icon-up,
+    tr:last-child .instrument-icon-down {
+        visibility: hidden;
+    }
+    td {
+      overflow: hidden;
+      position: relative;
+      vertical-align: middle;
+      border-color: $grayLight;
+    }
+    //style the placeholder where an row can be dropped
+    tbody tr.ui-sortable-placeholder td,
+    tbody tr.ui-sortable-placeholder.disabled_bg td {
+        border: 2px dashed $primary;
+        background-color: white;
+    }
+    //Remove bootstrap bg color on tds so we can add bg color to tr instead
+    tbody tr td,
+    tbody tr.disabled_bg td {
+        background-color: transparent;
+    }
+    //Add color to uneditable rows.
+    tbody tr.disabled_bg {
+        background-color: $grayLighter;
+        @include transition(background-color 0.5s);
+    }
+    //Add flash of color to row once it's dropped.
+    tbody tr.ui-sortable-highlight {
+        background-color: $primary;
+        @include transition(background-color 0.5s);
+    }
+    select {
+        margin-bottom: 0;
+        margin-right: 5px;
+    }
+    //Add necessary borders to td's while dragging
+    tr.ui-sortable-helper td {
+        border-bottom: 1px $grayLight solid;
+        &:last-child {
+            border-right: 1px $grayLight solid;
+        }
+    }
+    //Add width to .sort icon container td.
+    .sort {
+        width: 50px;
+        text-align: center;
+        span {
+            color: $gray;
+        }
+    }
+    // Underline links in tables except links
+    // that contain icons or are styled as btns.
+    a:not(.icon-container):not(.btn) {
+        text-decoration: underline;
+    }
+}
+.table-bordered th {
+    border-color: $gray;
+}

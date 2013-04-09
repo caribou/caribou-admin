@@ -10,25 +10,39 @@
     var enableSorting = function( opts ) {
       opts = opts || {};
       var selector = opts.selector || ".sortable";
+      var rowNumber = $(".sortable tr").length;
 
+    // Return a helper with preserved width of cells
+   if (rowNumber > 1) {
       $(selector).sortable({
+        start: function(e, ui){
+          ui.placeholder.html('<td colspan="10">&nbsp;</td>');
+        },
+        placeholder: "ui-sortable-placeholder",
+        forcePlaceholderSize: true,
+        helper: function(e, ui) {
+          ui.children().each(function() {
+            $(this).width($(this).width());
+          });
+          return ui;
+        },
         items: "tr:not(.ui-state-disabled)",
         cancel: ".ui-state-disabled",
-        stop: function(e, ui) {
-          ui.item.children('td').effect('highlight', {}, 1000);
-          $(this).popover('show');
+        update: function(e, ui) {
+          $('.changeOrderMessage').show();
           // TODO:kd - disable other controls?
+        },
+        stop: function(e, ui) {
+          ui.item.addClass('ui-sortable-highlight');
+          setTimeout(function() {
+            ui.item.removeClass('ui-sortable-highlight');
+          },500);
         }
-      }).popover({
-        html: true,
-        animation: true,
-        title: "You've changed the order!",
-        // TODO: grab this from the DOM instead of hardcoding
-        content: "You need to click to save your new order. <br />" + 
-                 "<button class='btn btn-warning' " +
-                 "onclick='window.caribou.models.updateOrdering();'>SAVE</button>",
-        trigger: "manual"
       });
+    } else {
+        $(selector).sortable({ disabled: true });
+        $(selector).removeClass('sortable');
+      }
     };
 
     var _post = function( action, data, success, failure ) {

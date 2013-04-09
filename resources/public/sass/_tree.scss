@@ -1,0 +1,68 @@
+@import "compass/css3";
+@import "variables";
+
+@mixin subtree {
+    @for $increment from 1 through 10 {
+        .page-subtree_#{$increment} li {
+            background-color: darken($grayLighter, ($increment * 5));
+        }
+    }
+}
+
+.page-tree, .page-tree ul {
+    list-style-type: none;
+    margin: 3px 3px 3px 15px;
+    padding: 3px;
+}
+
+.page-tree li  {
+    background-color: $grayLighter;
+    border-right: 1px lighten($gray, 20) solid;
+    border-bottom: 1px lighten($gray, 20) solid;
+    @include subtree;
+    @include border-radius(3px);
+    position: relative;
+    margin: 3px;
+    cursor: move;
+    .instrument-icon-collapse,
+    .instrument-icon-expand {
+        font-size: 18px;
+        position: absolute;
+        cursor: pointer;
+        top: 4px;
+        left: 0;
+        z-index: 9999;
+    }
+    .instrument-icon-pencil {
+        margin-top: 3px;
+        cursor: pointer;
+    }
+}
+
+.page-tree li .page-label {
+    display: block;
+    @include border-radius(3px);
+    padding: 5px 5px 5px 18px;
+    & > .page-info {
+        display: none;
+    }
+    &:hover > .page-info {
+        display: inline-block;
+        margin-left: 10px;
+        color: $gray;
+    }
+}
+
+.active {
+    background-color: $primary;
+    color: #fff;
+}
+
+.ui-draggable-dragging {
+    background-color: red !important;
+}
+
+.dropOver {
+    border: 2px dashed $primary;
+    background-color: white;
+}

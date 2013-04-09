@@ -9,6 +9,11 @@ pom.xml
 .lein-deps-sum
 .lein-failures
 .lein-plugins
+clucy-index/
 /resources/config/
 index/
 clucy-index/
+.lein-repl-history
+.sass-cache/
+caribou_admin.h2.db
+caribou_admin.trace.db
