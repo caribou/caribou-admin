@@ -44,7 +44,7 @@
       var self = this;
       self._tree = this.arrange( self.value || [] );
       var tree = self._tree[0];
-      var dom = self.produce( $("<ul class=\"page-tree\">"), tree ); 
+      var dom = self.produce( $("<ul class=\"page-tree\">"), tree );
 
       if ( self.options.expands ) {
         $(dom).find("li.treenode").each( function(index, el) {

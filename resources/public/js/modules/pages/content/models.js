@@ -73,13 +73,9 @@
                     };
 
       $(".sortable").find(selector).each( function( index, item ) {
-        // only care about items whose position has changed, items whose original position was 0
-        // or ... what else?
         var data = $(item).data("position") || {};
         console.log( "Initial is " + data.position + " and index is " + index );
         if ( data.position !== ( index + parentData.offset + 1 ) ) {
-          //var fields = { id: data.id };
-          //fields[ parentData.field ] = index + parentData.offset;
           // we add one because position is one-based, not zero-based.
           items.push( { id: data.id, position: index + parentData.offset + 1 } );
         }
@@ -100,7 +96,7 @@
             callback( data );
           } else {
             location.reload();
-          } 
+          }
         });
         return false;
       });

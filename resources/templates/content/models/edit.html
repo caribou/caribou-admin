@@ -44,7 +44,7 @@
               <td>{{type}} {{#searchable}}(searchable){{/searchable}}</td>
               <td>
                 {{^locked}}
-                  <a href="{{safe-route-for :edit_model_instance params {:slug "field" :id id} }}" class="icon-container"><span class="instrument-icon-pencil" title="Edit"></span></a> &nbsp; <a href="#delete" class="icon-container" data-model="field" data-id="{{id}}" onclick="return window.caribou.models.showDeleteDialog( this );"><span class="instrument-icon-trash" title="Delete"></span></a>
+                  <a href="{{safe-route-for :admin.edit_model_instance params {:slug "field" :id id} }}" class="icon-container"><span class="instrument-icon-pencil" title="Edit"></span></a> &nbsp; <a href="#delete" class="icon-container" data-model="field" data-id="{{id}}" onclick="return window.caribou.models.showDeleteDialog( this );"><span class="instrument-icon-trash" title="Delete"></span></a>
                 {{/locked}}
               </td>
             </tr>
