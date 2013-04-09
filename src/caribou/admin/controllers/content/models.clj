@@ -139,14 +139,17 @@
         params (-> request :params)
         model (model/pick :model {:where {:slug (:slug params)} :include {:fields {}}})
         includes (build-includes model)
-        order (or (:order params) "position")
+        order-default (or (:order params) "position")
+        order {:slug (first (clojure.string/split order-default #" "))
+               :direction (if (.endsWith order-default "desc") "desc" "asc")}
+        _ (println order-default order)
         kw-results (when-not (empty? (:keyword params))
                      (keyword-results (:keyword params) (:slug params) {:locale (-> locale :code)}))
         spec {:limit (:limit params)
               :offset (:offset params)
               :include includes
               :locale (-> locale :code)
-              :order (model/process-order order)}
+              :order (model/process-order order-default)}
         _ (log/debug spec)
         results (or kw-results (model/gather (-> request :params :slug) spec))
         friendly-fields (human-friendly-fields model)
@@ -158,6 +161,7 @@
                             :model model
                             :fields friendly-fields
                             :allows-sorting true
+                            :order order
                             :order-info order-info
                             :pager (helpers/add-pagination results {:page-size (or (:size params) 20)
                                                                     :page-slug (-> request :page :slug)

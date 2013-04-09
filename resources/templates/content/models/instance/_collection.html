@@ -13,24 +13,24 @@
               <th>
                &nbsp;
               </th>
-              {{#model.fields:field}}
-                {{#system-field? field}}
-                  {{!#equals field.slug "id"}}
-                  {{!<th><a href="{safe-route-for :admin.results params}?order={field.slug}">{field.name}</a></th>}}
-                  {{!/equals field.slug "id"}}
-                  {{!#equals field.slug "slug"}}
-                  {{!<th>slug</th>}}
-                  {{!/equals field.slug "slug"}}
-                {{/system-field? field}}
+              {{#fields:field}}
                 {{^system-field? field}}
                   {{#allows-sorting}}
-                    <th><a href="{{safe-route-for :admin.results params}}?order={{field.slug}}">{{field.name}}</a></th>
+                    <th><a href="{{safe-route-for :admin.results params}}?order={{field.friendly-path}}{{#equals field.friendly-path params.order}}%20desc{{/equals field.friendly-path params.order}}">{{field.name}}</a>
+                    {{#equals field.friendly-path order.slug}}
+                      {{#equals "asc" order.direction}}
+                      <i class="icon-up-arrow"></i>^
+                      {{/equals "asc" order.direction}}
+                      {{#equals "desc" order.direction}}
+                      <i class="icon-down-arrow"></i>v
+                      {{/equals "desc" order.direction}}
+                    {{/equals field.friendly-path order.slug}}</th>
                   {{/allows-sorting}}
                   {{^allows-sorting}}
                     <th>{{field.name}}</th>
                   {{/allows-sorting}}
                 {{/system-field? field}}
-              {{/model.fields:field}}
+              {{/fields:field}}
               <th>Fun stuff</th>
             </tr>
           </thead>
@@ -39,21 +39,13 @@
             <tr data-position='{ "position": {{order-get-in instance order-info.position-slug}}, "id": "{{get-in instance "id" }}" }' {{#locked}}class="disable_bg"{{/locked}}>
               <td class="sort"><span class="instrument-icon-up"></span><span class="instrument-icon-down"></span></td>
               <td><input type="checkbox" name="id" value="{{get-in instance "id" }}" /></td>
-              {{#model.fields:field}}
-                {{!#equals field.slug "id"}}
-                {{!<td>{get-in instance "id"}</td>}}
-                {{!/equals field.slug "id"}}
-                {{#system-field? field}}
-                  {{!#equals field.slug "slug"}}
-                  {{!<td>{get-in instance "slug"}</td>}}
-                  {{!/equals field.slug "slug"}}
-                {{/system-field? field}}
+              {{#fields:field}}
                 {{^system-field? field}}
                 <td>
                   {{> templates/content/models/fields/view/_[[type]].html }}
                 </td>
                 {{/system-field? field}}
-              {{/model.fields:field}}
+              {{/fields:field}}
               <td>
                 {{^field.locked}}
                   <a class="choose-link hide icon-container" href="#choose" data-model="{{model.slug}}" data-id="{{id}}"><span class="instrument-icon-check"></span></a>
