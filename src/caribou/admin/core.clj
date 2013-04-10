@@ -1,12 +1,18 @@
 (ns caribou.admin.core
   (:use [ring.middleware.json-params :only (wrap-json-params)]
         [ring.middleware.multipart-params :only (wrap-multipart-params)]
-        [ring.middleware.session :only (wrap-session)]
         [ring.middleware.params :only (wrap-params)]
+        [ring.middleware.file :only (wrap-file)]
+        [ring.middleware.head :only (wrap-head)]
+        [ring.middleware.file-info :only (wrap-file-info)]
+        [ring.middleware.resource :only (wrap-resource)]
         [ring.middleware.nested-params :only (wrap-nested-params)]
         [ring.middleware.keyword-params :only (wrap-keyword-params)]
+        [ring.middleware.reload :only (wrap-reload)]
+        [ring.middleware.session :only (wrap-session)]
+        [ring.middleware.session.cookie :only (cookie-store)]
         [ring.middleware.cookies :only (wrap-cookies)]
-        [ring.middleware.session.cookie :only (cookie-store)])
+        [ring.middleware.content-type :only (wrap-content-type)])
   (:require [clojure.string :as string]
             [swank.swank :as swank]
             [lichen.core :as lichen]
@@ -96,9 +102,14 @@
   (def handler
     (-> (handler/handler)
         (admin-wrapper)
+        (wrap-reload)
+        (wrap-file (@config/app :asset-dir))
+        (wrap-resource (@config/app :public-dir))
+        (wrap-file-info)
+        (wrap-head)
         (lichen/wrap-lichen (@config/app :asset-dir))
-        (handler/use-public-wrapper (@config/app :public-dir))
         (middleware/wrap-servlet-path-info)
+        (middleware/wrap-xhr-request)
         (request/wrap-request-map)
         (wrap-json-params)
         (wrap-multipart-params)
