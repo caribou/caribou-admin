@@ -37,11 +37,14 @@
                       "&target=" target)
                  target)
         login (if match? "success" "failure")
+        session (:session request)
         session (if-not match?
-                  {}
-                  {:user (dissoc account :created_at :updated_at)
-                   :locale locale})]
-    (println "USER in submit-login is " (:user session))
+                  session
+                  (assoc session
+                    :admin
+                    {:user (dissoc account :created_at :updated_at)
+                     :locale locale}))]
+    (println "USER in submit-login is " (-> session :admin :user))
     (redirect target {:session session :login login})))
 
 
@@ -63,7 +66,7 @@
 ;; allow target
 (defn logout
   [request]
-  (render request {:session {}}))
+  (render request {:session (dissoc (:session request) :admin)}))
 
 (defn forgot-password
   [request]
