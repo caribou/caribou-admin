@@ -59,7 +59,7 @@
             (open-page? (:uri request)))
       (handler request)
       (controller/redirect
-       (pages/route-for :login {})))))
+       (pages/route-for :admin.login {})))))
 
 (defn get-models
   [handler]
