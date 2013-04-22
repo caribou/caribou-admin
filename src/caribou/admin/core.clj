@@ -55,12 +55,11 @@
 (defn user-required
   [handler]
   (fn [request]
-    (if (or (seq (-> request :session :user))
+    (if (or (seq (-> request :session :admin :user))
             (open-page? (:uri request)))
       (handler request)
       (controller/redirect
-       (pages/route-for :admin.login {})
-       {:session (:session request)}))))
+       (pages/route-for :admin.login {})))))
 
 (defn get-models
   [handler]

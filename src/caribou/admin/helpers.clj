@@ -7,7 +7,7 @@
 (import java.text.SimpleDateFormat)
 
 (defn value-for-key [m key]
-	"Pull a value from `m` by keyword `key`"
+  "Pull a value from `m` by keyword `key`"
   (get m (keyword key)))
 
 ;; pull date and time bits out of a date-field
@@ -156,17 +156,17 @@
 ;; --------------------------------
 
 (def all
-	{:value-for-key value-for-key
-	 :date-year date-year
-	 :date-month date-month
-	 :date-day date-day
+  {:value-for-key value-for-key
+   :date-year date-year
+   :date-month date-month
+   :date-day date-day
    :current-date current-date
    :yyyy-mm-dd yyyy-mm-dd
    :yyyy-mm-dd-or-current yyyy-mm-dd-or-current
    :asset-is-image asset-is-image
    :asset-path asset-path
-	 :and (fn [a b] (and a b))
-	 :or (fn [a b] (or a b))
+   :and (fn [a b] (and a b))
+   :or (fn [a b] (or a b))
    :part-values part-values
    :get-title get-title
    :has-items has-items
@@ -180,4 +180,4 @@
    :localized-models localized-models
    :locale-code locale-code
    :equals =
-	 })
+   })
