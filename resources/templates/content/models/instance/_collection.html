@@ -1,5 +1,5 @@
     <div class="row-fluid">
-      <div class="span9 column">
+      <div class="span12 column">
         <div class="status-messages alert alert-error alert-block hide changeOrderMessage clearfix">
           You've changed the order. Be sure to save!
           <button class='btn btn-danger' onclick='window.caribou.models.updateOrdering();'>Save</button>
@@ -30,7 +30,7 @@
                   {{/allows-sorting}}
                 {{/system-field? field}}
               {{/fields:field}}
-              <th>Fun stuff</th>
+              <th></th>
             </tr>
           </thead>
           <tbody class="sortable" data-position='{ "model":"{{order-info.model.slug}}", "offset": {{pager.start-index}}, "association":"{{order-info.association }}", "umbrella":{{or order-info.umbrella "null"}} }'>

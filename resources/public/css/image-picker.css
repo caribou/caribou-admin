@@ -6,8 +6,10 @@ ul.thumbnails.image_picker_selector {
   padding: 0px;
   margin: 0px; }
   ul.thumbnails.image_picker_selector li {
-    margin: 0px 12px 12px 0px;
-    float: left; }
+    margin: 13px 12px 12px 0px;
+    display: inline-block;
+    float: none;
+    vertical-align: top; }
     ul.thumbnails.image_picker_selector li .thumbnail {
       padding: 6px;
       border: 1px solid #dddddd; }

@@ -32,7 +32,6 @@
 </head>
 <body id="{{page.slug}}" data-controller="{{page.slug}}" data-model="{{model.slug}}" data-api="{{safe-route-for :admin.model_api params}}" data-instance-ids="{{instance-ids}}" data-locale="{{locale-code params.locale}}">
 <!--[if lt IE 7]><p class=chromeframe>Your browser is <em>ancient!</em> <a href="http://browsehappy.com/">Upgrade to a different browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">install Google Chrome Frame</a> to experience this site.</p><![endif]-->
-
   <div class="navbar navbar-inverse navbar-fixed-top">
     <div class="navbar-inner">
       <div class="container-fluid">
@@ -51,7 +50,7 @@
                 {{/user-models}}
               </ul>
             </li>
-            <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Settings <b class="caret"></b></a>
+            <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Structure <b class="caret"></b></a>
               <ul class="dropdown-menu">
                 <!-- <li><a href="#">General</a></li>
                 <li><a href="#">Time / Geography</a></li>
@@ -65,9 +64,10 @@
                 <li><a href="{{safe-route-for :admin.pages params}}">Pages</a></li>
               </ul>
             </li>
-            <li><a href="{{safe-route-for :admin.pages params}}">Pages</a></li>
+            <!-- <li><a href="{{safe-route-for :admin.pages params}}">Pages</a></li>-->
           </ul>
           <ul class="nav pull-right">
+
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown">Site <b class="caret"></b></a>
               <ul class="dropdown-menu">

@@ -27,6 +27,7 @@
             [caribou.app.request :as request]
             [caribou.app.handler :as handler]
             [caribou.app.controller :as controller]
+            [caribou.app.helpers :as frontend-helpers]
             [caribou.admin.helpers :as helpers]
             [caribou.admin.routes :as routes]))
 
@@ -78,7 +79,7 @@
 (defn provide-helpers
   [handler]
   (fn [request]
-    (let [request (merge request base-helpers helpers/all)]
+    (let [request (merge request base-helpers helpers/all frontend-helpers/helpers)]
       (handler request))))
 
 
