@@ -10,7 +10,7 @@
         <table class="table table-striped table-bordered">
           <thead>
             <tr>
-              <th>&nbsp;</th>
+              <!-- <th>&nbsp;</th>-->
               <th>&nbsp;</th>
               {{#fields:field}}
                 {{^system-field? field}}
@@ -36,7 +36,7 @@
           <tbody class="sortable" data-position='{ "model":"{{order-info.model.slug}}", "offset": {{pager.start-index}}, "association":"{{order-info.association }}", "umbrella":{{or order-info.umbrella "null"}} }'>
             {{#pager.results:instance}}
             <tr data-position='{ "position": {{order-get-in instance order-info.position-slug}}, "id": "{{get-in instance "id" }}" }' {{#locked}}class="disable_bg"{{/locked}}>
-              <td class="sort"><span class="instrument-icon-up"></span><span class="instrument-icon-down"></span></td>
+              <!-- <td class="sort"><span class="instrument-icon-up"></span><span class="instrument-icon-down"></span></td>-->
               <td><input type="checkbox" name="id" value="{{get-in instance "id" }}" /></td>
               {{#fields:field}}
                 {{^system-field? field}}
