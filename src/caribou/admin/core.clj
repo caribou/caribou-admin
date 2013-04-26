@@ -32,8 +32,6 @@
 
 (declare handler)
 
-;; todo: put session in a cookie
-
 (def base-helpers
   {:route-for (fn [slug params & additional]
                 (pages/route-for slug (apply merge (cons params additional))))
@@ -120,5 +118,5 @@
                        :cookie-name "caribou-admin-session"
                        :cookie-attrs {:max-age (days-in-seconds 90)}})
         (wrap-cookies)))
-
-  (swank/start-server :host "127.0.0.1" :port 4011))
+  (when-not (= :production (config/environment))
+    (swank/start-server :host "127.0.0.1" :port 4011)))
