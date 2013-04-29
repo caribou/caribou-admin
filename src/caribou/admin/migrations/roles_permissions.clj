@@ -1,9 +1,10 @@
-(ns caribou.admin.roles-permissions
+(ns caribou.admin.migrations.roles-permissions
   (:require [caribou
+             [config :as config]
              [model :as model :refer [create update destroy]]
              [permissions :as perms]]))
 
-(defn create
+(defn make-models
   []
   (let [{{account-id :id} :account
          {model-id :id} :model} @model/models
@@ -33,6 +34,7 @@
         model-ids (filter number? (keys @model/models))
         {admin-id
          :id} (create :role {:title "Admin"
+                             :default_mask admin-mask
                              :permissions
                              (map (fn [id]
                                     (create :permission {:mask admin-mask
@@ -42,13 +44,17 @@
 
 (defn migrate
   []
+  (config/init)
   (model/init)
-  (create)
+  (make-models)
   (apply-roles-perms))
 
 (defn rollback
   []
+  (config/init)
+  (model/init)
   (let [{{perms-id :id} :permission
-         {role-id :id} :role} @model/models
+         {role-id :id} :role} @model/models]
     (destroy :model perms-id)
-    (destroy :model role-id))))
+    (destroy :model role-id)))
+
