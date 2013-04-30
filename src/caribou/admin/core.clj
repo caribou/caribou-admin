@@ -16,19 +16,23 @@
   (:require [clojure.string :as string]
             [swank.swank :as swank]
             [lichen.core :as lichen]
-            [caribou.config :as config]
-            [caribou.db :as db]
-            [caribou.model :as model]
-            [caribou.app.i18n :as i18n]
-            [caribou.app.pages :as pages]
-            [caribou.app.template :as template]
-            [caribou.app.halo :as halo]
-            [caribou.app.middleware :as middleware]
-            [caribou.app.request :as request]
-            [caribou.app.handler :as handler]
-            [caribou.app.controller :as controller]
-            [caribou.admin.helpers :as helpers]
-            [caribou.admin.routes :as routes]))
+            [caribou
+             [config :as config]
+             [db :as db]
+             [model :as model]]
+            [caribou.app
+             [i18n :as i18n]
+             [pages :as pages]
+             [template :as template]
+             [halo :as halo]
+             [middleware :as middleware]
+             [request :as request]
+             [handler :as handler]
+             [controller :as controller]]
+            [caribou.admin
+             [helpers :as helpers]
+             [routes :as routes]
+             [hooks :as hooks]]))
 
 (declare handler)
 
@@ -90,6 +94,7 @@
   []
   (config/init)
   (model/init)
+  (hooks/init)
   (i18n/init)
   (template/init)
   (reload-pages)
