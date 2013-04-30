@@ -38,6 +38,22 @@
         </div>
       </div>
 
+      <div class="control-group hide" id="slug-controls">
+        <label class="control-label" for="link-id">Field to slugify</label>
+        <div class="controls">
+          <select name="link-id" id="link-id">
+            {{#model.fields:f}}
+              {{#equals f.type "string"}}
+                <option value="{{f.id}}">{{f.name}}</option>
+              {{/equals f.type "string"}}
+              {{#equals f.type "text"}}
+                <option value="{{f.id}}">{{f.name}}</option>
+              {{/equals f.type "text"}}
+            {{/model.fields:f}}
+          </select>
+        </div>
+      </div>
+
       <div class="control-group hide" id="association-controls">
         <label class="control-label" for="target">Target</label>
         <select name="target-id" id="target-id">

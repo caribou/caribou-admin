@@ -109,16 +109,22 @@
       var data = $( el ).data();
       $("#new-field").modal();
       $("#new-field select[name='field-type']").change(function( e ) {
+        $("#new-field #slug-controls").hide();
+        $("#new-field #association-controls").hide();
+        $("#new-field #association-controls select").prop("disabled", true);
+        $("#new-field #slug-controls select").prop("disabled", true);
         var v = $( this ).val();
         if ( v === "collection" || v === "part" || v === "link" ) {
           $("#new-field #association-controls").show();
+          $("#new-field #association-controls select").prop("disabled", false);
           if ( v === "part" ) {
             $("#new-field #reciprocal-name").val( owl.pluralize( data.model ) );
           } else {
             $("#new-field #reciprocal-name").val( data.model );
           }
-        } else {
-          $("#new-field #association-controls").hide();
+        } else if (v === "slug" || v === "urlslug" ) {
+          $("#new-field #slug-controls select").prop("disabled", false);
+          $("#new-field #slug-controls").show();
         }
       });
     }

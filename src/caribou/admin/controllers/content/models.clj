@@ -175,6 +175,7 @@
         searchable (= (:searchable params) "yes")
         reciprocal-name (:reciprocal-name params)
         target-id (:target-id params)
+        link-id (:link-id params)
         ;; extra bits here, validate, etc
         model (model/pick :model {:where {:slug (-> request :params :slug)} :include {:fields {}}})
         new-field (if (not (nil? target-id))
@@ -185,6 +186,7 @@
                      :reciprocal_name (string/capitalize reciprocal-name)}
                     {:name (string/capitalize field-name)
                      :searchable searchable
+                     :link_id link-id
                      :type field-type})
         new-model (model/update :model (:id model) {:fields [ new-field ] })]
       (controller/redirect (pages/route-for :admin.edit_model
@@ -412,7 +414,8 @@
       (model/init))
     (when-not (empty? (set/intersection #{"page"} (set (map :model payload))))
       (println "RESETTING HANDLER!!")
-      (handler/reset-handler))
+      ;;(handler/reset-handler)
+      )
     (json-response results)))
 
 (defn reorder-all
