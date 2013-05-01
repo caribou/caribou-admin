@@ -1,4 +1,4 @@
-(defproject antler/caribou-admin "0.10.2-PERMISSIONS-TEST"
+(defproject antler/caribou-admin "0.10.2-PERMISSIONS"
   :description "Generic admin tool for Caribou projects"
   :dependencies [[org.clojure/clojure "1.4.0"]
                  [antler/caribou-frontend "0.10.0"]
