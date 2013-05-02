@@ -1,21 +1,16 @@
 (ns caribou.admin.controllers.login
-  (:use caribou.app.controller
-        [caribou.app.pages :only [route-for]])
-  (:require [caribou.model :as model]))
-
-(import org.mindrot.jbcrypt.BCrypt)
+  (:require [caribou
+             [model :as model]
+             [auth :as auth]]
+            [caribou.app
+             [controller :refer :all]
+             [pages :refer [route-for]]]))
 
 (def nothing (constantly nil))
 
-(defn hash-pw
-  "hash a password to store it in the accounts db"
-  [pass]
-  (. BCrypt hashpw pass (. BCrypt gensalt 12)))
+(def hash-pw auth/hash-password)
 
-(defn check-pw
-  "check a raw password against a hash from the accounts db"
-  [pass hash]
-  (. BCrypt checkpw pass hash))
+(def check-pw auth/check-password)
 
 (defn login
   [request]

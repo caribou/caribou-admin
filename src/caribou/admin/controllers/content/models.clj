@@ -1,24 +1,26 @@
 (ns caribou.admin.controllers.content.models
-  (:use [cheshire.core :only (generate-string)])
-  (:require [caribou.model :as model]
-            [caribou.query :as query]
-            [caribou.field.link :as link]
-            [caribou.app.controller :as controller]
-            [clojure.string :as string]
-            [clojure.set :as set]
+  (:require [clojure
+             [string :as string]
+             [set :as set]
+             [pprint :as pprint]
+             [walk :as walk]]
             [clj-time.core :as timecore]
-            [clojure.pprint :as pprint]
-            [clojure.walk :as walk]
-            [caribou.util :as util]
-            [caribou.logger :as log]
-            [caribou.app.pages :as pages]
-            [caribou.app.template :as template]
-            [caribou.app.handler :as handler]
-            [caribou.asset :as asset]
-            [caribou.config :as config]
-            [caribou.index :as index]
-            [caribou.admin.helpers :as helpers]))
-
+            [cheshire.core :refer [generate-string]]
+            [caribou
+             [model :as model]
+             [query :as query]
+             [util :as util]
+             [logger :as log]
+             [asset :as asset]
+             [config :as config]
+             [index :as index]]
+            [caribou.app
+             [pages :as pages]
+             [template :as template]
+             [handler :as handler]
+             [controller :as controller]]
+            [caribou.admin.helpers :as helpers]
+            [caribou.field.link :as link]))
 
 (defn inflate-request
   [request]
@@ -234,14 +236,13 @@
   [request]
   (edit-instance request))
 
-(defn editor-for
-  ;; given a model slug, generates an editor for that model
-  [request]
-  (let [request (inflate-request request)
-        model (model/pick :model {:where {:slug (-> request :params :model)} :include {:fields {}}})
-        template (template/find-template (util/pathify ["content" "models" "instance" "_edit.html"]))]
-    (render (merge request {:template template :model model}))))
-
+#_(defn editor-for
+    ;; given a model slug, generates an editor for that model
+    [request]
+    (let [request (inflate-request request)
+          model (model/pick :model {:where {:slug (-> request :params :model)} :include {:fields {}}})
+          template (template/find-template (util/pathify ["content" "models" "instance" "_edit.html"]))]
+      (render (merge request {:template template :model model}))))
 
 (defn find-content
   [params]
@@ -490,13 +491,14 @@
       (asset/persist-asset-on-disk dir path (:tempfile upload)))
     (json-response {:state (assoc asset :path path)})))
 
+(defonce rq (atom {}))
+
 (defn api
-  ;; Cheesy way to create only one route for many functions.
-  ;; This will go away, don't worry.  Just doing this to get up and running quickly.
-  [request]
+  [{{action :action} :params :as request}]
+  (swap! rq assoc (keyword action) (select-keys request [:params]))
   (let [request (inflate-request request)]
-    (condp = (-> request :params :action)
-      "editor-for" (editor-for request)
+    (condp = action
+      ;; "editor-for" (editor-for request)
       "editor-content" (editor-content request)
       "editor-associated-content" (editor-associated-content request)
       "update-all" (update-all request)
