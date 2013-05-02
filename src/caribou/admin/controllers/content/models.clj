@@ -13,7 +13,8 @@
              [logger :as log]
              [asset :as asset]
              [config :as config]
-             [index :as index]]
+             [index :as index]
+             [permissions :as permissions]]
             [caribou.app
              [pages :as pages]
              [template :as template]
@@ -22,18 +23,23 @@
             [caribou.admin.helpers :as helpers]
             [caribou.field.link :as link]))
 
-(defn inflate-request
-  [request]
-  (let [locale-code (-> request :params :locale)
-        locale (if (or (nil? locale-code) (empty? locale-code) (= "global" locale-code))
-                 nil
-                 (model/pick :locale {:where {:code locale-code}}))]
-    (assoc request :locale locale)))
+(defn itemize-by
+  [k m]
+  (into {} (map (fn [[k [v]]] [k v]) (group-by k m))))
 
-(defn part-title
-  [field]
-  (let [target (model/pick :model {:where {:id (:target_id field)} :include {:fields {}}})]
-    (-> target :fields first :slug)))
+(defn inflate-request
+  [{{local-code :locale} :params
+    {{{role :role_id} :user} :admin} :session
+    :as request}]
+  (let [locale (when-not ((some-fn nil? empty? #{"global"}) locale-code)
+                 (model/pick :locale {:where {:code locale-code}}))
+        {permissions
+         :permissions} (model/pick :role {:where {:id role}
+                                          :include {:permissions {}}})
+        permissions (itemize-by :model_id permissions)]
+    (assoc request
+      :locale locale
+      :permissions permissions)))
 
 (defn order-get-in [thing path]
   (or (helpers/get-in-helper thing path) 0))
@@ -47,6 +53,12 @@
      :association (or (get-in association [:slug])
                       (get-in association [:row :slug]))
      :position-slug (str (:slug association) "_position")}))
+
+(defn part-title
+  [field]
+  (let [target (model/pick :model {:where {:id (:target_id field)}
+                                   :include {:fields {}}})]
+    (-> target :fields first :slug)))
 
 (defn field-path
   [field]
@@ -92,7 +104,9 @@
 
 (defn json-response
   [data]
-  {:status 200 :body (generate-string data) :headers {"Content-Type" "application/json"}})
+  {:status 200
+   :body (generate-string data)
+   :headers {"Content-Type" "application/json"}})
 
 (defn part
   [f col]
@@ -109,10 +123,14 @@
 
 (defn new
   [request]
-  (let [new-model-name (-> request :params :model-name)
+  (let [new-model-name (-> request :params :model-name string/capitalize)
         ; validate here
-        new-model (model/create :model {:name (string/capitalize new-model-name)})]
-    (controller/redirect (pages/route-for :admin.edit_model (dissoc (merge {:slug (:slug new-model)} (:params request)) :model-name)))))
+        new-model (model/create :model {:name new-model-name})]
+    (controller/redirect (pages/route-for
+                          :admin.edit_model
+                          (dissoc (merge {:slug (:slug new-model)}
+                                         (:params request))
+                                  :model-name)))))
 
 (defn view
   [request]
@@ -131,43 +149,55 @@
         raw (index/search m kw (assoc opts :limit 200))
         _ (println raw)
         includes (build-includes m)
-        inflated (map (fn [r] (model/pick slug {:where {:id (:id r)} :include includes})) raw)]
+        inflated (map (fn [r] (model/pick slug {:where {:id (:id r)}
+                                                :include includes}))
+                      raw)]
     inflated))
 
 (defn view-results
   [request]
   (let [request (inflate-request request)
-        locale (:locale request)
-        params (-> request :params)
-        model (model/pick :model {:where {:slug (:slug params)} :include {:fields {}}})
+        {{locale-code :code :as locale} :locale
+         {model-slug :slug
+          ordering :order
+          keywordize :keyword
+          limit :limit
+          offset :offset
+          size :size
+          :as params} :params
+         {page-slug :slug :as page} :page} request
+        model (model/pick :model {:where {:slug model-slug}
+                                  :include {:fields {}}})
         includes (build-includes model)
-        order-default (or (:order params) "position")
+        order-default (or ordering "position")
         order {:slug (first (clojure.string/split order-default #" "))
                :direction (if (.endsWith order-default "desc") "desc" "asc")}
-        _ (println order-default order)
-        kw-results (when-not (empty? (:keyword params))
-                     (keyword-results (:keyword params) (:slug params) {:locale (-> locale :code)}))
-        spec {:limit (:limit params)
-              :offset (:offset params)
+        kw-results (when-not (empty? keywordize)
+                     (keyword-results keywordize model-slug
+                                      {:locale locale-code}))
+        spec {:limit limit
+              :offset offset
               :include includes
-              :locale (-> locale :code)
+              :locale locale-code
               :order (model/process-order order-default)}
-        _ (log/debug spec)
-        results (or kw-results (model/gather (-> request :params :slug) spec))
+        results (or kw-results (model/gather model-slug spec))
         friendly-fields (human-friendly-fields model)
-        order-info (order-info model)]
-    (if-let [locale (-> request :locale)]
-      (log/debug (str "Locale is " (:code locale)))
+        order-info (order-info model)
+        pager (helpers/add-pagination
+               results {:page-size (or size 20)
+                        :page-slug page-slug
+                        :current-page page})]
+    (if locale
+      (log/debug (str "Locale is " locale-code))
       (log/debug "Locale is global"))
-    (render (merge request {:results results
-                            :model model
-                            :fields friendly-fields
-                            :allows-sorting true
-                            :order order
-                            :order-info order-info
-                            :pager (helpers/add-pagination results {:page-size (or (:size params) 20)
-                                                                    :page-slug (-> request :page :slug)
-                                                                    :current-page (:page params)})}))))
+    (render (assoc request
+              :results results
+              :model model
+              :fields friendly-fields
+              :allows-sorting true
+              :order order
+              :order-info order-info
+              :pager pager))))
 
 (defn new-field
   [request]
@@ -493,10 +523,13 @@
 
 (defonce rq (atom {}))
 
+(defonce pm (atom {}))
+
 (defn api
   [{{action :action} :params :as request}]
-  (swap! rq assoc (keyword action) (select-keys request [:params]))
+  (swap! pm assoc (keyword action) (select-keys request [:params]))
   (let [request (inflate-request request)]
+    (reset! rq request)
     (condp = action
       ;; "editor-for" (editor-for request)
       "editor-content" (editor-content request)
