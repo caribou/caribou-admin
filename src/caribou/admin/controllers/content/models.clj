@@ -493,6 +493,19 @@
       (asset/persist-asset-on-disk dir path (:tempfile upload)))
     (json-response {:state (assoc asset :path path)})))
 
+(defn list-controllers-and-actions
+  [request]
+  (let [matched (map #(vector (str %) (second (re-find #"\.controllers\.(.+)$" (str %)))) (all-ns))
+        filtered (remove #(nil? (second %)) matched)
+        mapped (map #(assoc {} :namespace (first %) :path (second %)) filtered)
+        arg-check (fn [n] (for [kv (ns-publics n)
+                                :when (some #(and (= 1 (count %))
+                                                  (.startsWith (name (first %)) "req")) (:arglists (meta (second kv))))] (first kv)))
+        actioned (map #(assoc %
+                  :actions (-> % :namespace symbol arg-check sort)) mapped)
+        ]
+    (json-response actioned)))
+
 (defn api
   ;; Cheesy way to create only one route for many functions.
   ;; This will go away, don't worry.  Just doing this to get up and running quickly.
@@ -511,5 +524,6 @@
       "upload-asset" (upload-asset request)
       "remove-link" (remove-link request)
       "reindex" (reindex request)
+      "list-controllers-and-actions" (list-controllers-and-actions request)
       "bulk-editor-content" (bulk-editor-content request)
       {:status 404 :body "Awwwwww snap!"})))

@@ -133,8 +133,8 @@
 
 (defn system-field? [field]
   (or (#{"position" "created_at" "updated_at" "locked" "searchable" "distinct"} (:slug field))
-          (.endsWith (:slug field) "_id")
-          (.endsWith (:slug field) "_position")))
+      (.endsWith (:slug field) "_id")
+      (.endsWith (:slug field) "_position")))
 
 
 ;; -------- locale helpers --------

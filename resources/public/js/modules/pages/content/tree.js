@@ -14,6 +14,10 @@
     this.parentIdKey = options.parentIdKey || "parent_id";
     this.idKey       = options.idKey       || "id";
     this.labelKey    = options.labelKey    || "name";
+    this.delegate    = options.delegate || {
+      labelFor: function() { return "" },
+      select: function() { return "" }
+    };
     this.serverValue = null;
     return this;
   };
@@ -21,17 +25,13 @@
   $.extend( TreeEditor.prototype, editors.Editor.prototype, {
     _makeNode: function( node ) {
       var self = this;
-      //TODO Add correct path for route.
-      return $('<li class="treenode" data-id="' + (node.id || "") + '"><span class="page-label">' + (node.label || "...") + '<span class="page-info">something/something/' + (node.label || "...") +'</span><span class="page-controls pull-right"><span class="instrument-icon-pencil"></span></span></span></li>');
+      return $('<li class="treenode" data-id="' + (node.id || "") + '" data-label="' + (node.label || "...") + '"><span>' + (node.label || "...") + '</span></li>');
     },
-    instanceCount: 0,
     produce: function( dom, node ) {
-
       var self = this;
       var me = self._makeNode( node );
       if (node.children && node.children.length) {
-        self.instanceCount++;
-        var children = $('<ul class="page-subtree_' + self.instanceCount + '">');
+        var children = $('<ul>');
         _( node.children ).each( function(c) {
           self.produce( children, c );
         });
@@ -44,64 +44,49 @@
       var self = this;
       self._tree = this.arrange( self.value || [] );
       var tree = self._tree[0];
-      var dom = self.produce( $("<ul class=\"page-tree\">"), tree );
+      var dom = self.produce( $("<ul>"), tree );
 
       if ( self.options.expands ) {
         $(dom).find("li.treenode").each( function(index, el) {
           var sub = $("ul", this);
           if (sub.size() > 0) {
-            $(this).prepend( '<span class="instrument-icon-expand collapseable"></span>' );
-// TODO Add plus icon to create a page under the selected node.
-//            $(this).append('<span class="instrument-icon-circle-plus"></span>');
+            $(this).prepend( self.options.collapseSign || '<img src="/img/tree/open.png" width="12" height="12" class="expand" />' );
           } else {
-            $(this).prepend('<span class="instrument-icon-expand collapseable hide"></span>');
-//            $("page-controls").append('<span class="instrument-icon-circle-plus hide"></span>');
+            $(this).prepend( '<img src="/img/tree/blank.png" width="12" height="12" class="expand" />'  );
           }
         });
 
-        $(dom).find('.collapseable').click( function() {
-           if ($(this).hasClass('collapseable')) {
-              var self = this;
+        $(dom).find('img.expand').click( function() {
+            if (this.src.indexOf('blank') == -1) {
               var subbranch = $('ul', this.parentNode).eq(0);
               if (subbranch.css('display') === 'none') {
                 subbranch.show();
-                $(this).addClass("instrument-icon-expand").removeClass("instrument-icon-collapse");
+                this.src = '/img/tree/open.png';
               } else {
                 subbranch.hide();
-                $(this).addClass("instrument-icon-collapse").removeClass("instrument-icon-expand");
+                this.src = '/img/tree/closed.png';
               }
             }
         });
       }
 
-
-
       // TODO: should prune the tree first
       // sets up what's draggable
-      $(dom).find("li.treenode").Draggable({
-        revert: true,
-        ghosting: true,
-        start: function(event, ui) {
-          $this.addClass('ui-draggable-dragging');
-        }
-      });
+      $(dom).find("li.treenode").Draggable({ revert: true, autoSize: true, ghosting: true });
+
       // sets up what's droppable
-      $(dom).find("span.page-label").Droppable({
+      $(dom).find("span").Droppable({
         accept: "treenode",
         hoverclass: "dropOver",
         tolerance: "pointer",
         ondrop: function(dropped) {
-          self.instanceCount++;
           console.log("Dropped: ", $(dropped).data());
           console.log("Onto: ", $(this).parent().data());
           if(this.parentNode === dropped) { return }
 					var subbranch = $('ul', this.parentNode);
-          var collapse = $('span', this.parentNode)
 					if (subbranch.size() === 0) {
-            instanceCount: 0,
-						$(this).after('<ul class="page-subtree_' + self.instanceCount + '"></ul>');
+						$(this).after('<ul></ul>');
 						subbranch = $('ul', this.parentNode);
-            collapse.removeClass('hide' );
 					}
 					oldParent = dropped.parentNode;
 					subbranch.eq(0).append(dropped);
@@ -112,16 +97,11 @@
         }
       });
 
-      $(dom).find("span.instrument-icon-pencil").off("click").on("click", function(e) {
+      $(dom).find("span").off("click").on("click", function(e) {
         e.preventDefault();
-        var data = $(this).parent().parent().parent().data();
+        var data = $(this).parent().data();
         console.log("Clicked on ", data);
-        if ( self.options.select ) {
-          self.options.select( data );
-           var parentLI = $(this).parent().parent();
-         $("span.active").removeClass("active");
-         $(parentLI).addClass('active');
-        }
+        self.delegate.select( data );
       });
       $(self.selector).empty().append(dom);
     },

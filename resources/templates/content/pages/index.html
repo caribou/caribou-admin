@@ -7,51 +7,20 @@
   </ul>
   <div class="container-fluid clearfix">
     <h1>Pages</h1>
-    <a class="btn">New Page</a>
+    <!--
+    <a class="btn" data-toggle="modal" data-target="#new-page" >New Page</a>
+    -->
+    <a href="#" role="button" data-path="" class="btn" onclick="return window.caribou.pages.showNewDialog();">New Page</a>
   </div>
 </div>
-    
 
+{{> templates/content/pages/dialogs/new.html }}
 {{> templates/status_messages.html }}
 
 <div class="container-fluid">
   <section>
     <div class="row-fluid">
       
-      <!--
-      <div class="span9 column">
-        
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Page</th>
-              <th>Status</th>
-              <th>&nbsp;</th>
-            </tr>
-          </thead>
-          <tbody>
-            {{!#pages}}
-            {{!> templates/content/pages/_table_row.html}}
-            {{!/pages}}
-          </tbody>
-        </table>
-        
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Page</th>
-              <th>Status</th>
-              <th>&nbsp;</th>
-            </tr>
-          </thead>
-          <tbody>
-            {{!#admin-pages}}
-            {{!> templates/content/pages/_table_row.html}}
-            {{!/admin-pages}}
-          </tbody>
-        </table>
-       --> 
-
       <div class="span12" style="overflow: scroll">
           <div id="all-pages" class="hide"></div>
           <div class="form-actions">
