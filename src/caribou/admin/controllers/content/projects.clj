@@ -23,7 +23,7 @@
   [params]
   (let [limit 10
         offset (* limit (dec (Integer/parseInt (or (-> params :params :page) "1"))))
-        projects (model/gather :project {:order {:id :asc} :where {:site_id 1} :limit limit :offset offset})  
+        projects (model/gather :project {:order {:id :asc} :where {:site-id 1} :limit limit :offset offset})  
         project-count (count-instances :project "1 = 1")
         published-project-count (count-instances :project "status = 1")
         draft-project-count (count-instances :project "status = 0")]

@@ -30,7 +30,7 @@
 
 (defn part-title
   [field]
-  (let [target (model/pick :model {:where {:id (:target_id field)} :include {:fields {}}})]
+  (let [target (model/pick :model {:where {:id (:target-id field)} :include {:fields {}}})]
     (-> target :fields first :slug)))
 
 (defn order-get-in [thing path]
@@ -44,7 +44,7 @@
      :umbrella (:id umbrella)
      :association (or (get-in association [:slug])
                       (get-in association [:row :slug]))
-     :position-slug (str (:slug association) "_position")}))
+     :position-slug (str (:slug association) "-position")}))
 
 (defn field-path
   [field]
@@ -63,15 +63,15 @@
     (into {}
       (map #(vector (keyword (:slug %)) {})
         (filter (fn [a] (and (some #(= (:type a) %) ["collection", "part", "link"])
-                             (not (:join_model (@model/models (:target_id a)))))) fields)))))
+                             (not (:join-model (model/models (:target-id a)))))) fields)))))
 
 (defn human-friendly-fields
   "returns the set of fields that a human can read - is a bit hacky"
   [model]
   (let [fields (:fields model)
-        stripped  (remove #(or (.endsWith (:slug %) "_id")
-                               (.endsWith (:slug %) "_position")
-                               (.endsWith (:slug %) "_at")
+        stripped  (remove #(or (.endsWith (:slug %) "-id")
+                               (.endsWith (:slug %) "-position")
+                               (.endsWith (:slug %) "-at")
                                (= (:type %) "collection")
                                (= (:type %) "link")
                                (= (:type %) "boolean")) fields)
@@ -110,21 +110,21 @@
   (let [new-model-name (-> request :params :model-name)
         ; validate here
         new-model (model/create :model {:name (string/capitalize new-model-name)})]
-    (controller/redirect (pages/route-for :admin.edit_model (dissoc (merge {:slug (:slug new-model)} (:params request)) :model-name)))))
+    (controller/redirect (pages/route-for :admin.edit-model (dissoc (merge {:slug (:slug new-model)} (:params request)) :model-name)))))
 
 (defn view
   [request]
   (let [model (model/pick :model {:where {:slug (-> request :params :slug)}
                                   :include {:fields {}}
                                   :order {:position :asc}})
-        models (seq (sort-by :name (-> @model/models vals set)))]
+        models (seq (sort-by :name (-> (deref (config/draw :models)) vals set)))]
     (render (merge request {:model model :models models}))))
 
 (defn keyword-results
   "This inefficiently inflates search results into
   real content directly from the DB, one-by-one"
   [kw slug opts]
-  (let [m (@model/models (keyword slug))
+  (let [m (model/models (keyword slug))
         ;; TODO - remove this hardcoded limit and make it work with pagination
         raw (index/search m kw (assoc opts :limit 200))
         _ (println raw)
@@ -182,14 +182,14 @@
                     {:name (string/capitalize field-name)
                      :type field-type
                      :searchable searchable
-                     :target_id target-id
-                     :reciprocal_name (string/capitalize reciprocal-name)}
+                     :target-id target-id
+                     :reciprocal-name (string/capitalize reciprocal-name)}
                     {:name (string/capitalize field-name)
                      :searchable searchable
-                     :link_id link-id
+                     :link-id link-id
                      :type field-type})
         new-model (model/update :model (:id model) {:fields [ new-field ] })]
-      (controller/redirect (pages/route-for :admin.edit_model
+      (controller/redirect (pages/route-for :admin.edit-model
                              (dissoc (:params request) :field-name
                                                        :field-type
                                                        :searchable
@@ -229,7 +229,7 @@
         edited-instance (dissoc (:params request) :slug)
         updated-instance (model/create model-slug edited-instance)]
     (println updated-instance)
-    (controller/redirect (pages/route-for :admin.edit_model_instance {:id (:id updated-instance) :slug model-slug})
+    (controller/redirect (pages/route-for :admin.edit-model-instance {:id (:id updated-instance) :slug model-slug})
       {:cookies {"success-message" {:value (str "You successfully updated this " model-slug)}}})))
 
 (defn create-instance
@@ -269,14 +269,14 @@
 
 (defn find-associated-content
   [params]
-  (let [model (@model/models (keyword (:model params)))
+  (let [model (model/models (keyword (:model params)))
         association (get-in model [:fields (keyword (:field params))])
         assoc-name (-> association :row :slug)
         assoc-type (-> association :row :type)
-        target (model/pick :model {:where {:id (-> association :row :target_id)} :include {:fields {}}})
+        target (model/pick :model {:where {:id (-> association :row :target-id)} :include {:fields {}}})
         include {(keyword (-> association :row :slug)) (build-includes target)}
         join-include (if (= (-> association :row :type) "link")
-                       (assoc include (keyword (str assoc-name "_join")) {})
+                       (assoc include (keyword (str assoc-name "-join")) {})
                        include)
         _ (println join-include)
         where (if (empty? (:id params)) {} {:id (:id params)})
@@ -301,9 +301,9 @@
    different information is required to fetch it."
   [request]
   (let [params (-> request :params)
-        model (@model/models (keyword (:model params)))
+        model (model/models (keyword (:model params)))
         association (get-in model [:fields (keyword (:field params))])
-        target (model/pick :model {:where {:id (-> association :row :target_id)} :include {:fields {}}})
+        target (model/pick :model {:where {:id (-> association :row :target-id)} :include {:fields {}}})
         template (template/find-template
                    (util/pathify ["content" "models" "instance" (or (:template params) "_collection.html")]))
         stuff (find-associated-content params)
@@ -392,7 +392,7 @@
 (defn remove-link
   [request]
   (let [payload (json-payload request)
-        model (@model/models (keyword (:model payload)))
+        model (model/models (keyword (:model payload)))
         association (get-in model [:fields (keyword (:field payload))])
         deleted (link/remove-link association (:id payload) (:target-id payload))]
     (json-response deleted)))
@@ -464,7 +464,7 @@
 
 (defn reindex
   [request]
-  (let [model (@model/models (keyword (-> request :params :slug)))]
+  (let [model (model/models (keyword (-> request :params :slug)))]
     (println (index/update-all model))
     (controller/redirect (pages/route-for :admin.models (dissoc (:params request) :action :slug)))))
 
@@ -483,12 +483,12 @@
         asset (model/create
                :asset
                {:filename slug
-                :content_type (:content-type upload)
+                :content-type (:content-type upload)
                 :size (:size upload)})
         dir (asset/asset-dir asset)
         location (asset/asset-location asset)
         path (asset/asset-path asset)]
-    (if (:asset-bucket @config/app)
+    (if (config/draw :aws :bucket)
       (asset/upload-to-s3 location (-> params :upload :tempfile))
       (asset/persist-asset-on-disk dir path (:tempfile upload)))
     (json-response {:state (assoc asset :path path)})))

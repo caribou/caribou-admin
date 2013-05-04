@@ -10,7 +10,7 @@
 
   <div class="container-fluid clearfix">
     <h1>{{model.name}}</h1>
-    <a class="btn" href="{{safe-route-for :admin.create_model_instance params {:slug model.slug} }}">Create a {{model.name}}</a>
+    <a class="btn" href="{{safe-route-for :admin.create-model-instance params {:slug model.slug} }}">Create a {{model.name}}</a>
   </div>
 
 </div>
@@ -38,13 +38,13 @@
           </thead>
           <tbody class="sortable" data-position='{ "umbrella": {{model.id}}, "model":"model", "association":"fields", "offset": 0 }'>
             {{#model.fields}}
-            <tr data-position='{ "position": {{model_position}}, "id": "{{id}}" }' {{#locked}}class="disabled_bg"{{/locked}}>
+            <tr data-position='{ "position": {{model-position}}, "id": "{{id}}" }' {{#locked}}class="disabled_bg"{{/locked}}>
               <td class="sort"><span class="instrument-icon-up"></span><span class="instrument-icon-down"></span></td>
               <td>{{name}}</td>
               <td>{{type}} {{#searchable}}(searchable){{/searchable}}</td>
               <td>
                 {{^locked}}
-                  <a href="{{safe-route-for :admin.edit_model_instance params {:slug "field" :id id} }}" class="icon-container"><span class="instrument-icon-pencil" title="Edit"></span></a> &nbsp; <a href="#delete" class="icon-container" data-model="field" data-id="{{id}}" onclick="return window.caribou.models.showDeleteDialog( this );"><span class="instrument-icon-trash" title="Delete"></span></a>
+                  <a href="{{safe-route-for :admin.edit-model-instance params {:slug "field" :id id} }}" class="icon-container"><span class="instrument-icon-pencil" title="Edit"></span></a> &nbsp; <a href="#delete" class="icon-container" data-model="field" data-id="{{id}}" onclick="return window.caribou.models.showDeleteDialog( this );"><span class="instrument-icon-trash" title="Delete"></span></a>
                 {{/locked}}
               </td>
             </tr>

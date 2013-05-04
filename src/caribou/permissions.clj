@@ -15,9 +15,9 @@
 (defn rights
   [user model]
   (let [user (model/pick :account {:where {:id (:id user)}
-                                :include {:role {:gives_permissions {}}}})
-        permissions (-> user :role :gives_permissions)
-        permission (first (filter #(= (:model_id %) (:id model)) permissions))]
+                                :include {:role {:gives-permissions {}}}})
+        permissions (-> user :role :gives-permissions)
+        permission (first (filter #(= (:model-id %) (:id model)) permissions))]
     (:mask permission)))
 
 (defn check-bit

@@ -19,6 +19,7 @@
             [caribou.config :as config]
             [caribou.db :as db]
             [caribou.model :as model]
+            [caribou.core :as caribou]
             [caribou.app.i18n :as i18n]
             [caribou.app.pages :as pages]
             [caribou.app.template :as template]
@@ -28,6 +29,7 @@
             [caribou.app.handler :as handler]
             [caribou.app.controller :as controller]
             [caribou.app.helpers :as frontend-helpers]
+            [caribou.app.config :as app-config]
             [caribou.admin.helpers :as helpers]
             [caribou.admin.routes :as routes]))
 
@@ -49,8 +51,8 @@
   (contains?
    #{(pages/route-for :admin.login {})
      (pages/route-for :admin.logout {})
-     (pages/route-for :admin.forgot_password {})
-     (pages/route-for :admin.submit_login {})}
+     (pages/route-for :admin.forgot-password {})
+     (pages/route-for :admin.submit-login {})}
    uri))
 
 (defn user-required
@@ -67,7 +69,7 @@
   (fn [request]
     (let [models (model/gather
                   :model
-                  {:where {:locked false :join_model false}
+                  {:where {:locked false :join-model false}
                    :order {:id :asc}})]
       (handler (assoc request :user-models models)))))
 
@@ -81,7 +83,6 @@
     (let [request (merge request base-helpers helpers/all frontend-helpers/helpers)]
       (handler request))))
 
-
 (defn admin-wrapper
   [handler]
   (-> handler
@@ -89,37 +90,34 @@
       (user-required)
       (get-models)))
 
+(def config (app-config/default-config))
+
 (defn init
   []
-  (config/init)
-  (model/init)
-  (i18n/init)
-  (template/init)
-  (reload-pages)
-  (halo/init
-   {:reload-pages reload-pages
-    :halo-reset handler/reset-handler})
-  (def handler
-    (-> (handler/handler)
-        (admin-wrapper)
-        (wrap-reload)
-        (wrap-file (@config/app :asset-dir))
-        (wrap-resource (@config/app :public-dir))
-        (wrap-file-info)
-        (wrap-head)
-        (lichen/wrap-lichen (@config/app :asset-dir))
-        (middleware/wrap-servlet-path-info)
-        (middleware/wrap-xhr-request)
-        (request/wrap-request-map)
-        (wrap-json-params)
-        (wrap-multipart-params)
-        (wrap-keyword-params)
-        (wrap-nested-params)
-        (wrap-params)
-        (db/wrap-db @config/db)
-        (wrap-session {:store (cookie-store {:key "vEanzxBCC9xkQUoQ"})
-                       :cookie-name "caribou-admin-session"
-                       :cookie-attrs {:max-age (days-in-seconds 90)}})
-        (wrap-cookies)))
+  (let [config (caribou/init config)]
+    (caribou/with-caribou config
+      (reload-pages)
+      (def handler
+        (-> (handler/handler #'reload-pages)
+            (admin-wrapper)
+            (wrap-reload)
+            (wrap-file (config/draw :assets :dir))
+            (wrap-resource (config/draw :app :public-dir))
+            (wrap-file-info)
+            (wrap-head)
+            (lichen/wrap-lichen (config/draw :assets :dir))
+            (middleware/wrap-servlet-path-info)
+            (middleware/wrap-xhr-request)
+            (request/wrap-request-map)
+            (wrap-json-params)
+            (wrap-multipart-params)
+            (wrap-keyword-params)
+            (wrap-nested-params)
+            (wrap-params)
+            (handler/wrap-caribou config)
+            (wrap-session {:store (cookie-store {:key "vEanzxBCC9xkQUoQ"})
+                           :cookie-name "caribou-admin-session"
+                           :cookie-attrs {:max-age (days-in-seconds 90)}})
+            (wrap-cookies)))
 
-  (swank/start-server :host "127.0.0.1" :port 4011))
+      (swank/start-server :host "127.0.0.1" :port 4011))))

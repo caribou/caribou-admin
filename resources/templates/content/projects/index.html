@@ -32,11 +32,11 @@
             <!-- Todo: Make detail links point to edit or view depending on permissions -->
             <td>
               <div class="media">
-                <a class="pull-left" href="{{route-for :admin.edit_project {:site params.site :locale params.locale :id id} }}">
-                  <img class="media-object" src="/lichen/{{thumbnail_standard.path}}?width=160&height=120" width="160" height="120">
+                <a class="pull-left" href="{{route-for :admin.edit-project {:site params.site :locale params.locale :id id} }}">
+                  <img class="media-object" src="/lichen/{{thumbnail-standard.path}}?width=160&height=120" width="160" height="120">
                 </a>
                 <div class="media-body">
-                  <h4 class="media-heading"><a href="{{route-for :admin.edit_project {:site params.site :locale params.locale :id id} }}">{{name}}</a></h4>
+                  <h4 class="media-heading"><a href="{{route-for :admin.edit-project {:site params.site :locale params.locale :id id} }}">{{name}}</a></h4>
                   <p><a href="">Google</a><br>
                   Edited by <a href="">J. Lewis</a><br>
                   on Monday, January 14</p>

@@ -30,8 +30,8 @@
                    (route-for :admin.models {:locale locale :site "admin"}))
         account (model/pick :account {:where {:email email}})
         match? (and (seq password)
-                    (seq (:crypted_password account))
-                    (check-pw password (:crypted_password account)))
+                    (seq (:crypted-password account))
+                    (check-pw password (:crypted-password account)))
         target (if-not match?
                  (str (route-for :admin.login {:locale locale :site "admin"})
                       "&target=" target)
@@ -42,7 +42,7 @@
                   session
                   (assoc session
                     :admin
-                    {:user (dissoc account :created_at :updated_at)
+                    {:user (dissoc account :created-at :updated-at)
                      :locale locale}))]
     (println "USER in submit-login is " (-> session :admin :user))
     (redirect target {:session session :login login})))
@@ -56,11 +56,11 @@
         last (-> request :params :last)
         hash (hash-pw password)
         account (model/create :account {:email email
-                                        :first_name first
-                                        :last_name last
-                                        :crypted_password hash})
-        target (route-for :admin.new_account (select-keys request [:site :locale]))
-        user (dissoc account :created_at :updated_at)]
+                                        :first-name first
+                                        :last-name last
+                                        :crypted-password hash})
+        target (route-for :admin.new-account (select-keys request [:site :locale]))
+        user (dissoc account :created-at :updated-at)]
     (redirect target {:session (:session request) :user user})))
 
 ;; allow target

@@ -7,7 +7,7 @@ $(function() {
         var ids = [];
         $("input[type=checkbox][name=id]:checked").each(function(index, el) { ids.push( $(el).val() ); });
         location.href = window.caribou.api.routeFor("to-route", {
-          page: "edit_model_instance",
+          page: "edit-model-instance",
           id: ids.join(":"),
           slug: pageInfo.model
         });

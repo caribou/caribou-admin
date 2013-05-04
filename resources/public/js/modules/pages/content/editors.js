@@ -176,11 +176,11 @@
     syncValueFrom: function( from ) {
       this.value = {
         value: from.get( this.field.slug ),
-        id: from.get( this.field.slug + "_id" )
+        id: from.get( this.field.slug + "-id" )
       };
     },
     syncsTo: function() {
-      return [ this.field.slug, this.field.slug + "_id" ];
+      return [ this.field.slug, this.field.slug + "-id" ];
     },
     attach: function() {
       var self = this;
@@ -207,7 +207,7 @@
     },
     addNew: function() {
       var self = this;
-      var target = self.api().model( self.field.target_id );
+      var target = self.api().model( self.field["target-id"] );
       var value = {};
 
       var editor = new ModelEditor({
@@ -308,7 +308,7 @@
         from: self,
         instance: self.parent.value,
         instanceModel: self.model,
-        model: self.api().model( self.field.target_id ),
+        model: self.api().model( self.field["target-id"] ),
         field: self.field,
         submit: function( value, next ) {
           self.value = value;
@@ -356,9 +356,9 @@
           model: self.model,
           field: field,
           parent: self,
-          idField: _( self.model.fields ).find( function(f) { return f.slug === field.slug + "_id" } ),
+          idField: _( self.model.fields ).find( function(f) { return f.slug === field.slug + "-id" } ),
           value: self.get( field.slug ),
-          idValue: self.get( field.slug + "_id" ),
+          idValue: self.get( field.slug + "-id" ),
           sync: function( value, next ) { self.syncFromChild( editor, value, next ); }
         });
         self.children.push( editor );
@@ -415,7 +415,7 @@
       }
       if ( value && (child.field.type === "asset" || child.field.type === "part") ) {
         self.set( child.field.slug, value.value );
-        self.set( child.field.slug + "_id", value.id );
+        self.set( child.field.slug + "-id", value.id );
       } else {
         self.set( child.field.slug, value );
       }
@@ -614,7 +614,7 @@
       var value = {};
       if ( self.field.type === "collection" ) {
         value[reciprocalField.slug] = self.instance;
-        value[reciprocalField.slug+"_id"] = self.instance.id;
+        value[reciprocalField.slug+"-id"] = self.instance.id;
       } else if ( self.field.type === "link" ) {
         value[reciprocalField.slug] = [ self.instance ];
       }
@@ -687,7 +687,7 @@
           _(value).each( function(v) {
             if ( self.field.type === "collection" ) {
               v[reciprocalField.slug] = self.instance;
-              v[reciprocalField.slug+"_id"] = self.instance.id;
+              v[reciprocalField.slug+"-id"] = self.instance.id;
             } else if ( self.field.type === "link" ) {
               v[reciprocalField.slug] = [ self.instance ];
             }
@@ -1008,7 +1008,7 @@
         e.preventDefault();
         return self.submitActiveEditor( function( value ) {
           location.href = global.caribou.api.routeFor("to-route", {
-            page: "create_model_instance",
+            page: "create-model-instance",
             slug: self.activeEditor().model.slug
           });
         });
@@ -1017,7 +1017,7 @@
         e.preventDefault();
         return self.submitActiveEditor( function( value ) {
           location.href = global.caribou.api.routeFor("to-route", {
-            page: "edit_model_instance",
+            page: "edit-model-instance",
             slug: self.activeEditor().model.slug,
             id: value.id
           });

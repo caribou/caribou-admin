@@ -48,18 +48,18 @@
 
 (defn asset-is-image [m key]
   (if-let [asset (value-for-key m key)]
-    (.startsWith (or (:content_type asset) "") "image")))
+    (.startsWith (or (:content-type asset) "") "image")))
 
 (defn asset-path [m key]
   (if-let [asset (value-for-key m key)]
     (:path asset)))
 
 (defn part-values [field instance]
-  (let [model (model/pick :model {:where {:id (:target_id field)} :include {:fields {}}})
+  (let [model (model/pick :model {:where {:id (:target-id field)} :include {:fields {}}})
         results (model/gather (:slug model))
         name-field (keyword (:slug (first (:fields model))))
         value-field :id
-        default-value (:default_value field)
+        default-value (:default-value field)
         is-selected? (fn [v] (if (nil? instance)
                                (= v default-value)
                                (= v (get instance value-field))))
@@ -102,7 +102,7 @@
 
 (defn join-model?
   [field]
-  (:join_model (@model/models (:target_id field))))
+  (:join-model (model/models (:target-id field))))
 
 ; this is not technically a helper... it should live somewhere else
 (defn add-pagination
@@ -132,9 +132,9 @@
      }))
 
 (defn system-field? [field]
-  (or (#{"position" "created_at" "updated_at" "locked" "searchable" "distinct"} (:slug field))
-      (.endsWith (:slug field) "_id")
-      (.endsWith (:slug field) "_position")))
+  (or (#{"position" "created-at" "updated-at" "locked" "searchable" "distinct"} (:slug field))
+      (.endsWith (:slug field) "-id")
+      (.endsWith (:slug field) "-position")))
 
 
 ;; -------- locale helpers --------

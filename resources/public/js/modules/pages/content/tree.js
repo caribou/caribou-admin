@@ -11,7 +11,7 @@
 
     // these properties can be overridden in options
     // but in general the defaults will suffice
-    this.parentIdKey = options.parentIdKey || "parent_id";
+    this.parentIdKey = options.parentIdKey || "parent-id";
     this.idKey       = options.idKey       || "id";
     this.labelKey    = options.labelKey    || "name";
     this.delegate    = options.delegate || {

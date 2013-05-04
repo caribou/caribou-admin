@@ -48,7 +48,7 @@
               <td>
                 {{^field.locked}}
                   <a class="choose-link hide icon-container" href="#choose" data-model="{{model.slug}}" data-id="{{id}}"><span class="instrument-icon-check"></span></a>
-                  <a class="edit-link icon-container" href="{{safe-route-for :admin.edit_model_instance params {:id id} }}" data-model="{{model.slug}}" data-id="{{id}}"><span class="instrument-icon-pencil"></span></a>
+                  <a class="edit-link icon-container" href="{{safe-route-for :admin.edit-model-instance params {:id id} }}" data-model="{{model.slug}}" data-id="{{id}}"><span class="instrument-icon-pencil"></span></a>
                   <a class="remove-link hide icon-container" href="#remove" data-toggle="tooltip" title="Doesn't delete the content, just removes its association." data-model="{{model.slug}}" data-id="{{id}}"><span class="instrument-icon-close"></span></a>
                   <a class="delete-link icon-container" href="#destroy" data-model="{{model.slug}}" data-id="{{id}}"><span class="instrument-icon-trash"></span></a>
                 {{/field.locked}}
