@@ -25,9 +25,10 @@
 
 (defn itemize-by
   [k m]
-  (->> k
-       (group-by m)
-       (map (fn [[k [v]]] [k v]))))
+  (->> m
+       (group-by k)
+       (map (fn [[k [v]]] [k v]))
+       (into {})))
 
 (defn inflate-request
   [{{locale-code :locale} :params
@@ -375,13 +376,21 @@
                   :state results}]
     (json-response response)))
 
+(defn fetch-permission
+  [model-id account-id]
+  (model/pick :permission {:where {:model-id
+
 (defn has-perms
-  [model permissions actions]
+  [model permissions actions account-id]
   (let [model (cond (string? model) (-> model keyword ((@model/models)) :id)
                     (keyword? model) (-> @model/models model :id)
                     (number? model) model)
         required-mask (apply permissions/mask actions)
-        {mask :mask} (first (filter (comp #{model} :model_id) permissions))]
+        permission (first (filter (comp #{model} :model_id) permissions))
+        {mask :mask} (or permission
+                         (model/pick :permission {:where {:account_id account-id
+                                                          :model_id  model}}))
+        mask (or mask (->> account-id (model/pick :account) :default_mask) 0)]
     (=  required-mask (bit-and required-mask mask))))
 
 (defn only-include
@@ -441,12 +450,13 @@
      size :size
      page :page
      :as params} :params
+     {{account-id :id} :account} :admin
      permissions :permissions
      locale :locale
      :as request}]
   (let [model (model/pick :model {:where {:slug model}
                                   :include {:fields {}}})
-        _ (assert (has-perms (:id model) permissions [:read :write]))
+        _ (assert (has-perms (:id model) permissions [:read :write] account-id))
         template (template/find-template
                   (util/pathify ["content" "models" "instance"
                                  (or template "_edit.html")]))
