@@ -2,7 +2,8 @@
   (:require [clojure.test :refer [deftest testing is]]
             [caribou
              [model :as model]
-             [config :as config]]
+             [config :as config]
+             [permissions :as permissions]]
             [caribou.admin.controllers.content.models :as models-controller]))
 
 (def requests
@@ -12,7 +13,7 @@
                      :locale "global",
                      :action "editor-content",
                      :locale-code "",
-                     :model "glurg"}}
+                     :model "page"}}
    :editor-associated-content {:params
                                {:site "admin",
                                 :locale "global",
@@ -33,7 +34,7 @@
    :reorder-all {:params
                  {:site "admin",
                   :locale "global",
-                  "data" {"model" "model",
+                  "data" {"model" "page",
                           "association" "fields",
                           "id" 19,
                           "items"
@@ -56,9 +57,9 @@
               {:site "admin",
                :locale "global",
                :action "find-one",
-               :slug "glurg",
+               :slug "page",
                :include "fields",
-               :model "model"}}
+               :model "page"}}
    :delete-all {:params
                 {:site "admin",
                  :locale "global",
@@ -69,13 +70,45 @@
               {:site "admin",
                :locale "global",
                :action "to-route",
-               :slug "glurg",
+               :slug "page",
                :page "admin.results"}}
    :upload-asset {}
    :remove-link {}
    :reindex {}
    :bulk-editor-content {}})
 
-(deftest access
+(defn do-caribou
+  [fn]
   (config/init)
-  (model/init))
+  (model/init)
+  (model/db fn))
+
+(def existing-roles
+  []
+  (set (doall (map :id (do-caribou (fn [] (model/gather :role)))))))
+
+(defonce role-ids (atom []))
+
+(defn make-user
+  [mask]
+  (let [{role-id :id} (model/impose :role {:default_mask mask})]
+    (swap! role-ids conj role-id)
+    role-id))
+
+(defn cleanup
+  [except]
+  (doseq [id (remove existing-roles @role-ids]]
+    (model/destroy :role id))
+  (reset! role-ids []))
+
+(deftest access
+  (do-caribou
+   (fn []
+     (let [qa (make-user (permissions/mask :read))
+           blogger (make-user (permissions/mask :write :read))
+           editor (make-user (permissions/mask :write :read :create :delete))
+           api models-controller/api]
+       (is (= (api {:params {:action "editor-content"
+                             :model "page"}
+                    :session {:admin {:user {:role_id qa}}}})
+              "error, tests unimplemented"))))))

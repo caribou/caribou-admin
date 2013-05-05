@@ -25,10 +25,12 @@
 
 (defn itemize-by
   [k m]
-  (into {} (map (fn [[k [v]]] [k v]) (group-by k m))))
+  (->> k
+       (group-by m)
+       (map (fn [[k [v]]] [k v]))))
 
 (defn inflate-request
-  [{{local-code :locale} :params
+  [{{locale-code :locale} :params
     {{{role :role_id} :user} :admin} :session
     :as request}]
   (let [locale (when-not ((some-fn nil? empty? #{"global"}) locale-code)
@@ -41,18 +43,23 @@
       :locale locale
       :permissions permissions)))
 
-(defn order-get-in [thing path]
-  (or (helpers/get-in-helper thing path) 0))
+(defn order-get-in
+  [thing path]
+  (or (helpers/get-in-helper thing path)
+      0))
 
 (defn order-info
   ([model]
     {:model model :association "position" :position-slug "position"})
-  ([model association umbrella]
+  ([model
+    {{row-slug :slug} :row
+     association-slug :slug}
+    association
+    {umbrella-id :id}]
     {:model model
-     :umbrella (:id umbrella)
-     :association (or (get-in association [:slug])
-                      (get-in association [:row :slug]))
-     :position-slug (str (:slug association) "_position")}))
+     :umbrella umbrella-id
+     :association (or association-slug row-slug)
+     :position-slug (str association-slug "_position")}))
 
 (defn part-title
   [field]
@@ -61,10 +68,10 @@
     (-> target :fields first :slug)))
 
 (defn field-path
-  [field]
-  (if (= (:type field) "part")
-    (str (:slug field) "." (part-title field))
-    (:slug field)))
+  [{type :type slug :slug :as field}]
+  (if (= type "part")
+    (str slug "." (part-title field))
+    field))
 
 (defn build-includes
   "given a model, finds associated models, excluding join models,
@@ -76,8 +83,10 @@
                  (:fields model))]
     (into {}
       (map #(vector (keyword (:slug %)) {})
-        (filter (fn [a] (and (some #(= (:type a) %) ["collection", "part", "link"])
-                             (not (:join_model (@model/models (:target_id a)))))) fields)))))
+           (filter (fn [a]
+                     (and ((comp #{"collection", "part", "link"} :type) a)
+                          (-> a :targe_id (@model/models) :join_model not)
+                   fields)))))))
 
 (defn human-friendly-fields
   "returns the set of fields that a human can read - is a bit hacky"
@@ -208,7 +217,8 @@
         reciprocal-name (:reciprocal-name params)
         target-id (:target-id params)
         ;; extra bits here, validate, etc
-        model (model/pick :model {:where {:slug (-> request :params :slug)} :include {:fields {}}})
+        model (model/pick :model {:where {:slug (-> request :params :slug)}
+                                  :include {:fields {}}})
         new-field (if (not (nil? target-id))
                     {:name (string/capitalize field-name)
                      :type field-type
@@ -218,14 +228,13 @@
                     {:name (string/capitalize field-name)
                      :searchable searchable
                      :type field-type})
-        new-model (model/update :model (:id model) {:fields [ new-field ] })]
+        new-model (model/update :model (:id model) {:fields [new-field]})]
       (controller/redirect (pages/route-for :admin.edit_model
                              (dissoc (:params request) :field-name
                                                        :field-type
                                                        :searchable
                                                        :target-id
                                                        :reciprocal-name)))))
-
 
 (defn edit
   [request]
@@ -235,7 +244,8 @@
   [request]
   (let [request (inflate-request request)
         model-slug (-> request :params :slug)
-        model (model/pick :model {:where {:slug model-slug} :include {:fields {}}})
+        model (model/pick :model {:where {:slug model-slug}
+                                  :include {:fields {}}})
         model-fields (:fields model)
         id-param (-> request :params :id)
         ids (if-not (nil? id-param)
@@ -244,9 +254,12 @@
         specific? (= 1 (count ids))
         include   (into {}
                     (map #(vector (keyword (:slug %)) {})
-                      (filter (fn [a] (some #(= % (:type a)) ["collection", "part", "link"])) (model/db #(:fields model)))))
+                         (filter (comp #{"collection" "part" "link"} :type)
+                                 (model/db #(:fields model)))))
         instance  (if specific?
-                    (model/pick (keyword (:slug model)) {:where {:id (-> request :params :id)} :include include})
+                    (model/pick (keyword (:slug model))
+                                {:where {:id (-> request :params :id)}
+                                 :include include})
                     {})]
     (render (merge {:model model
                     :bulk? (and (> (count ids) 0) (not specific?))
@@ -259,8 +272,11 @@
         edited-instance (dissoc (:params request) :slug)
         updated-instance (model/create model-slug edited-instance)]
     (println updated-instance)
-    (controller/redirect (pages/route-for :admin.edit_model_instance {:id (:id updated-instance) :slug model-slug})
-      {:cookies {"success-message" {:value (str "You successfully updated this " model-slug)}}})))
+    (controller/redirect
+     (pages/route-for :admin.edit_model_instance
+                      {:id (:id updated-instance) :slug model-slug})
+     {:cookies {"success-message"
+                {:value (str "You successfully updated this " model-slug)}}})))
 
 (defn create-instance
   [request]
@@ -270,25 +286,146 @@
     ;; given a model slug, generates an editor for that model
     [request]
     (let [request (inflate-request request)
-          model (model/pick :model {:where {:slug (-> request :params :model)} :include {:fields {}}})
-          template (template/find-template (util/pathify ["content" "models" "instance" "_edit.html"]))]
+          model (model/pick :model {:where {:slug (-> request :params :model)}
+                                    :include {:fields {}}})
+          template (template/find-template
+                    (util/pathify
+                     ["content" "models" "instance" "_edit.html"]))]
       (render (merge request {:template template :model model}))))
 
-(defn find-content
-  [params]
-  (let [model (model/pick :model {:where {:slug (:model params)} :include {:fields {}}})
-        include (build-includes model)
-        where (if (:where params)
-                (model/process-where (:where params))
-                (if (empty? (:id params)) {} {:id (:id params)}))
-        order (if (:order params) (model/process-order (:order params)) {})
-        locale-code (if (or (nil? (:locale-code params)) (empty? (:locale-code params)))
+(defn find-associated-content
+  [{model :model
+    field :field
+    locale-code :locale-code
+    limit :limit
+    offset :offset
+    id :id}]
+  (let [{slug :slug :as model} (@model/models (keyword model))
+        {{assoc-name :slug
+          assoc-type :type
+          target-id :target_id} :row
+          :as association} (get-in model [:fields (keyword field)])
+        target (model/pick :model {:where {:id target-id}
+                                   :include {:fields {}}})
+        include {(keyword assoc-name) (build-includes target)}
+        join-include (if (= assoc-type "link")
+                       (assoc include (keyword (str assoc-name "_join")) {})
+                       include)
+        where (if-not id {} {:id id})
+        locale-code (if (empty? locale-code)
                       nil
-                      (:locale-code params))
+                      locale-code)
+        instance (model/pick slug {:where where
+                                   :include join-include
+                                   :limit limit
+                                   :offset offset
+                                   :results :clean
+                                   :locale locale-code})
+        associated-content ((keyword assoc-name) instance)
+        content (if-not (= slug "asset")
+                  associated-content
+                  (map #(assoc % :path (asset/asset-path %))
+                       associated-content))]
+    {:instance instance :content content}))
+
+(defn editor-associated-content
+  "Associated content has to be handled slightly differently because
+   different information is required to fetch it."
+  [{{slug :model
+     field :field
+     template :template
+     page-size :size
+     page :page
+     locale-code :locale-code
+     locale :locale
+     :as params} :params
+     :as request}]
+  (let [model (@model/models (keyword slug))
+        {{target-id :target_id } :row
+         :as association} (get-in model [:fields (keyword field)])
+        target (model/pick :model {:where {:id target-id}
+                                   :include {:fields {}}})
+        template-name (or template "_collection.html")
+        template (template/find-template
+                  (util/pathify ["content" "models" "instance" template-name]))
+        {content :content
+         instance :instance
+         :as stuff} (find-associated-content params)
+        page-size (or page-size 20)
+        ;; TODO:kd - put default page size into config
+        {results :results
+         :as pager} (helpers/add-pagination content
+                                            {:page-size page-size
+                                             :current-page page})
+        friendly-fields (human-friendly-fields target)
+        order-info (order-info model association instance)
+        global? (or (and (contains? params :locale-code)
+                         (empty? locale-code))
+                    (nil? locale))
+        request (assoc request
+                  :template template
+                  :model target
+                  :fields friendly-fields
+                  :order-info order-info
+                  :pager pager
+                  :results results
+                  :global? global?)
+        response {:template (-> request render :body)
+                  :model target
+                  :state results}]
+    (json-response response)))
+
+(defn has-perms
+  [model permissions actions]
+  (let [model (cond (string? model) (-> model keyword ((@model/models)) :id)
+                    (keyword? model) (-> @model/models model :id)
+                    (number? model) model)
+        required-mask (apply permissions/mask actions)
+        {mask :mask} (first (filter (comp #{model} :model_id) permissions))]
+    (=  required-mask (bit-and required-mask mask))))
+
+(defn only-include
+  [include-set raw]
+  (if-not (map? raw)
+    raw
+    (->> raw
+         (map (fn [[k v]]
+                (when (include-set k)
+                  [k (only-include include-set v)])))
+         (filter identity)
+         (into {}))))
+
+(defn get-readable-models
+  [permissions]
+  (->> permissions
+       (filter #(-> % :mask permissions/check-read))
+       (map #(-> % :model_id (@model/models) :slug))
+       set))
+
+(defn find-content
+  [model
+   {where :where
+    id :id
+    order :order
+    locale-code :locale-code
+    limit :limit
+    offset :offset}
+   permissions]
+  (let [include (build-includes model)
+        include-set (get-readable-models permissions)
+        include (only-include include-set include)
+        where (cond
+                where (model/process-where where)
+                id {:id id}
+                :default {})
+        order (if order (model/process-order order) {})
+        locale-code (if (empty? locale-code)
+                      nil
+                      locale-code)
         raw-content (model/gather (:slug model) {:where where
                                                  :include include
-                                                 :limit (:limit params)
-                                                 :offset (:offset params)
+                                                 :limit limit
+                                                 :offset offset
                                                  :results :clean
                                                  :locale locale-code})
         content (map #(if (= (:slug model) "asset")
@@ -296,123 +433,92 @@
                         %) raw-content)]
     content))
 
-(defn find-associated-content
-  [params]
-  (let [model (@model/models (keyword (:model params)))
-        association (get-in model [:fields (keyword (:field params))])
-        assoc-name (-> association :row :slug)
-        assoc-type (-> association :row :type)
-        target (model/pick :model {:where {:id (-> association :row :target_id)} :include {:fields {}}})
-        include {(keyword (-> association :row :slug)) (build-includes target)}
-        join-include (if (= (-> association :row :type) "link")
-                       (assoc include (keyword (str assoc-name "_join")) {})
-                       include)
-        _ (println join-include)
-        where (if (empty? (:id params)) {} {:id (:id params)})
-        locale-code (if (or (nil? (:locale-code params)) (empty? (:locale-code params)))
-                      nil
-                      (:locale-code params))
-        raw-content (model/gather (:slug model) {:where where
-                                                 :include join-include
-                                                 :limit (:limit params)
-                                                 :offset (:offset params)
-                                                 :results :clean
-                                                 :locale (:locale-code params)})
-        instance (first raw-content)
-        associated-content ((keyword assoc-name) instance)
-        content (map #(if (= (:slug model) "asset")
-                          (assoc % :path (asset/asset-path %))
-                          %) associated-content)]
-    {:instance instance :content content}))
-
-(defn editor-associated-content
-  "Associated content has to be handled slightly differently because
-   different information is required to fetch it."
-  [request]
-  (let [params (-> request :params)
-        model (@model/models (keyword (:model params)))
-        association (get-in model [:fields (keyword (:field params))])
-        target (model/pick :model {:where {:id (-> association :row :target_id)} :include {:fields {}}})
-        template (template/find-template
-                   (util/pathify ["content" "models" "instance" (or (:template params) "_collection.html")]))
-        stuff (find-associated-content params)
-        content (:content stuff)
-        instance (:instance stuff)
-        pager (helpers/add-pagination content
-                {:page-size (or (:size params) 20)  ;; TODO:kd - put default page size into config
-                 :current-page (:page params)})
-        friendly-fields (human-friendly-fields target)
-        order-info (order-info model association instance)
-        global? (or (and (contains? params :locale-code) (empty? (:locale-code params))) (nil? (:locale params)))
-        response {:template (:body (render (merge request {:template template
-                                                           :model target
-                                                           :fields friendly-fields
-                                                           :order-info order-info
-                                                           :pager pager
-                                                           :results (:results pager)
-                                                           :global? global?
-                                                           })))
-                  :model target
-                  :state (:results pager)}]
-    (json-response response)))
-
 (defn editor-content
-  [request]
-  (let [request (inflate-request request)
-        params (-> request :params)
-        model (model/pick :model {:where {:slug (:model params)} :include {:fields {}}})
+  [{{model :model
+     template :template
+     target-id :id
+     locale-code :locale-code
+     size :size
+     page :page
+     :as params} :params
+     permissions :permissions
+     locale :locale
+     :as request}]
+  (let [model (model/pick :model {:where {:slug model}
+                                  :include {:fields {}}})
+        _ (assert (has-perms (:id model) permissions [:read :write]))
         template (template/find-template
-                   (util/pathify ["content" "models" "instance" (or (:template params) "_edit.html")]))
-        results (find-content params)
-        instance (if-not (empty? (:id params))
+                  (util/pathify ["content" "models" "instance"
+                                 (or template "_edit.html")]))
+        results (find-content params permissions)
+        instance (when target-id
                    (first results))
         friendly-fields (human-friendly-fields model)
-        global? (or (nil? (:locale request)) (and (contains? params :locale-code) (empty? (:locale-code params))))
-        pager (helpers/add-pagination results
-                {:page-size (or (:size params) 20)  ; TODO:kd - put default page size into config
-                  :current-page (:page params)})]
+        global? (or (not locale)
+                    (and (contains? params :locale-code)
+                         (empty? locale-code)))
+        size (or size 20)
+        {results :results
+         :as pager} (helpers/add-pagination
+                     results
+                     ;; TODO:kd - put default page size into config
+                     {:page-size size :current-page page})
+        request (assoc request
+                  :template template
+                  :model model
+                  :instance instance
+                  :fields friendly-fields
+                  :order-info (order-info model)
+                  :pager pager
+                  :results results
+                  :global? global?)
+        state (if-not (contains? params :id)
+                results
+                instance)]
     (json-response
-      {:template (:body (render (merge request {:template template
-                                                :model model
-                                                :instance instance
-                                                :fields friendly-fields
-                                                :order-info (order-info model)
-                                                :pager pager
-                                                :results (:results pager)
-                                                :global? global?
-                                                })))
-       :model model
-       :state (if-not (contains? params :id) (:results pager) instance)})))
+     {:template (-> request render :body)
+      :model model
+      :state state})))
 
 (defn bulk-editor-content
-  [request]
-  (let [request (inflate-request request)
-        params (:params request)
-        model-slug (:model params)
-        model (model/pick :model {:where {:slug model-slug} :include {:fields {}}})
-        id-list (clojure.string/split (:id params) #"[,:]")
-        inflated (remove nil? (map #(model/pick model-slug {:where {:id %}}) id-list))
+  [{{model-slug :model
+     locale-code :locale-code
+     id :id
+     template :template
+     :as params} :params
+    locale :locale
+    :as request}]
+  (let [model (model/pick :model {:where {:slug model-slug}
+                                  :include {:fields {}}})
+        id (or id "")
+        id-list (string/split id #"[,:]")
+        inflated (remove nil? (map #(model/pick model-slug {:where {:id %}})
+                                   id-list))
         all-equal (fn [a b]
                     (if (map? a)
                       (if (= (:id a) (:id b)) a nil)
                       (if (= a b) a nil)))
         merged (apply (partial merge-with all-equal) inflated)
-        global? (or (nil? (:locale request)) (and (contains? params :locale-code) (empty? (:locale-code params))))
+        global? (or (not locale)
+                    (and (contains? params :locale-code)
+                         (empty? locale-code)))
+        template-file (or template "_edit.html")
         template (template/find-template
-                   (util/pathify ["content" "models" "instance" (or (:template params) "_edit.html")]))]
+                   (util/pathify ["content" "models" "instance" template-file]))
+        request (assoc request
+                  :template template
+                  :model model
+                  :instance merged
+                  :bulk? true
+                  :ids id
+                  :fields (human-friendly-fields model)
+                  :order-info (order-info model)
+                  :global? global?)]
     (json-response
-      {:template (:body (render (merge request {:template template
-                                                :model model
-                                                :instance merged
-                                                :bulk? true
-                                                :ids (:id params)
-                                                :fields (human-friendly-fields model)
-                                                :order-info (order-info model)
-                                                :global? global?
-                                                })))
-       :model model
-       :state merged
-       :inflated inflated})))
+     {:template (-> request render :body)
+      :model model
+      :state merged
+      :inflated inflated})))
 
 (defn json-payload
   [request]
@@ -420,88 +526,97 @@
 
 (defn remove-link
   [request]
-  (let [payload (json-payload request)
-        model (@model/models (keyword (:model payload)))
-        association (get-in model [:fields (keyword (:field payload))])
-        deleted (link/remove-link association (:id payload) (:target-id payload))]
+  (let [{field :field
+         target-id :target-id
+         model :model
+         id :id} (json-payload request)
+        model (@model/models (keyword model))
+        association (get-in model [:fields (keyword field)])
+        deleted (link/remove-link association id target-id)]
     (json-response deleted)))
 
 ; updates multiple models.  needs some validation/idiot-proofing.
 (defn update-all
   [request]
   (let [payload (json-payload request)
-        _ (log/debug payload)
-        updated (map (fn [x]
-                      (vector
-                       (:model x)
-                       (model/create (keyword (:model x)) (:fields x) (or (:opts x) {}))))
-                        payload)
-        results (map second updated)]
-    (when-not (empty? (set/intersection #{"model" "field"} (set (map :model payload))))
-      (log/debug "Reloading model, clearing query cache!")
+        results (map (fn [{model :model fields :fields opts :opts}]
+                       (model/create (keyword model) fields (or opts {})))
+                     payload)
+        model-set (->> payload (map :model) set)]
+    (when-not (->  #{"model" "field"} (set/intersection model-set) empty?)
       (query/clear-queries)
       (model/init))
-    (when-not (empty? (set/intersection #{"page"} (set (map :model payload))))
-      (println "RESETTING HANDLER!!")
+    (when-not (->  #{"page"} (set/intersection model-set) empty?)
       (handler/reset-handler))
     (json-response results)))
 
 (defn reorder-all
   [request]
-  (let [payload (json-payload request)
-        association-slug (:association payload)
-        id (:id payload)
-        items (doall (map (fn [x] {:id (Integer/parseInt (:id x)) :position (:position x)}) (:items payload)))
+  (let [{association-slug :association
+         id :id
+         items :items
+         model :model
+         :as payload} (json-payload request)
+         items (doall (map (fn [{id :id position :position}]
+                             {:id (Integer/parseInt id)
+                              :position position})
+                           items))
         results (if (and association-slug id)
-                  (do
-                    (println (str "reordering " (:association payload) " of " (:model payload) " " (:id payload)
-                     " to " items))
-                    (model/order (:model payload)
-                                 (:id payload)
-                                 (:association payload)
-                                 items))
-                  (model/order (:model payload) items))]
+                  (model/order model id  association-slug items)
+                  (model/order model items))]
     (json-response results)))
 
 ; this is too drastic and should probably have some sanity checking.
 (defn delete-all
   [request]
   (let [payload (json-payload request)
-        results (map #(model/destroy (keyword (:model %)) (:id %)) payload)]
+        results (map (fn [{id :id
+                           model :model}]
+                       model/destroy (keyword model) id)
+                     payload)]
     (query/clear-queries)
     (model/init)
     (json-response results)))
 
 (defn find-all
-  [request]
-  (let [model (or (keyword (-> request :params :model)) :model)
-        include (-> request :params :include)]
+  [{{model :model
+     include :include} :params}]
+  (let [model (or (keyword model) :model)]
     (json-response (model/find-all model {:include include}))))
 
 (defn find-one
-  [request]
-  (let [params (-> request :params)
-        slug (or (keyword (:model params)) :model)
-        include (:include params)
-        where (if (:slug params) {:slug (:slug params)} {:id (:id params)})]
-    (json-response (model/pick slug {:where where :include (model/process-include include)}))))
+  [{{model :model
+     include :include
+     id :id
+     param-slug :slug} :params}]
+  (let [slug (or (keyword model) :model)
+        where (if param-slug
+                {:slug param-slug}
+                {:id id})
+        include (model/process-include include)]
+    (json-response (model/pick slug {:where where :include include}))))
 
 (defn to-route
-  [request]
-  (controller/redirect (pages/route-for (-> request :params :page keyword) (dissoc (:params request) :action :page))))
+  [{{page :page :as params} :params}]
+  (controller/redirect
+   (pages/route-for (keyword page)
+                    (dissoc params :action :page))))
 
 (defn reindex
-  [request]
-  (let [model (@model/models (keyword (-> request :params :slug)))]
-    (println (index/update-all model))
-    (controller/redirect (pages/route-for :admin.models (dissoc (:params request) :action :slug)))))
+  [{{slug :slug :as params} :params}]
+  (let [model (@model/models (keyword slug))]
+    (index/update-all model)
+    (controller/redirect (pages/route-for :admin.models
+                                          (dissoc params :action :slug)))))
 
 (defn slugify-filename
   [s]
-  (.toLowerCase
-   (clojure.string/replace
-    (clojure.string/join "-" (re-seq #"[a-zA-Z0-9.]+" s))
-    #"^[0-9]" "-")))
+  (->> s (re-seq #"[a-zA-z0-9.]+") (string/join "-")
+       #((string/replace % #"^[0-9]" "-")) ((memfn toLowerCase)))
+  #_(.toLowerCase
+     (clojure.string/replace
+      (clojure.string/join "-" (re-seq #"[a-zA-Z0-9.]+" s))
+      #"^[0-9]" "-")))
 
 (defn upload-asset
   [request]
@@ -530,18 +645,21 @@
   (swap! pm assoc (keyword action) (select-keys request [:params]))
   (let [request (inflate-request request)]
     (reset! rq request)
-    (condp = action
-      ;; "editor-for" (editor-for request)
-      "editor-content" (editor-content request)
-      "editor-associated-content" (editor-associated-content request)
-      "update-all" (update-all request)
-      "reorder-all" (reorder-all request)
-      "find-all" (find-all request)
-      "find-one" (find-one request)
-      "delete-all" (delete-all request)
-      "to-route" (to-route request)
-      "upload-asset" (upload-asset request)
-      "remove-link" (remove-link request)
-      "reindex" (reindex request)
-      "bulk-editor-content" (bulk-editor-content request)
-      {:status 404 :body "Awwwwww snap!"})))
+    (try (condp = action
+           ;; "editor-for" (editor-for request)
+           "editor-content" (editor-content request)
+           "editor-associated-content" (editor-associated-content request)
+           "update-all" (update-all request)
+           "reorder-all" (reorder-all request)
+           "find-all" (find-all request)
+           "find-one" (find-one request)
+           "delete-all" (delete-all request)
+           "to-route" (to-route request)
+           "upload-asset" (upload-asset request)
+           "remove-link" (remove-link request)
+           "reindex" (reindex request)
+           "bulk-editor-content" (bulk-editor-content request)
+           {:status 404 :body "Awwwwww snap!"})
+         (catch java.lang.AssertionError assertion
+           {:status 403
+            :body "insufficient permissions to perform this action"}))))
