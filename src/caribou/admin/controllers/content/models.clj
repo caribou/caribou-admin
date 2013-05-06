@@ -86,8 +86,8 @@
       (map #(vector (keyword (:slug %)) {})
            (filter (fn [a]
                      (and ((comp #{"collection", "part", "link"} :type) a)
-                          (-> a :targe_id (@model/models) :join_model not)
-                   fields)))))))
+                          (-> a :targe_id (@model/models) :join_model not)))
+                   fields)))))
 
 (defn human-friendly-fields
   "returns the set of fields that a human can read - is a bit hacky"
@@ -376,10 +376,6 @@
                   :state results}]
     (json-response response)))
 
-(defn fetch-permission
-  [model-id account-id]
-  (model/pick :permission {:where {:model-id
-
 (defn has-perms
   [model permissions actions account-id]
   (let [model (cond (string? model) (-> model keyword ((@model/models)) :id)
@@ -407,7 +403,8 @@
 (defn get-readable-models
   [permissions]
   (->> permissions
-       (filter #(-> % :mask permissions/check-read))
+       (filter :mask)
+       (filter (comp permissions/check-read :mask))
        (map #(-> % :model_id (@model/models) :slug))
        set))
 
@@ -460,7 +457,7 @@
         template (template/find-template
                   (util/pathify ["content" "models" "instance"
                                  (or template "_edit.html")]))
-        results (find-content params permissions)
+        results (find-content model params permissions)
         instance (when target-id
                    (first results))
         friendly-fields (human-friendly-fields model)
