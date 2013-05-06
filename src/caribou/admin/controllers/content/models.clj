@@ -30,15 +30,20 @@
        (map (fn [[k [v]]] [k v]))
        (into {})))
 
+(defn all-permissions
+ [role-id]
+ (let [{permissions
+        :permissions} (model/pick :role {:where {:id role-id}
+                                         :include {:permissions {}}})]
+   permissions))
+
 (defn inflate-request
   [{{locale-code :locale} :params
     {{{role :role_id} :user} :admin} :session
     :as request}]
   (let [locale (when-not ((some-fn nil? empty? #{"global"}) locale-code)
                  (model/pick :locale {:where {:code locale-code}}))
-        {permissions
-         :permissions} (model/pick :role {:where {:id role}
-                                          :include {:permissions {}}})
+        permissions (all-permissions role)
         permissions (itemize-by :model_id permissions)]
     (assoc request
       :locale locale
@@ -55,7 +60,6 @@
   ([model
     {{row-slug :slug} :row
      association-slug :slug}
-    association
     {umbrella-id :id}]
     {:model model
      :umbrella umbrella-id
@@ -100,7 +104,6 @@
                                (= (:type %) "link")
                                (= (:type %) "boolean")) fields)
         filled (map #(assoc % :friendly-path (field-path %)) stripped)]
-    (println (map :friendly-path filled))
     filled))
 
 (def all-helpers
@@ -157,7 +160,6 @@
   (let [m (@model/models (keyword slug))
         ;; TODO - remove this hardcoded limit and make it work with pagination
         raw (index/search m kw (assoc opts :limit 200))
-        _ (println raw)
         includes (build-includes m)
         inflated (map (fn [r] (model/pick slug {:where {:id (:id r)}
                                                 :include includes}))
@@ -174,8 +176,9 @@
           limit :limit
           offset :offset
           size :size
+          page :page
           :as params} :params
-         {page-slug :slug :as page} :page} request
+         {page-slug :slug} :page} request
         model (model/pick :model {:where {:slug model-slug}
                                   :include {:fields {}}})
         includes (build-includes model)
@@ -329,6 +332,24 @@
                        associated-content))]
     {:instance instance :content content}))
 
+(defn has-perms
+  [model permissions actions role-id]
+  (if (or (not model)
+          (not permissions)
+          (not role-id))
+    false
+    (let [model (cond (string? model) (-> model keyword (@model/models) :id)
+                      (keyword? model) (-> @model/models model :id)
+                      (number? model) model)
+          required-mask (apply permissions/mask actions)
+          permission (first (filter (comp #{model} :model_id) permissions))
+          mask (or (:mask permission)
+                   (:mask (model/pick :permission {:where {:role_id role-id
+                                                           :model_id  model}}))
+                   (:default_mask (model/pick :role {:where {:id role-id}}))
+                   0)]
+      (=  required-mask (bit-and required-mask mask)))))
+
 (defn editor-associated-content
   "Associated content has to be handled slightly differently because
    different information is required to fetch it."
@@ -338,20 +359,22 @@
      page-size :size
      page :page
      locale-code :locale-code
-     locale :locale
      :as params} :params
+     locale :locale
+     permissions :permissions
+     {{{role-id :role_id} :user} :admin} :session
      :as request}]
   (let [model (@model/models (keyword slug))
+        _ (assert (has-perms (:id model) permissions [:read :write] role-id))
         {{target-id :target_id } :row
          :as association} (get-in model [:fields (keyword field)])
         target (model/pick :model {:where {:id target-id}
                                    :include {:fields {}}})
+        _ (assert (has-perms (:id target) permissions [:read :write] role-id))
         template-name (or template "_collection.html")
         template (template/find-template
                   (util/pathify ["content" "models" "instance" template-name]))
-        {content :content
-         instance :instance
-         :as stuff} (find-associated-content params)
+        {content :content instance :instance} (find-associated-content params)
         page-size (or page-size 20)
         ;; TODO:kd - put default page size into config
         {results :results
@@ -375,19 +398,6 @@
                   :model target
                   :state results}]
     (json-response response)))
-
-(defn has-perms
-  [model permissions actions account-id]
-  (let [model (cond (string? model) (-> model keyword ((@model/models)) :id)
-                    (keyword? model) (-> @model/models model :id)
-                    (number? model) model)
-        required-mask (apply permissions/mask actions)
-        permission (first (filter (comp #{model} :model_id) permissions))
-        {mask :mask} (or permission
-                         (model/pick :permission {:where {:account_id account-id
-                                                          :model_id  model}}))
-        mask (or mask (->> account-id (model/pick :account) :default_mask) 0)]
-    (=  required-mask (bit-and required-mask mask))))
 
 (defn only-include
   [include-set raw]
@@ -447,13 +457,13 @@
      size :size
      page :page
      :as params} :params
-     {{account-id :id} :account} :admin
+     {{{role-id :role_id} :user} :admin} :session
      permissions :permissions
      locale :locale
      :as request}]
   (let [model (model/pick :model {:where {:slug model}
                                   :include {:fields {}}})
-        _ (assert (has-perms (:id model) permissions [:read :write] account-id))
+        _ (assert (has-perms (:id model) permissions [:read :write] role-id))
         template (template/find-template
                   (util/pathify ["content" "models" "instance"
                                  (or template "_edit.html")]))
@@ -542,10 +552,15 @@
         deleted (link/remove-link association id target-id)]
     (json-response deleted)))
 
-; updates multiple models.  needs some validation/idiot-proofing.
+;; updates multiple models.  needs some validation/idiot-proofing.
+;; appears to only create models, never update? JS
 (defn update-all
-  [request]
+  [{permissions :permissions
+    {{{role-id :role_id} :user} :admin} :session
+    :as request}]
   (let [payload (json-payload request)
+        _ (doseq [{name :model} payload]
+            (assert (has-perms name permissions [:create] role-id)))
         results (map (fn [{model :model fields :fields opts :opts}]
                        (model/create (keyword model) fields (or opts {})))
                      payload)
@@ -553,8 +568,8 @@
     (when-not (->  #{"model" "field"} (set/intersection model-set) empty?)
       (query/clear-queries)
       (model/init))
-    (when-not (->  #{"page"} (set/intersection model-set) empty?)
-      (handler/reset-handler))
+    #_(when-not (->  #{"page"} (set/intersection model-set) empty?)
+        (handler/reset-handler))
     (json-response results)))
 
 (defn reorder-all

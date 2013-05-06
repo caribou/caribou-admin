@@ -16,11 +16,11 @@
                   :after_destroy
                   :remove-permissions
                   remove-permissions-model)
-  (model/add-hook :account
+  (model/add-hook :role
                   :after_create
                   :make-permisisons
                   make-permissions-role)
-  (model/add-hook :account
+  (model/add-hook :role
                   :after_destroy
                   :remove-permissions
                   remove-permissions-role))
@@ -29,7 +29,7 @@
   "a hook to create a permission for a new row with an apropriate mask
   for every model"
   [{{role-id :id mask :default_mask} :content :as env}]
-  (doseq [{model-id :id} @model/models]
+  (doseq [{model-id :id} (gather :model)]
     (create :permission {:model_id model-id :role_id role-id
                          :mask (or mask 0)}))
   env)
