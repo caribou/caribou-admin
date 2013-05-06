@@ -117,7 +117,7 @@
 
   $.extend( FieldEditor.prototype, Editor.prototype, {
     description:   function() { return this.field.slug },
-    selector:      function() { return "input[name=" + this.field.slug + "]" },
+    selector:      function() { return this.parent.selector + " input[name=" + this.field.slug + "]" },
     syncToDOM:     function() { $( this.selector() ).val( this.value ) },
     syncFromDOM:   function() { this.value = $( this.selector() ).val() },
     syncValueFrom: function(from) { this.value = from.get( this.field.slug ) },

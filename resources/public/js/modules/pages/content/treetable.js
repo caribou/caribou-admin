@@ -20,100 +20,82 @@
       select: function() { return "" },
       addControls: function() {},
       removeControls: function() {},
-      update: function () {}
+      update: function () {},
+      makeNode: function( node ) {
+        var self = this;
+        return $('<tr data-id="' + (node.id || "0") +
+                     '" data-parent-id="' + (node.parentId || "") + '">' +
+                 '<td>' + node.label + '</td></tr>');
+      },
+      makeHeader: function() {}
     };
     this.serverValue = null;
     return this;
   };
 
   $.extend( TreeEditor.prototype, editors.Editor.prototype, {
-    _makeNode: function( node ) {
-      var self = this;
-      return $('<li class="treenode" data-id="' + (node.id || "") + '" data-label="' + (node.label || "...") + '"><span>' + (node.label || "...") + '</span> <span class="controls"></span></li>');
-    },
     produce: function( dom, node ) {
       var self = this;
-      var me = self._makeNode( node );
-      if (node.children && node.children.length) {
-        var children = $('<ul>');
-        _( node.children ).each( function(c) {
-          self.produce( children, c );
-        });
-        me.append( children );
-      }
+      var me = self.delegate.makeNode( node );
       dom.append(me);
+      if (node.children && node.children.length) {
+        _( node.children ).each( function(c) {
+          self.produce( dom, c );
+        });
+      }
       return dom;
     },
     attach: function() {
       var self = this;
       self.tree = this.arrange( self.value || [] );
       var tree = self.tree[0];
-      var dom = self.produce( $("<ul>"), tree );
+      var dom = self.produce( $("<table class='table-striped'>"), tree );
+      dom.prepend( self.delegate.makeHeader() );
 
-      if ( self.options.expands ) {
-        $(dom).find("li.treenode").each( function(index, el) {
-          var sub = $("ul", this);
-          if (sub.size() > 0) {
-            $(this).prepend( self.options.collapseSign || '<img src="/img/tree/open.png" width="12" height="12" class="expand" />' );
-          } else {
-            $(this).prepend( '<img src="/img/tree/blank.png" width="12" height="12" class="expand" />'  );
-          }
-        });
+      //console.log(dom);
 
-        $(dom).find('img.expand').click( function() {
-            if (this.src.indexOf('blank') == -1) {
-              var subbranch = $('ul', this.parentNode).eq(0);
-              if (subbranch.css('display') === 'none') {
-                subbranch.show();
-                this.src = '/img/tree/open.png';
-              } else {
-                subbranch.hide();
-                this.src = '/img/tree/closed.png';
-              }
-            }
-        });
-      }
+      $( self.selector ).empty().append( dom );
 
-      // TODO: should prune the tree first
-      // sets up what's draggable
-      $(dom).find("li.treenode").Draggable({ revert: true, autoSize: true, ghosting: true });
+      // turn it into a tree:
 
-      // sets up what's droppable
-      $(dom).find("span").Droppable({
-        accept: "treenode",
-        hoverclass: "dropOver",
-        tolerance: "pointer",
-        ondrop: function(dropped) {
-          console.log("Dropped: ", $(dropped).data());
-
-          var parent = $(this).parents("li:first");
-          console.log("Onto: ", parent.data());
-          if(this.parentNode === dropped) { return }
-          var subbranch = $('ul', parent);
-          if (subbranch.size() === 0) {
-            parent.append('<ul></ul>');
-            subbranch = $('ul', parent);
-          }
-          oldParent = dropped.parentNode;
-          subbranch.eq(0).append(dropped);
-          oldBranches = $('li', oldParent);
-          if (oldBranches.size() == 0) {
-            $(oldParent).remove();
-          }
-
-          // notify delegate by submitting
-          self.syncFromDOM();
-          var diffs = self.diffs();
-          self.delegate.update( diffs );
-        }
+      $( self.selector ).find("table:first").treetable({
+        expandable: true,
+        initialState: "expanded",
+        nodeIdAttr: "id",
+        parentIdAttr: "parentId"
       });
 
-      $(dom).find("li").each( function( index, item ) {
-        self.delegate.removeControls( item );
-        self.delegate.addControls( item );
+      $( self.selector ).find("tr").each( function( index, item ) {
+        var data = $(item).data();
+        var node = self.tree[data.id];
+        self.delegate.addControls(item, node);
       });
 
-      $(self.selector).empty().append(dom);
+      $( self.selector + " .treenode" ).draggable({
+        helper: "clone",
+        opacity: .75,
+        refreshPositions: true,
+        revert: "invalid",
+        revertDuration: 300,
+        scroll: true
+      });
+
+      $( self.selector + " .treenode" ).each(function() {
+        $(this).parents("tr:first").droppable({
+          accept: ".treenode",
+          drop: function(e, ui) {
+            console.log("dropped!");
+            var dropped = ui.draggable.parents("tr");
+            $( self.selector + " table:first").treetable("move", dropped.data( "id" ), $(this).data( "id" ));
+            dropped.data().parentId = $(this).data().id;
+            self.syncFromDOM();
+            var diffs = self.diffs();
+            //console.log(diffs);
+            self.delegate.update( self, diffs );
+          },
+          hoverClass: "accept"
+        });
+      });
     },
 
     arrange: function( content ) {
@@ -152,12 +134,12 @@
       self.serverValue = self.serverValue || global.caribou.api.deepClone( self.value );
 
       var pairs = [];
-      $( self.selector ).find("li").each( function( index, el ) {
-        var el = $(el);
-        var pair = {};
-        pair.id = el.data().id;
-        pair.parentId = el.parent().parent().data().id || null;
-        pair.label = el.find("span:first").text();
+      $( self.selector ).find("table:first").find("tr").has("td").each( function() {
+        var el = $(this);
+        var pair = {
+          id: el.data().id,
+          parentId: el.data().parentId
+        };
         pairs.push(pair);
       });
       _( pairs ).each( function(p) {
@@ -188,7 +170,7 @@
       var self = this;
       self.syncFromDOM();
       var diffs = self.diffs();
-      self.delegate.update(diffs);
+      self.delegate.update(self, diffs);
 
       if (next) {
         return next( diffs );
@@ -199,3 +181,4 @@
 
   editors.TreeEditor = TreeEditor;
 })(window);
+
