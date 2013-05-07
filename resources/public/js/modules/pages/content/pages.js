@@ -8,7 +8,7 @@
   }
 
   // ================================================
-  // Class represents the New Page dialog
+  // This class represents the New Page dialog
   // ================================================
   function NewPageDialog( selector ) {
     this._element = $(selector).clone();
