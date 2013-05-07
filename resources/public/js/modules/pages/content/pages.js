@@ -1,6 +1,7 @@
 (function(global) {
   var editors = global.caribou.editors;
   var api     = global.caribou.api;
+  var models  = global.caribou.models;
 
   if (!editors || !editors.TreeEditor) {
     throw "editors.js and tree.js have not been included";
@@ -230,37 +231,54 @@
       return bits.join("/");
     },
 
-    removeControls: function( el, node ) {
+    removeControls: function( tree, el, node ) {
       $(el).find("td.controls").empty();
     },
-    addControls: function( el, node ) {
+    addControls: function( tree, el, node ) {
       el = $(el);
-      var selectLink = $("<a href='#'>edit</a>").on("click", function(e) {
-        console.log(node);
-        delegate.select( node );
-      });
-      var addLink = $("<a href='#'>+</a>").on("click", function(e) {
+      if (!node) { return }
+
+      var controls = el.find("td.controls");
+
+      if (node.id) {
+        var selectLink = $("<a href='#'><span class='instrument-icon-pencil'></span></a>").on("click", function(e) {
+          console.log(node);
+          delegate.select( node );
+        });
+        controls.append( selectLink );
+      }
+
+      var addLink = $("<a href='#'><span class='instrument-icon-circle-plus'></span></a>").on("click", function(e) {
         showNewDialog( node, delegate.labelFor(node) );
       });
-      var destroyLink = $("<a href='#'>x</a>").on("click", function(e) {
+      controls.append( addLink );
 
+      if ( !node.children || node.children.length === 0 ) {
+        var destroyLink = $("<a href='#' data-model='page' data-id='" + node.id + "'><span class='instrument-icon-circle-close'></span></a>").on("click", function(e) {
+          models.showDeleteDialog( this, function() {
+            delegate.reload( tree );
+          });
+        });
+        controls.append( destroyLink );
+      }
+    },
+    reload: function( tree ) {
+      $.ajax({
+        type: "GET",
+        url: api.routeFor("find-all", { model: "page" }),
+        success: function( data ) {
+          console.log(data);
+          tree.value = data;
+          tree.serverValue = null;
+          tree.attach();
+        }
       });
-      el.find("td.controls").append(selectLink).append(" | ").append(addLink).append(" | ").append(destroyLink);
     },
     update: function( tree, data ) {
       console.log(data);
       api.post( data, function() {
         console.log("Updated page tree on server");
-        $.ajax({
-          type: "GET",
-          url: api.routeFor("find-all", { model: "page" }),
-          success: function( data ) {
-            console.log(data);
-            tree.value = data;
-            tree.serverValue = null;
-            tree.attach();
-          }
-        });
+        delegate.reload( tree );
       });
     }
   };

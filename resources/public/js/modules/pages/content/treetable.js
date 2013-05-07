@@ -68,7 +68,7 @@
       $( self.selector ).find("tr").each( function( index, item ) {
         var data = $(item).data();
         var node = self.tree[data.id];
-        self.delegate.addControls(item, node);
+        self.delegate.addControls( self, item, node);
       });
 
       $( self.selector + " .treenode" ).draggable({
