@@ -6,6 +6,25 @@
     throw "editors.js has not been included";
   }
 
+  // Subclass/override to provide your own
+  // delegate to handle tree events
+  var TreeEditorDelegate = function() {}
+  TreeEditorDelegate.prototype = {
+    labelFor: function() { return "" },
+    select: function() { return "" },
+    addControls: function() {},
+    removeControls: function() {},
+    update: function () {},
+    makeNode: function( node ) {
+      var self = this;
+      return $('<tr data-id="' + (node.id || "0") +
+                   '" data-parent-id="' + (node.parentId || "") + '">' +
+               '<td>' + node.label + '</td></tr>');
+    },
+    makeHeader: function() {}
+  };
+
+
   var TreeEditor = function( options ) {
     editors.Editor.call( this, options );
 
@@ -15,20 +34,7 @@
     this.idKey       = options.idKey       || "id";
     this.labelKey    = options.labelKey    || "name";
     this.rootLabel   = options.rootLabel   || "/";
-    this.delegate    = options.delegate || {
-      labelFor: function() { return "" },
-      select: function() { return "" },
-      addControls: function() {},
-      removeControls: function() {},
-      update: function () {},
-      makeNode: function( node ) {
-        var self = this;
-        return $('<tr data-id="' + (node.id || "0") +
-                     '" data-parent-id="' + (node.parentId || "") + '">' +
-                 '<td>' + node.label + '</td></tr>');
-      },
-      makeHeader: function() {}
-    };
+    this.delegate    = options.delegate || new TreeEditorDelegate();
     this.serverValue = null;
     return this;
   };
@@ -59,7 +65,7 @@
       // turn it into a tree:
 
       $( self.selector ).find("table:first").treetable({
-        expandable: true,
+        expandable: false,
         initialState: "expanded",
         nodeIdAttr: "id",
         parentIdAttr: "parentId"
@@ -180,5 +186,6 @@
   });
 
   editors.TreeEditor = TreeEditor;
+  editors.TreeEditorDelegate = TreeEditorDelegate;
 })(window);
 

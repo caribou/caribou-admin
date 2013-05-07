@@ -175,7 +175,12 @@
     }
   };
 
-  var delegate = {
+  // Here we set up a delegate the handles tree events
+  var PageTreeDelegate = function() {
+    editors.TreeEditorDelegate.call();
+  };
+
+  $.extend( PageTreeDelegate.prototype, editors.TreeEditorDelegate.prototype, {
     makeHeader: function() {
       return $('<tr><th>Route</th><th>Path</th><th>Controller</th><th>Action</th><th>Template</th><th>Controls</th></tr>');
     },
@@ -183,7 +188,7 @@
       var self = this;
       return $('<tr data-id="' + (node.id) +
         '" data-parent-id="' + (node.id? (node.parentId || "0") : "") + '" >' +
-        '<td class="treenode">' + node.label + '</td><td>' + delegate.labelFor(node) + '</td>' +
+        '<td class="treenode">' + node.label + '</td><td>' + self.labelFor(node) + '</td>' +
         '<td>' + (node.node.controller || "") + '</td><td>' + (node.node.action || "") + '</td>' +
         '<td>' + (node.node.template || "") + '</td><td class="controls">&nbsp;</td></tr>');
     },
@@ -235,6 +240,7 @@
       $(el).find("td.controls").empty();
     },
     addControls: function( tree, el, node ) {
+      var self = this;
       el = $(el);
       if (!node) { return }
 
@@ -243,20 +249,20 @@
       if (node.id) {
         var selectLink = $("<a href='#'><span class='instrument-icon-pencil'></span></a>").on("click", function(e) {
           console.log(node);
-          delegate.select( node );
+          self.select( node );
         });
         controls.append( selectLink );
       }
 
       var addLink = $("<a href='#'><span class='instrument-icon-circle-plus'></span></a>").on("click", function(e) {
-        showNewDialog( node, delegate.labelFor(node) );
+        showNewDialog( node, self.labelFor(node) );
       });
       controls.append( addLink );
 
       if ( !node.children || node.children.length === 0 ) {
         var destroyLink = $("<a href='#' data-model='page' data-id='" + node.id + "'><span class='instrument-icon-circle-close'></span></a>").on("click", function(e) {
           models.showDeleteDialog( this, function() {
-            delegate.reload( tree );
+            self.reload( tree );
           });
         });
         controls.append( destroyLink );
@@ -275,20 +281,21 @@
       });
     },
     update: function( tree, data ) {
+      var self = this;
       console.log(data);
       api.post( data, function() {
         console.log("Updated page tree on server");
-        delegate.reload( tree );
+        self.reload( tree );
       });
     }
-  };
+  });
 
   $.ajax({ url: global.caribou.api.routeFor("find-all", { model: "page" }), success: function( data ) {
     var editor = new global.caribou.editors.TreeEditor({
       model: global.caribou.api.model("page"),
       value: data,
       expands: true,
-      delegate: delegate
+      delegate: new PageTreeDelegate()
     });
     editor.template = "";
     stack.push(editor);
