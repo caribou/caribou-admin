@@ -54,6 +54,9 @@
         var info = _( data ).find(function(e) { return e['path'] === value });
         self.setActionOptions( info.actions );
       });
+      self.controllerOtherField().on("blur", function(e) {
+        self.setController("");
+      });
     },
 
     setActionOptions: function( data ) {
@@ -152,6 +155,11 @@
         });
 
         dialog.setControllerOptions( data );
+        dialog.actionOtherField().on("blur", function(e) {
+          if (! dialog.templateField().data().dirty ) {
+            dialog.setTemplate( (dialog.controller() || dialog.controllerOther()) + "/" + dialog.actionOther() + ".html" );
+          }
+        });
         dialog.show();
       }
     });
