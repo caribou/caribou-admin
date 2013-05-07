@@ -126,6 +126,9 @@
     }
   };
 
+  // TODO - turn this into a jquery plugin, so you
+  // can say $("#new-page").newPageDialog();
+  // or something similar.
   function showNewDialog( info, path ) {
     var dialog = new NewPageDialog("#new-page");
 
@@ -171,17 +174,12 @@
     showNewDialog: showNewDialog
   };
 
-  if (!$("#all-pages")[0]) { return };
-  var api = window.caribou.api;
-  var stack = $("#all-pages").editorStack();
-
-  var options = {
-    model: api.model( "page" ),
-    submit: function( value, next ) {
-      console.log("Holy smokes, batman!", value);
-      console.log( value );
-    }
-  };
+  //=================================================
+  // Wire up the display of all the page information
+  // and display it as an editable tree.  We need
+  // to create a delegate object to handle the UI
+  // events, and node building, for the tree.
+  //=================================================
 
   // Here we set up a delegate the handles tree events
   var PageTreeDelegate = function() {
@@ -189,6 +187,7 @@
   };
 
   $.extend( PageTreeDelegate.prototype, editors.TreeEditorDelegate.prototype, {
+    // ack!
     makeHeader: function() {
       return $('<tr><th>Route</th><th>Path</th><th>Controller</th><th>Action</th><th>Template</th><th>Controls</th></tr>');
     },
@@ -267,7 +266,7 @@
       });
       controls.append( addLink );
 
-      if ( !node.children || node.children.length === 0 ) {
+      if ( node.id && (!node.children || node.children.length === 0) ) {
         var destroyLink = $("<a href='#' data-model='page' data-id='" + node.id + "'><span class='instrument-icon-circle-close'></span></a>").on("click", function(e) {
           models.showDeleteDialog( this, function() {
             self.reload( tree );
@@ -297,6 +296,17 @@
       });
     }
   });
+
+  // Assuming all has gone well, we instantiate the editor,
+  // fetch some data, and push it onto the stack, which
+  // displays and enables it.
+
+  if (!$("#all-pages")[0]) { return };
+  var api = window.caribou.api;
+  var stack = $("#all-pages").editorStack();
+  var options = {
+    model: api.model( "page" )
+  };
 
   $.ajax({ url: global.caribou.api.routeFor("find-all", { model: "page" }), success: function( data ) {
     var editor = new global.caribou.editors.TreeEditor({
