@@ -17,7 +17,8 @@
             [caribou.asset :as asset]
             [caribou.config :as config]
             [caribou.index :as index]
-            [caribou.admin.helpers :as helpers]))
+            [caribou.admin.helpers :as helpers]
+            [caribou.admin.core :as admin]))
 
 
 (defn inflate-request
@@ -407,14 +408,14 @@
                        (:model x)
                        (model/create (keyword (:model x)) (:fields x) (or (:opts x) {}))))
                         payload)
-        results (map second updated)]
+        results (doall (map second updated))]
     (when-not (empty? (set/intersection #{"model" "field"} (set (map :model payload))))
       (log/debug "Reloading model, clearing query cache!")
       (query/clear-queries)
       (model/init))
     (when-not (empty? (set/intersection #{"page"} (set (map :model payload))))
       (println "RESETTING HANDLER!!")
-      ;;(handler/reset-handler)
+      (handler/reset-handler)
       )
     (json-response results)))
 
