@@ -23,7 +23,14 @@
     {{#or field.editable params.show_hidden}}
       {{^join-model? field}}
       <tr data-position='{ "position": {{model_position}}, "id": "{{id}}" }' {{#locked}}class="disabled_bg"{{/locked}}>
-        <td>{{name}}</td>
+        <td>
+          {{#field.description}}
+            <span title="{{description}}">{{name}}</span>
+          {{/field.description}}
+          {{^field.description}}
+            {{name}}
+          {{/field.description}}
+        </td>
         <td>{{type}}</td>
         {{#bulk?}}<td><input type="checkbox" value="{{field.slug}}" name="caribou-update" /></td>{{/bulk?}}
         {{#model.localized}}
