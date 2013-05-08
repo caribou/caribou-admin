@@ -1,4 +1,6 @@
 (ns caribou-admin.test.model-permissions
+  "lein caribou migrate resources/config/development.clj
+   lein caribou migrate resources/config/development.clj caribou.admin.migrations.roles-permissions"
   (:require [clojure
              [test :as test :refer [deftest testing is]]
              [set :as set :refer [intersection subset?]]
@@ -12,6 +14,7 @@
             [caribou.admin.hooks :as hooks]
             [caribou.admin.controllers.content
              [models :as models-controller]
+             [projects :as projects]
              [assets :as assets]]))
 
 (def models-requests
@@ -133,7 +136,7 @@
         roles (map :id (model/gather :role))
         pages (map :id (model/gather :page))]
     (doseq [id (remove old-users users)]
-      (model/destroy :role id))
+      (model/destroy :account id))
     (doseq [id (remove old-roles roles)]
       (model/destroy :role id))
     (doseq [id (remove old-pages pages)]
@@ -411,24 +414,33 @@
   [mask]
   (model/impose :account {:where {:role_id (make-role mask)}}))
 
-(deftest assets-controller-access
+(deftest misc-controller-access
   (let [qa (make-user (permissions/mask :read))
         blogger (make-user (permissions/mask :write :read))
         editor (make-user (permissions/mask :write :read :create :delete))
-        nobody (make-user 0)
-        request (fn [user]
-                  {:params {:search {:content-type "text/plain"}}
-                   :session {:admin {:user user}}})
-        test-accessible (fn [response]
-                          (is (subset? #{:session :status :body}
-                                       (set (keys response))))
-                          (is (= (:status response) 200))
-                          (is (string? (:body response))))]
-    (testing "no perms restricts access to matches"
-      (test-inaccessible (assets/matches (request nobody))))
-    (testing "read only perms allows access to matches"
-      (test-accessible (assets/matches (request qa))))
-    (testing "read write perms allows access to matches"
-      (test-accessible (assets/matches (request blogger))))
-    (testing "full perms allows access to matches"
-      (test-accessible (assets/matches (request editor))))))
+        nobody (make-user 0)]
+    (let [request (fn [user]
+                    {:params {:search {:content-type "text/plain"}}
+                     :session {:admin {:user user}}})
+          test-accessible (fn [response]
+                            (is (subset? #{:session :status :body}
+                                         (set (keys response))))
+                            (is (= (:status response) 200))
+                            (is (string? (:body response))))]
+      (testing "no perms restricts access to matches"
+        (test-inaccessible (assets/matches (request nobody))))
+      (testing "read only perms allows access to matches"
+        (test-accessible (assets/matches (request qa))))
+      (testing "read write perms allows access to matches"
+        (test-accessible (assets/matches (request blogger))))
+      (testing "full perms allows access to matches"
+        (test-accessible (assets/matches (request editor)))))
+    #_(let [request (fn [user]
+                    {:session {:admin {:user user}}})
+          test-accessible (fn [response]
+                            (is (subset? #{:session :status :body}
+                                         (set (keys response))))
+                            (is (= (:status response) 200))
+                            (is (string? (:body response))))]
+      (testing "no perms restricts access to project index"
+        (test-inaccessible (projects/index (request nobody)))))))
