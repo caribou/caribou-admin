@@ -1,32 +1,32 @@
 {{%content}}
 
-<div class="column" id="add_edit_view_column">
+<div class="column" id="add-edit-view-column">
   <div class="titlebar">
-    <span class="add_edit_view_title">Edit Role Admin</span>
-    <span class="add_edit_subtitle subtle"></span>
+    <span class="add-edit-view-title">Edit Role Admin</span>
+    <span class="add-edit-subtitle subtle"></span>
   </div>
   <form action="{{route-for :admin.submit-edit-roles params}}"
-	class="edit_role"
-	id="edit_role_1"
+	class="edit-role"
+	id="edit-role-1"
 	method="post">
-    <div class="scrollable_view">
+    <div class="scrollable-view">
       <div class="fieldset">
-	<label class="text_field_label content_label_container" for="role_name">
-	  <span class="content_label">Name</span>
+	<label class="text-field-label content-label-container" for="role-name">
+	  <span class="content-label">Name</span>
 	</label>
 	<div class="field">
-	  <input class="text" id="role_name" label="name" name="role[name]"
+	  <input class="text" id="role-name" label="name" name="role[name]"
 		 size="30" type="text" value="{{title}}">
 	</div>
       </div>
       <div class="fieldset">
-	<label class="select_label content_label_container"
-	       for="role_default_level">
-	  <span class="content_label">Default Level</span>
+	<label class="select-label content-label-container"
+	       for="role-default-level">
+	  <span class="content-label">Default Level</span>
 	</label>
 	<div class="field">
-	  <select class="select" id="role_default_level" label="default_level"
-		  name="role[default_level]">
+	  <select class="select" id="role-default-level" label="default-level"
+		  name="role[default-level]">
 	    <option value="1">Read</option>
 	    <option value="3">Edit</option>
 	    <option value="7">Create</option>
@@ -38,8 +38,8 @@
       <hr>
       <div class="fieldset">
 	<div class="field">
-	  <table cellspacing="0" class="association_table content_permission"
-		 id="global_content_permissions_table">
+	  <table cellspacing="0" class="association-table content-permission"
+		 id="global-content-permissions-table">
 	    <thead></thead>
 	    <colgroup><col><col><col><col><col><col></colgroup>
 	    {{#tasks}}
@@ -47,32 +47,32 @@
 	      <tr>
 		<th>{{name}}</th>
 		<th style="width: 12%">
-		  <input id="read_{{name}}"
-			 name="read_{{name}}"
+		  <input id="read-{{name}}"
+			 name="read-{{name}}"
 			 type="checkbox"
-			 {{read_checked}}> Read
+			 {{read-checked}}> Read
 		</th>
 		<th style="width: 12%">
-		  <input id="write_{{name}}"
-			 name="write_{{name}}"
+		  <input id="write-{{name}}"
+			 name="write-{{name}}"
 			 type="checkbox"
-			 {{write_checked}}> Edit
+			 {{write-checked}}> Edit
 		</th>
 		<th style="width: 12%">
-		  <input id="create_{{name}}"
-			 name="create_{{name}}"
+		  <input id="create-{{name}}"
+			 name="create-{{name}}"
 			 type="checkbox"
-			 {{create_checked}}> Create
+			 {{create-checked}}> Create
 		</th>
 		<th style="width: 12%">
-		  <input id="delete_{{name}}"
-			 name="delete_{{name}}"
+		  <input id="delete-{{name}}"
+			 name="delete-{{name}}"
 			 type="checkbox"
-			 {{delete_checked}}> Delete
+			 {{delete-checked}}> Delete
 		</th>
 		<th style="width: 12%">
-		  <input id="all_{{name}}"
-			 name="all_{{name}}"
+		  <input id="all-{{name}}"
+			 name="all-{{name}}"
 			 type="checkbox"> All
 		</th>
 	      </tr>

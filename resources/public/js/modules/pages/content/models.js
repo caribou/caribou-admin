@@ -108,7 +108,7 @@
     var formatAddress = function( data ) {
       // cheesy
       var bits = [];
-      _([ "address", "address_two", "city", "state", "postal_code", "country" ]).each(function(key) {
+      _([ "address", "address-two", "city", "state", "postal-code", "country" ]).each(function(key) {
         if (data[key]) {
           bits.push( data[key] );
         }

@@ -24,7 +24,7 @@
     controllerOtherField: function() { return this._element.find("input[name=controller-other]") },
     actionOtherField:     function() { return this._element.find("input[name=action-other]") },
 
-    parentId:   function() { return this._element.find("input[name=parent_id]").val() },
+    parentId:   function() { return this._element.find("input[name=parent-id]").val() },
     parentPath: function() { return this._element.find("span[id=parent-path]").val() },
     path:       function() { return this.pathField().val() },
     name:       function() { return this.nameField().val() },
@@ -34,7 +34,7 @@
     controllerOther: function() { return this.controllerOtherField().val() },
     actionOther:     function() { return this.actionOtherField().val() },
 
-    setParentId:   function(v) { this._element.find("input[name=parent_id]").val(v) },
+    setParentId:   function(v) { this._element.find("input[name=parent-id]").val(v) },
     setParentPath: function(v) { this._element.find("span[id=parent-path]").html(v) },
     setPath:       function(v) { this.pathField().val(v) },
     setName:       function(v) { this.nameField().val(v) },

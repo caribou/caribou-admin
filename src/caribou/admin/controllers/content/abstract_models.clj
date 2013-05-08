@@ -1,4 +1,4 @@
-(ns caribou.admin.controllers.content.abstract_models
+(ns caribou.admin.controllers.content.abstract-models
   (:use caribou.app.controller))
   
 (defn index

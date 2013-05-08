@@ -610,7 +610,7 @@
       var self = this;
       if (self._reciprocalField) { return self._reciprocalField }
       var reciprocalField = _( self.model.fields ).find( function(field) {
-        return field.id === self.field.link_id;
+        return field.id === self.field["link-id"];
       });
       return self._reciprocalField = reciprocalField;
     },
