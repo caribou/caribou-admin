@@ -179,9 +179,10 @@
   // and display it as an editable tree.  We need
   // to create a delegate object to handle the UI
   // events, and node building, for the tree.
+  // The treetable code is from here:
+  // http://ludo.cubicphuse.nl/jquery-treetable/#usage
   //=================================================
 
-  // Here we set up a delegate the handles tree events
   var PageTreeDelegate = function() {
     editors.TreeEditorDelegate.call();
   };

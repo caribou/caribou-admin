@@ -27,7 +27,7 @@
       self.locale = parent.locale;
     },
 
-     // retrieves a value from the editor's state
+    // retrieves a value from the editor's state
     get: function( key, def ) {
       var bits = key.split(/\./);
       var current = this.value;
@@ -84,6 +84,7 @@
           if ( f.slug === "type" ) { return false }
           if ( f.type === "integer" && f.slug.match(/(^|_)id$/) ) { return false }
           if ( f.type === "part" ) { return true } // because the part_id is ok
+          if ( f.type === "password" && data[f.slug] === null ) { return true }
           //if ( f.type === "link" || f.type === "collection" ) { return true }
           return !f.editable;
         }).map( function(f) { return f.slug }).value();
@@ -147,6 +148,25 @@
       $( this.selector() ).parent().datepicker({
         format: "yyyy-mm-dd",
         viewMode: "years"
+      });
+    }
+  });
+
+  function PasswordFieldEditor( options ) { FieldEditor.call( this, options ) }
+  $.extend( PasswordFieldEditor.prototype, FieldEditor.prototype, {
+    syncToDOM: function() {},
+    syncFromDOM:   function() {
+      if ( $(this.selector()).data().dirty) {
+        this.value = $( this.selector() ).val();
+      } else {
+        this.value = null;
+      }
+    },
+    attach: function() {
+      var self = this;
+      FieldEditor.prototype.attach.call(self);
+      self.on("caribou:edit", function(e) {
+        $(self.selector()).data().dirty = true;
       });
     }
   });
@@ -327,19 +347,65 @@
   function LinkFieldEditor( options ) { CollectionFieldEditor.call( this, options ) }
   $.extend( LinkFieldEditor.prototype, CollectionFieldEditor.prototype, {});
 
+  function AddressFieldEditor( options ) { PartFieldEditor.call( this, options ) }
+  $.extend( AddressFieldEditor.prototype, PartFieldEditor.prototype, {
+    selector: function() { return "span#" + this.field.slug },
+    syncToDOM: function() {
+      var address = this.value.value;
+      if ( address ) {
+        $( this.selector() ).prepend( "<pre style='float:left'>" + global.caribou.models.formatAddress( address ) + "</pre>" );
+        $( this.selector() ).prepend( "<img style='float:left' src='" + global.caribou.models.mapImageURL( address, 150, 100) + "' />" );
+      }
+    },
+    syncFromDOM: function() {},
+    attach: function() {
+      var self = this;
+      $( this.selector() ).find("a").click( function(e) {
+        e.preventDefault();
+        console.log("Set/edit address");
+        return self.createOrEditAddress();
+      });
+    },
+    createOrEditAddress: function() {
+      var self = this;
+      var target = self.api().model("location");
+      var value = self.get("value") || {};
+      var editor = new ModelEditor({
+        model: target,
+        value: value,
+        submit: function( value, next ) {
+          var data = [{ model: target.slug, fields: self.prepareForUpdate( value ) }];
+          self.api().post( data, function( d ) {
+            console.log(d);
+            self.value.value = d[0];
+            self.value.id = (d[0]? d[0].id : null);
+            self.callbackWithValue("sync", self.value, next);
+          });
+        }
+      });
+
+      editor.load( function(data, error, xhr) {
+        editor.template = data.template;
+        self.stack().push( editor );
+      });
+    }
+  });
 
   //==============================================
 
   var fieldEditorMap = {
     string:     FieldEditor,
     text:       TextEditor,
+    password:   PasswordFieldEditor,
     integer:    FieldEditor,
+    decimal:    FieldEditor,
     timestamp:  DateFieldEditor,
     "boolean":  CheckBoxEditor,
     asset:      AssetFieldEditor,
     collection: CollectionFieldEditor,
     part:       PartFieldEditor,
-    link:       LinkFieldEditor
+    link:       LinkFieldEditor,
+    address:    AddressFieldEditor
     // etc.
   };
 
@@ -413,7 +479,7 @@
           value = null;
         }
       }
-      if ( value && (child.field.type === "asset" || child.field.type === "part") ) {
+      if ( value && (child.field.type === "asset" || child.field.type === "part" || child.field.type === "address") ) {
         self.set( child.field.slug, value.value );
         self.set( child.field.slug + "_id", value.id );
       } else {

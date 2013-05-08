@@ -176,6 +176,7 @@
         reciprocal-name (:reciprocal-name params)
         target-id (:target-id params)
         link-id (:link-id params)
+        fmt (:format params)
         ;; extra bits here, validate, etc
         model (model/pick :model {:where {:slug (-> request :params :slug)} :include {:fields {}}})
         new-field (if (not (nil? target-id))
@@ -187,6 +188,7 @@
                     {:name (string/capitalize field-name)
                      :searchable searchable
                      :link_id link-id
+                     :format fmt
                      :type field-type})
         new-model (model/update :model (:id model) {:fields [ new-field ] })]
       (controller/redirect (pages/route-for :admin.edit_model
