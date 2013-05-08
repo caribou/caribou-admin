@@ -4,7 +4,8 @@
     <h3 id="newPageLabel">Create A New Route</h3>
   </div>
 
-  <form action="{{safe-route-for :admin.new-page params }}" method="POST">
+  <form>
+    <input type="hidden" name="parent-id" />
     <div class="modal-body">
       <div class="control-group">
         <label class="control-label" for="field-name">Name</label>
@@ -12,11 +13,15 @@
           <input type="text" name="name" placeholder="Name your new route (eg 'View Presentation')...">
           <span class="help-block">This is for your own information and isn't necessarily visible to anyone else.</span>
         </div>
+      </div>
+      <div class="control-group">
         <label class="control-label path-controls" for="field-name">Path</label>
         <div class="controls path-controls">
-          <input type="text" name="path" placeholder="URL Path...">
+          <span id="parent-path" style="color: #880000"></span>/ <input type="text" name="path" placeholder="URL Path...">
           <span class="help-block"></span>
         </div>
+      </div>
+      <div class="control-group">
         <label class="control-label" for="field-name">Controller</label>
         <div class="controls">
           <select name="controller">
@@ -24,6 +29,8 @@
           or <input type="text" name="controller-other" id="controller-other" placeholder="Or enter a new controller name...">
           <span class="help-block">Which controller will handle this?</span>
         </div>
+      </div>
+      <div class="control-group">
         <label class="control-label action-controls" for="field-name">Action</label>
         <div class="controls action-controls">
           <select name="action">
@@ -31,6 +38,8 @@
           or <input type="text" name="action-other" id="action-other" placeholder="Or enter a new action name...">
           <span class="help-block">Which action in that controller?</span>
         </div>
+      </div>
+      <div class="control-group">
         <label class="control-label path-controls" for="field-name">Template</label>
         <div class="controls template-controls">
           <input type="text" name="template" placeholder="Template (eg 'presentation/view.html')...">
@@ -39,7 +48,7 @@
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-primary" data-dismiss="modal" onclick="this.form.submit()">Create it!</button>
+      <input type="submit" class="btn btn-primary" value="Create it!" />
     </div>
   </form>
 </div>

@@ -9,10 +9,6 @@
 (defn render [params]
   (controller/render (merge (all-helpers) params)))
 
-(defn new
-  [request]
-  (render request))
-
 (defn index
   [request]
   (let [model (model/pick :model {:where {:name "Page"}})]

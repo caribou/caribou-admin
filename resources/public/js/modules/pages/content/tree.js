@@ -14,9 +14,13 @@
     this.parentIdKey = options.parentIdKey || "parent-id";
     this.idKey       = options.idKey       || "id";
     this.labelKey    = options.labelKey    || "name";
+    this.rootLabel   = options.rootLabel   || "/";
     this.delegate    = options.delegate || {
       labelFor: function() { return "" },
-      select: function() { return "" }
+      select: function() { return "" },
+      addControls: function() {},
+      removeControls: function() {},
+      update: function () {}
     };
     this.serverValue = null;
     return this;
@@ -25,7 +29,7 @@
   $.extend( TreeEditor.prototype, editors.Editor.prototype, {
     _makeNode: function( node ) {
       var self = this;
-      return $('<li class="treenode" data-id="' + (node.id || "") + '" data-label="' + (node.label || "...") + '"><span>' + (node.label || "...") + '</span></li>');
+      return $('<li class="treenode" data-id="' + (node.id || "") + '" data-label="' + (node.label || "...") + '"><span>' + (node.label || "...") + '</span> <span class="controls"></span></li>');
     },
     produce: function( dom, node ) {
       var self = this;
@@ -42,8 +46,8 @@
     },
     attach: function() {
       var self = this;
-      self._tree = this.arrange( self.value || [] );
-      var tree = self._tree[0];
+      self.tree = this.arrange( self.value || [] );
+      var tree = self.tree[0];
       var dom = self.produce( $("<ul>"), tree );
 
       if ( self.options.expands ) {
@@ -81,28 +85,34 @@
         tolerance: "pointer",
         ondrop: function(dropped) {
           console.log("Dropped: ", $(dropped).data());
-          console.log("Onto: ", $(this).parent().data());
+
+          var parent = $(this).parents("li:first");
+          console.log("Onto: ", parent.data());
           if(this.parentNode === dropped) { return }
-					var subbranch = $('ul', this.parentNode);
-					if (subbranch.size() === 0) {
-						$(this).after('<ul></ul>');
-						subbranch = $('ul', this.parentNode);
-					}
-					oldParent = dropped.parentNode;
-					subbranch.eq(0).append(dropped);
-					oldBranches = $('li', oldParent);
-					if (oldBranches.size() == 0) {
-						$(oldParent).remove();
-					}
+          var subbranch = $('ul', parent);
+          if (subbranch.size() === 0) {
+            parent.append('<ul></ul>');
+            subbranch = $('ul', parent);
+          }
+          oldParent = dropped.parentNode;
+          subbranch.eq(0).append(dropped);
+          oldBranches = $('li', oldParent);
+          if (oldBranches.size() == 0) {
+            $(oldParent).remove();
+          }
+
+          // notify delegate by submitting
+          self.syncFromDOM();
+          var diffs = self.diffs();
+          self.delegate.update( diffs );
         }
       });
 
-      $(dom).find("span").off("click").on("click", function(e) {
-        e.preventDefault();
-        var data = $(this).parent().data();
-        console.log("Clicked on ", data);
-        self.delegate.select( data );
+      $(dom).find("li").each( function( index, item ) {
+        self.delegate.removeControls( item );
+        self.delegate.addControls( item );
       });
+
       $(self.selector).empty().append(dom);
     },
 
@@ -111,7 +121,7 @@
       var nodesById = { 0: {
         parentId: null,
         id: 0,
-        label: self.model.slug,
+        label: self.rootLabel || self.model.slug,
         children: [],
         node: { id: 0 }
       } };
@@ -130,6 +140,7 @@
         var parent = nodesById[v.parentId || 0];
         if (!parent) { parent = nodesById[0] }
         parent.children.push(v);
+        v.parent = parent;
       });
       return nodesById;
     },
@@ -150,7 +161,7 @@
         pairs.push(pair);
       });
       _( pairs ).each( function(p) {
-        var node = self._tree[p.id || 0].node;
+        var node = self.tree[p.id || 0].node;
         if (!node) { console.log("Node with id %d not found", p.id); return }
         var currentParentId = (node[self.parentIdKey] || 0);
         if ( currentParentId != (p.parentId || 0) ) {
@@ -160,9 +171,8 @@
         }
       });
     },
-    submit: function( next ) {
+    diffs: function() {
       var self = this;
-      self.syncFromDOM();
       var diff = global.caribou.api.difference( self.serverValue, self.value );
 
       // TODO handle complex diffs like additions and removals
@@ -172,8 +182,17 @@
         value[self.idKey] = orig;
         diffs.push({ model: self.model.slug, fields: value });
       });
-      console.log( "Submitting differences" );
-      console.log( diffs );
+      return diffs;
+    },
+    submit: function( next ) {
+      var self = this;
+      self.syncFromDOM();
+      var diffs = self.diffs();
+      self.delegate.update(diffs);
+
+      if (next) {
+        return next( diffs );
+      }
       return diffs;
     }
   });

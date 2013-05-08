@@ -177,17 +177,22 @@
         reciprocal-name (:reciprocal-name params)
         target-id (:target-id params)
         link-id (:link-id params)
+        fmt (:format params)
+        description (:description params)
         ;; extra bits here, validate, etc
         model (model/pick :model {:where {:slug (-> request :params :slug)} :include {:fields {}}})
         new-field (if (not (nil? target-id))
                     {:name (string/capitalize field-name)
                      :type field-type
                      :searchable searchable
+                     :description description
                      :target-id target-id
                      :reciprocal-name (string/capitalize reciprocal-name)}
                     {:name (string/capitalize field-name)
                      :searchable searchable
                      :link-id link-id
+                     :format fmt
+                     :description description
                      :type field-type})
         new-model (model/update :model (:id model) {:fields [ new-field ] })]
       (controller/redirect (pages/route-for :admin.edit-model
@@ -195,6 +200,8 @@
                                                        :field-type
                                                        :searchable
                                                        :target-id
+                                                       :format
+                                                       :description
                                                        :reciprocal-name)))))
 
 

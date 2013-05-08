@@ -1,0 +1,17 @@
+<div id="delete" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="deleteLabel" aria-hidden="true">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><span class="instrument-icon-close"></span></button>
+    <h3 id="deleteLabel">Destroy</h3>
+  </div>
+
+  <form action="{{safe-route-for :admin.model_api params {:action "update-all"} }}" method="POST">
+    <div class="modal-body">
+      <p>Are you sure you want to remove this?  PROBABLY NOT!  THERE IS NO WAY BACK.</p>
+    </div>
+    <div class="modal-footer">
+      <button id="delete-submit" class="btn btn-danger" data-dismiss="modal">Destroy!</button>
+      <button class="btn btn-success" data-dismiss="modal">No, keep it.</button>
+    </div>
+  </form>
+</div>
+

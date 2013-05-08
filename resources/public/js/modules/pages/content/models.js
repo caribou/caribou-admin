@@ -105,26 +105,64 @@
       return false;
     }
 
+    var formatAddress = function( data ) {
+      // cheesy
+      var bits = [];
+      _([ "address", "address_two", "city", "state", "postal_code", "country" ]).each(function(key) {
+        if (data[key]) {
+          bits.push( data[key] );
+        }
+      });
+      return bits.join(",\n");
+    };
+
+    var mapImageURL = function( data, width, height ) {
+      var template = "http://maps.googleapis.com/maps/api/staticmap?center={{location}}&zoom=15&size={{width}}x{{height}}&maptype=roadmap&sensor=false";
+      var builder = _.template( template );
+      return builder({
+        "location": formatAddress(data),
+        "width": (width || 300),
+        "height": (height || 300)
+      });
+    };
+
     var showAddFieldDialog = function( el ) {
       var data = $( el ).data();
       $("#new-field").modal();
       $("#new-field select[name='field-type']").change(function( e ) {
         $("#new-field #slug-controls").hide();
         $("#new-field #association-controls").hide();
+        $("#new-field #timestamp-controls").hide();
         $("#new-field #association-controls select").prop("disabled", true);
+        $("#new-field #searchable").prop("disabled", false);
         $("#new-field #slug-controls select").prop("disabled", true);
         var v = $( this ).val();
-        if ( v === "collection" || v === "part" || v === "link" ) {
-          $("#new-field #association-controls").show();
-          $("#new-field #association-controls select").prop("disabled", false);
-          if ( v === "part" ) {
-            $("#new-field #reciprocal-name").val( owl.pluralize( data.model ) );
-          } else {
-            $("#new-field #reciprocal-name").val( data.model );
-          }
-        } else if (v === "slug" || v === "urlslug" ) {
-          $("#new-field #slug-controls select").prop("disabled", false);
-          $("#new-field #slug-controls").show();
+        switch (v) {
+          case "collection":
+          case "part":
+          case "link":
+            $("#new-field #association-controls").show();
+            $("#new-field #association-controls select").prop("disabled", false);
+            if ( v === "part" ) {
+              $("#new-field #reciprocal-name").val( owl.pluralize( data.model ) );
+            } else {
+              $("#new-field #reciprocal-name").val( data.model );
+            }
+            break;
+          case "slug":
+          case "urlslug":
+            $("#new-field #slug-controls select").prop("disabled", false);
+            $("#new-field #slug-controls").show();
+            break;
+          case "password":
+            $("#new-field #searchable").prop("checked", false);
+            $("#new-field #searchable").prop("disabled", true);
+            break;
+          case "timestamp":
+            $("#new-field #timestamp-controls").show();
+            break;
+          default:
+            break;
         }
       });
     }
@@ -147,7 +185,9 @@
       showAddFieldDialog: showAddFieldDialog,
       enableDeleteLinks: enableDeleteLinks,
       post: _post,
-      enableSorting: enableSorting
+      enableSorting: enableSorting,
+      formatAddress: formatAddress,
+      mapImageURL: mapImageURL
     };
   }
 
