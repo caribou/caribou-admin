@@ -365,12 +365,17 @@
      {{{role-id :role_id} :user} :admin} :session
      :as request}]
   (let [model (@model/models (keyword slug))
-        _ (assert (has-perms (:id model) permissions [:read :write] role-id))
+        _ (assert (has-perms (:id model) permissions [:read :write] role-id)
+                  (str "read and write permissions to " slug
+                       " in models/editor-associated-content"))
         {{target-id :target_id } :row
          :as association} (get-in model [:fields (keyword field)])
         target (model/pick :model {:where {:id target-id}
                                    :include {:fields {}}})
-        _ (assert (has-perms (:id target) permissions [:read :write] role-id))
+        _ (assert (has-perms (:id target) permissions [:read :write] role-id)
+                  (str "read and write perms to associated content "
+                       field " of type " (:slug target)
+                       "in models/editor-associated-content"))
         template-name (or template "_collection.html")
         template (template/find-template
                   (util/pathify ["content" "models" "instance" template-name]))
@@ -463,7 +468,9 @@
      :as request}]
   (let [model (model/pick :model {:where {:slug model}
                                   :include {:fields {}}})
-        _ (assert (has-perms (:id model) permissions [:read :write] role-id))
+        _ (assert (has-perms (:id model) permissions [:read :write] role-id)
+                  (str "read/write access to " (:slug model)
+                       " in models/editor-content"))
         template (template/find-template
                   (util/pathify ["content" "models" "instance"
                                  (or template "_edit.html")]))
@@ -503,8 +510,11 @@
      id :id
      template :template
      :as params} :params
-    locale :locale
-    :as request}]
+     locale :locale
+     permissions :permissions
+     {{{role-id :role_id} :user} :admin} :session
+     :as request}]
+  (assert (has-perms model-slug permissions [:read] role-id))
   (let [model (model/pick :model {:where {:slug model-slug}
                                   :include {:fields {}}})
         id (or id "")
@@ -542,25 +552,30 @@
   (:data (walk/keywordize-keys (-> request :json-params))))
 
 (defn remove-link
-  [request]
+  [{permissions :permissions
+    {{{role-id :role_id} :user} :admin} :session
+    :as request}]
   (let [{field :field
          target-id :target-id
          model :model
          id :id} (json-payload request)
+        _ (assert (has-perms model permissions [:write] role-id)
+                  (str "can access " model " in remove-link"))
         model (@model/models (keyword model))
         association (get-in model [:fields (keyword field)])
         deleted (link/remove-link association id target-id)]
     (json-response deleted)))
 
 ;; updates multiple models.  needs some validation/idiot-proofing.
-;; appears to only create models, never update? JS
 (defn update-all
   [{permissions :permissions
     {{{role-id :role_id} :user} :admin} :session
     :as request}]
   (let [payload (json-payload request)
-        _ (doseq [{name :model} payload]
-            (assert (has-perms name permissions [:create] role-id)))
+        _ (doseq [{name :model id :id} payload]
+            (assert (has-perms name permissions [(if id :write :create)]
+                               role-id)
+                    (str "approprite access to " name " in update-all")))
         results (map (fn [{model :model fields :fields opts :opts}]
                        (model/create (keyword model) fields (or opts {})))
                      payload)
@@ -573,49 +588,77 @@
     (json-response results)))
 
 (defn reorder-all
-  [request]
+  [{permissions :permissions
+    {{{role-id :role_id} :user} :admin} :session
+    :as request}]
   (let [{association-slug :association
          id :id
          items :items
          model :model
          :as payload} (json-payload request)
+         editing-association (and association-slug id)
+         relevant-model (if editing-association
+                          (-> id (@model/models) :slug)
+                          model)
+         _ (assert (has-perms relevant-model permissions [:write] role-id)
+                   (str "write access to " model " in reorder-all"))
          items (doall (map (fn [{id :id position :position}]
                              {:id (Integer/parseInt id)
                               :position position})
                            items))
-        results (if (and association-slug id)
-                  (model/order model id  association-slug items)
+        results (if editing-association
+                  (model/order model id association-slug items)
                   (model/order model items))]
     (json-response results)))
 
 ; this is too drastic and should probably have some sanity checking.
 (defn delete-all
-  [request]
+  [{permissions :permissions
+    {{{role-id :role_id} :user} :admin} :session
+    :as request}]
   (let [payload (json-payload request)
-        results (map (fn [{id :id
-                           model :model}]
-                       model/destroy (keyword model) id)
-                     payload)]
+        _ (doseq [{id :id model :model} payload]
+            (let [relevant (if (= model "field")
+                             (-> (model/pick :field {:where {:id id}})
+                                 :model_id
+                                 (@model/models)
+                                 :slug)
+                             model)]
+              (assert (has-perms relevant permissions [:delete] role-id)
+                    (str "delete access to " relevant " in delete-all"))))
+        results (doall (map (fn [{id :id
+                                  model :model}]
+                              (model/destroy (keyword model) id))
+                            payload))]
     (query/clear-queries)
     (model/init)
     (json-response results)))
 
 (defn find-all
   [{{model :model
-     include :include} :params}]
+     include :include} :params
+     permissions :permissions
+     {{{role-id :role_id} :user} :admin} :session}]
   (let [model (or (keyword model) :model)]
+    (assert (has-perms model permissions [:read] role-id)
+            (str "read access to " model " in find-all"))
     (json-response (model/find-all model {:include include}))))
 
 (defn find-one
   [{{model :model
      include :include
      id :id
-     param-slug :slug} :params}]
+     param-slug :slug} :params
+     permissions :permissions
+     {{{role-id :role_id} :user} :admin} :session}]
   (let [slug (or (keyword model) :model)
         where (if param-slug
                 {:slug param-slug}
                 {:id id})
         include (model/process-include include)]
+    ;; todo: filter include for readability by user? JS
+    (assert (has-perms model permissions [:read] role-id)
+            (str "read access to " model " in find-one"))
     (json-response (model/pick slug {:where where :include include}))))
 
 (defn to-route
@@ -633,38 +676,44 @@
 
 (defn slugify-filename
   [s]
-  (->> s (re-seq #"[a-zA-z0-9.]+") (string/join "-")
-       #((string/replace % #"^[0-9]" "-")) ((memfn toLowerCase)))
-  #_(.toLowerCase
-     (clojure.string/replace
-      (clojure.string/join "-" (re-seq #"[a-zA-Z0-9.]+" s))
-      #"^[0-9]" "-")))
+  (->> s
+       (re-seq #"[a-zA-z0-9.]+")
+       (string/join "-")
+       (#(string/replace % #"^[0-9]" "-"))
+       ((memfn toLowerCase))))
 
 (defn upload-asset
-  [request]
-  (let [params (:params request)
-        upload (get params "upload")
-        slug (slugify-filename (:filename upload))
+  [{{{temp-file :tempfile file-name :filename content-type :content-type
+      size :size} "upload"} :params
+    permissions :permissions
+    {{{role-id :role_id} :user} :admin} :session}]
+  (assert (has-perms :asset permissions [:create] role-id)
+          "can create assets")
+  (let [slug (slugify-filename file-name)
         asset (model/create
                :asset
                {:filename slug
-                :content_type (:content-type upload)
-                :size (:size upload)})
+                :content_type content-type
+                :size size})
         dir (asset/asset-dir asset)
         location (asset/asset-location asset)
         path (asset/asset-path asset)]
     (if (:asset-bucket @config/app)
-      (asset/upload-to-s3 location (-> params :upload :tempfile))
-      (asset/persist-asset-on-disk dir path (:tempfile upload)))
+      (asset/upload-to-s3 location temp-file)
+      (asset/persist-asset-on-disk dir path temp-file))
     (json-response {:state (assoc asset :path path)})))
 
 (defonce rq (atom {}))
 
 (defonce pm (atom {}))
 
+(defn join
+  [& args]
+  (string/join \newline args))
+
 (defn api
   [{{action :action} :params :as request}]
-  (swap! pm assoc (keyword action) (select-keys request [:params]))
+  (swap! pm assoc (keyword action) (select-keys request [:params :json-params]))
   (let [request (inflate-request request)]
     (reset! rq request)
     (try (condp = action
@@ -681,7 +730,10 @@
            "remove-link" (remove-link request)
            "reindex" (reindex request)
            "bulk-editor-content" (bulk-editor-content request)
-           {:status 404 :body "Awwwwww snap!"})
+           {:status 404 :body (join "Awwwwww snap!" action
+                                    "not found in models/api controller")})
          (catch java.lang.AssertionError assertion
            {:status 403
-            :body "insufficient permissions to perform this action"}))))
+            :body (join (str action \:)
+                       "Insufficient permissions to perform this action."
+                       (.getMessage assertion))}))))
