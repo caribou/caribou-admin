@@ -90,11 +90,11 @@
       (user-required)
       (get-models)))
 
-(def config (app-config/default-config))
-
 (defn init
   []
-  (let [config (caribou/init config)]
+  (let [default (app-config/default-config)
+        config (config/config-from-environment default)
+        config (caribou/init config)]
     (caribou/with-caribou config
       (reload-pages)
       (def handler
