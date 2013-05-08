@@ -10,9 +10,11 @@
              [config :as config]
              [permissions :as permissions]]
             [caribou.admin.hooks :as hooks]
-            [caribou.admin.controllers.content.models :as models-controller]))
+            [caribou.admin.controllers.content
+             [models :as models-controller]
+             [assets :as assets]]))
 
-(def requests
+(def models-requests
   {; :editor-for {} ;; deprecated?
    :editor-content (fn [id]
                      {:params
@@ -125,10 +127,13 @@
                            :session {:admin {:user {:role_id id}}}})})
 
 (defn cleanup
-  [old-roles old-pages]
+  [old-users old-roles old-pages]
   (model/init)
-  (let [roles (map :id (model/gather :role))
+  (let [users (map :id (model/gather :account))
+        roles (map :id (model/gather :role))
         pages (map :id (model/gather :page))]
+    (doseq [id (remove old-users users)]
+      (model/destroy :role id))
     (doseq [id (remove old-roles roles)]
       (model/destroy :role id))
     (doseq [id (remove old-pages pages)]
@@ -144,10 +149,11 @@
   (hooks/init)
   (model/db
    (fn []
-     (let [existing-roles (set (map :id (model/gather :role)))
+     (let [existing-users (set (map :id (model/gather :account)))
+           existing-roles (set (map :id (model/gather :role)))
            existing-pages (set (map :id (model/gather :page)))]
        (f)
-       (cleanup existing-roles existing-pages)))))
+       (cleanup existing-users existing-roles existing-pages)))))
 
 (test/use-fixtures :once do-caribou)
 
@@ -155,14 +161,14 @@
   (is (= {0 {:a 0 :b 1} 1 {:a 1 :b 1}}
          (models-controller/itemize-by :a [{:a 0 :b 1} {:a 1 :b 1}]))))
 
-(defn make-user
+(defn make-role
   [mask]
   (let [{role-id :id} (model/impose :role {:where {:default_mask mask}})]
     role-id))
 
 (deftest inflate-request
-  (let [admin (make-user (permissions/mask :write :read :create :delete))
-        dummy (make-user 0)
+  (let [admin (make-role (permissions/mask :write :read :create :delete))
+        dummy (make-role 0)
         request (fn [role-id]
                   {:params {:locale ""}
                    :session {:admin {:user {:role_id role-id}}}})
@@ -171,9 +177,9 @@
     (is (= #{0} (set (map (comp :mask second) (:permissions inflated)))))))
 
 (deftest has-perms
-  (let [admin (make-user (permissions/mask :write :read :delete :create))
-        qa (make-user (permissions/mask :read))
-        dummy (make-user 0)
+  (let [admin (make-role (permissions/mask :write :read :delete :create))
+        qa (make-role (permissions/mask :read))
+        dummy (make-role 0)
         all-permissions models-controller/all-permissions
         has-perms models-controller/has-perms]
     (is (has-perms 1 (all-permissions admin)
@@ -213,14 +219,14 @@
   (is (= [:status :body] (keys response)))
   (is (= (:status response) 403)))
 
-(deftest access
-  (let [qa (make-user (permissions/mask :read))
-        blogger (make-user (permissions/mask :write :read))
-        editor (make-user (permissions/mask :write :read :create :delete))
-        nobody (make-user 0)
+(deftest models-controller-access
+  (let [qa (make-role (permissions/mask :read))
+        blogger (make-role (permissions/mask :write :read))
+        editor (make-role (permissions/mask :write :read :create :delete))
+        nobody (make-role 0)
         api models-controller/api]
     (testing "editor-content permissions\n"
-      (let [request (:editor-content requests)]
+      (let [request (:editor-content models-requests)]
         (testing "no perms restricts access to editor content"
           (test-inaccessible (api (request nobody))))
         (testing "read only restricts access to editor-content"
@@ -230,7 +236,7 @@
         (testing "full access to editor-content"
         (test-accessible (api (request editor))))))
     (testing "editor-associated-content permissions\n"
-      (let [request (:editor-associated-content requests)]
+      (let [request (:editor-associated-content models-requests)]
         (testing "no perms restricts access to editor-associated-content"
           (test-inaccessible (api (request nobody))))
         (testing "read only restricts access to editor-associated-content"
@@ -240,7 +246,7 @@
         (testing "full access to editor-associated-content"
           (test-accessible (api (request editor))))))
     (testing "update-all permissions\n"
-      (let [request (:update-all requests)]
+      (let [request (:update-all models-requests)]
         (testing "no perms restricts access to update-all"
           (test-inaccessible (api (request nobody))))
         (testing "read only perms restricts access to update-all"
@@ -250,7 +256,7 @@
         (testing "create perms allows access to update-all"
           (test-accessible (api (request editor))))))
     (testing "reorder-all permissions\n"
-      (let [request (:reorder-all requests)
+      (let [request (:reorder-all models-requests)
             test-accessible (fn [response]
                               (is (= #{:status :body :headers}
                                      (-> response keys set)))
@@ -270,7 +276,7 @@
         (testing "create access to reorder-all"
           (test-accessible (api (request editor))))))
     (testing "find-all permissions\n"
-      (let [request (:find-all requests)]
+      (let [request (:find-all models-requests)]
         (testing "no perms restricts access to find-all"
           (test-inaccessible (api (request nobody))))
         (testing "read only perms allows access to find-all"
@@ -280,7 +286,7 @@
         (testing "create access to find-all"
           (test-accessible (api (request editor))))))
     (testing "find-one permissions\n"
-      (let [request (:find-one requests)
+      (let [request (:find-one models-requests)
             test-accessible (fn [response]
                               (is (= [:status :body :headers] (keys response)))
                               (is (= (:status response) 200))
@@ -300,7 +306,7 @@
         (testing "create access to find-one"
           (test-accessible (api (request editor))))))
     (testing "delete-all permissions\n"
-      (let [request (:delete-all requests)
+      (let [request (:delete-all models-requests)
             test-accessible (fn [response]
                               (is (= 200 (:status response)))
                               (is (= "Delete Me"
@@ -322,7 +328,7 @@
           (let [field-id (-> @model/models :model :fields :delete_me :row :id)]
             (test-accessible (api (request editor field-id)))))))
     (testing "upload-asset permissions\n"
-      (let [request (:upload-asset requests)
+      (let [request (:upload-asset models-requests)
             test-accessible (fn [response]
                               (is (= (#{:status :headers :body}
                                       (-> response keys set))))
@@ -352,7 +358,7 @@
                       (let [isaac (model/create (:slug child) {})
                             abraham (model/create (:slug parent)
                                                   {:child [isaac]})]
-                        ((:remove-link requests)
+                        ((:remove-link models-requests)
                          "child" (:id isaac) (:slug parent) (:id abraham) id)))
             test-accessible (fn [response]
                               (is (= #{:status :headers :body}
@@ -380,7 +386,7 @@
           (test-accessible (api (request editor))))))
     (testing "bulk-editor-content permissions\n"
       (let [ids (map :id (model/gather :model))
-            request (partial (:bulk-editor-content requests) ids)
+            request (partial (:bulk-editor-content models-requests) ids)
             test-accessible (fn [response]
                               (is (= #{:status :headers :body}
                                      (-> response keys set)))
@@ -400,3 +406,29 @@
           (test-accessible (api (request blogger))))
         (testing "full access allows access to bulk-editor-content"
           (test-accessible (api (request editor))))))))
+
+(defn make-user
+  [mask]
+  (model/impose :account {:where {:role_id (make-role mask)}}))
+
+(deftest assets-controller-access
+  (let [qa (make-user (permissions/mask :read))
+        blogger (make-user (permissions/mask :write :read))
+        editor (make-user (permissions/mask :write :read :create :delete))
+        nobody (make-user 0)
+        request (fn [user]
+                  {:params {:search {:content-type "text/plain"}}
+                   :session {:admin {:user user}}})
+        test-accessible (fn [response]
+                          (is (subset? #{:session :status :body}
+                                       (set (keys response))))
+                          (is (= (:status response) 200))
+                          (is (string? (:body response))))]
+    (testing "no perms restricts access to matches"
+      (test-inaccessible (assets/matches (request nobody))))
+    (testing "read only perms allows access to matches"
+      (test-accessible (assets/matches (request qa))))
+    (testing "read write perms allows access to matches"
+      (test-accessible (assets/matches (request blogger))))
+    (testing "full perms allows access to matches"
+      (test-accessible (assets/matches (request editor))))))

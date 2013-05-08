@@ -1,6 +1,8 @@
 (ns caribou.admin.controllers.content.assets
   (:use caribou.app.controller)
-  (:require [caribou.model :as model]))
+  (:require [caribou
+             [model :as model]
+             [permissions :as permissions]]))
   
 (defn index
   [params]
@@ -31,7 +33,13 @@
   (render request))
 
 (defn matches
-  [request]
-  (let [search (-> request :params :search)
-        matches (model/gather :asset {:where search})]
-    (render (merge {:assets matches} request))))
+  [{{search :search} :params
+    {{user :user} :admin} :session
+    :as request}]
+  (if-not (permissions/has user (@model/models :asset) [:read])
+    {:status 403
+     :body "user does not have permission to view assets"}
+    (let [search (-> request :params :search)
+          matches (model/gather :asset {:where search})]
+      (render (merge {:assets matches} request)))))
+
