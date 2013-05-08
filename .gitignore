@@ -1,7 +1,9 @@
+/app
 /target
 /lib
 /classes
 /checkouts
+/caribou-index
 pom.xml
 *.jar
 *.class
