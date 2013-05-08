@@ -12,34 +12,34 @@
       var selector = opts.selector || ".sortable";
       var rowNumber = $(".sortable tr").length;
 
-    // Return a helper with preserved width of cells
-   if (rowNumber > 1) {
-      $(selector).sortable({
-        start: function(e, ui){
-          ui.placeholder.html('<td colspan="10">&nbsp;</td>');
-        },
-        placeholder: "ui-sortable-placeholder",
-        forcePlaceholderSize: true,
-        helper: function(e, ui) {
-          ui.children().each(function() {
-            $(this).width($(this).width());
-          });
-          return ui;
-        },
-        items: "tr:not(.ui-state-disabled)",
-        cancel: ".ui-state-disabled",
-        update: function(e, ui) {
-          $('.changeOrderMessage').show();
-          // TODO:kd - disable other controls?
-        },
-        stop: function(e, ui) {
-          ui.item.addClass('ui-sortable-highlight');
-          setTimeout(function() {
-            ui.item.removeClass('ui-sortable-highlight');
-          },500);
-        }
-      });
-    } else {
+      // Return a helper with preserved width of cells
+      if (rowNumber > 1) {
+        $(selector).sortable({
+          start: function(e, ui){
+            ui.placeholder.html('<td colspan="10">&nbsp;</td>');
+          },
+          placeholder: "ui-sortable-placeholder",
+          forcePlaceholderSize: true,
+          helper: function(e, ui) {
+            ui.children().each(function() {
+              $(this).width($(this).width());
+            });
+            return ui;
+          },
+          items: "tr:not(.ui-state-disabled)",
+          cancel: ".ui-state-disabled",
+          update: function(e, ui) {
+            $('.changeOrderMessage').show();
+            // TODO:kd - disable other controls?
+          },
+          stop: function(e, ui) {
+            ui.item.addClass('ui-sortable-highlight');
+            setTimeout(function() {
+              ui.item.removeClass('ui-sortable-highlight');
+            },500);
+          }
+        });
+      } else {
         $(selector).sortable({ disabled: true });
         $(selector).removeClass('sortable');
       }

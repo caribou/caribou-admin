@@ -115,7 +115,7 @@
             template: self.template(),
             controller: self.controller() || self.controllerOther(),
             action: self.action() || self.actionOther(),
-            parent_id: self.parentId(),
+            "parent-id": self.parentId(),
           }
         }];
         global.caribou.api.post( data );

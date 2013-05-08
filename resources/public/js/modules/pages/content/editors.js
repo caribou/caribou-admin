@@ -82,7 +82,7 @@
         function(f) {
           if ( f.type === "id" ) { return false }
           if ( f.slug === "type" ) { return false }
-          if ( f.type === "integer" && f.slug.match(/(^|_)id$/) ) { return false }
+          if ( f.type === "integer" && f.slug.match(/(^|_|-)id$/) ) { return false }
           if ( f.type === "part" ) { return true } // because the part_id is ok
           if ( f.type === "password" && data[f.slug] === null ) { return true }
           //if ( f.type === "link" || f.type === "collection" ) { return true }
@@ -610,7 +610,7 @@
       var self = this;
       if (self._reciprocalField) { return self._reciprocalField }
       var reciprocalField = _( self.model.fields ).find( function(field) {
-        return field.id === self.field["link-id"];
+        return field.id == self.field["link-id"];
       });
       return self._reciprocalField = reciprocalField;
     },
@@ -680,7 +680,7 @@
       var value = {};
       if ( self.field.type === "collection" ) {
         value[reciprocalField.slug] = self.instance;
-        value[reciprocalField.slug+"-id"] = self.instance.id;
+        value[reciprocalField.slug + "-id"] = self.instance.id;
       } else if ( self.field.type === "link" ) {
         value[reciprocalField.slug] = [ self.instance ];
       }
@@ -753,7 +753,7 @@
           _(value).each( function(v) {
             if ( self.field.type === "collection" ) {
               v[reciprocalField.slug] = self.instance;
-              v[reciprocalField.slug+"-id"] = self.instance.id;
+              v[reciprocalField.slug + "-id"] = self.instance.id;
             } else if ( self.field.type === "link" ) {
               v[reciprocalField.slug] = [ self.instance ];
             }
