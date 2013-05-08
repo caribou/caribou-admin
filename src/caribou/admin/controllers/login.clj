@@ -1,21 +1,22 @@
 (ns caribou.admin.controllers.login
   (:use caribou.app.controller
         [caribou.app.pages :only [route-for]])
-  (:require [caribou.model :as model]))
+  (:require [caribou.model :as model]
+            [caribou.auth :as auth]))
 
-(import org.mindrot.jbcrypt.BCrypt)
+;; (import org.mindrot.jbcrypt.BCrypt)
 
 (def nothing (constantly nil))
 
-(defn hash-pw
-  "hash a password to store it in the accounts db"
-  [pass]
-  (. BCrypt hashpw pass (. BCrypt gensalt 12)))
+;; (defn hash-pw
+;;   "hash a password to store it in the accounts db"
+;;   [pass]
+;;   (. BCrypt hashpw pass (. BCrypt gensalt 12)))
 
-(defn check-pw
-  "check a raw password against a hash from the accounts db"
-  [pass hash]
-  (. BCrypt checkpw pass hash))
+;; (defn check-pw
+;;   "check a raw password against a hash from the accounts db"
+;;   [pass hash]
+;;   (. BCrypt checkpw pass hash))
 
 (defn login
   [request]
@@ -31,7 +32,7 @@
         account (model/pick :account {:where {:email email}})
         match? (and (seq password)
                     (seq (:crypted-password account))
-                    (check-pw password (:crypted-password account)))
+                    (auth/check-password password (:crypted-password account)))
         target (if-not match?
                  (str (route-for :admin.login {:locale locale :site "admin"})
                       "&target=" target)
@@ -54,7 +55,7 @@
         password (-> request :params :password)
         first (-> request :params :first)
         last (-> request :params :last)
-        hash (hash-pw password)
+        hash (auth/hash-password password)
         account (model/create :account {:email email
                                         :first-name first
                                         :last-name last

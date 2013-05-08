@@ -1074,7 +1074,7 @@
         e.preventDefault();
         return self.submitActiveEditor( function( value ) {
           location.href = global.caribou.api.routeFor("to-route", {
-            page: "create-model-instance",
+            page: "admin.create-model-instance",
             slug: self.activeEditor().model.slug
           });
         });
@@ -1083,7 +1083,7 @@
         e.preventDefault();
         return self.submitActiveEditor( function( value ) {
           location.href = global.caribou.api.routeFor("to-route", {
-            page: "edit-model-instance",
+            page: "admin.edit-model-instance",
             slug: self.activeEditor().model.slug,
             id: value.id
           });
