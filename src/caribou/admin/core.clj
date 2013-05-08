@@ -30,6 +30,7 @@
             [caribou.app.controller :as controller]
             [caribou.app.helpers :as frontend-helpers]
             [caribou.app.config :as app-config]
+            [caribou.app.core :as frontend]
             [caribou.admin.helpers :as helpers]
             [caribou.admin.routes :as routes]))
 
@@ -92,9 +93,7 @@
 
 (defn init
   []
-  (let [default (app-config/default-config)
-        config (config/config-from-environment default)
-        config (caribou/init config)]
+  (let [config (frontend/environment-config)]
     (caribou/with-caribou config
       (reload-pages)
       (def handler
