@@ -1,5 +1,7 @@
 (ns caribou.permissions
-  (:require [caribou.model :as model]))
+  (:require [caribou
+             [logger :as log]
+             [model :as model]]))
 
 (def read-bit (bit-shift-left 1 3))
 (def write-bit (bit-shift-left 1 2))
@@ -15,10 +17,14 @@
 (defn rights
   [user model]
   (let [user (model/pick :account {:where {:id (:id user)}
-                                :include {:role {:gives-permissions {}}}})
-        permissions (-> user :role :gives-permissions)
-        permission (first (filter #(= (:model-id %) (:id model)) permissions))]
-    (:mask permission)))
+                                :include {:role {:permissions {}}}})
+        permissions (-> user :role :permissions)
+        permission (first (filter #(= (:model-id %) (:id model)) permissions))
+        mask (:mask permission)]
+    (log/debug (str "mask is " mask " in permissions/rights"))
+    (assert (seq permissions))
+    (assert (number? mask))
+    mask))
 
 (defn check-bit
   [check mask]

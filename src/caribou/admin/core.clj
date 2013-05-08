@@ -16,31 +16,27 @@
   (:require [clojure.string :as string]
             [swank.swank :as swank]
             [lichen.core :as lichen]
-            [caribou.config :as config]
-            [caribou.db :as db]
-            [caribou.model :as model]
-            [caribou.core :as caribou]
-            [caribou.app.i18n :as i18n]
-            [caribou.app.pages :as pages]
-            [caribou.app.template :as template]
-            [caribou.app.halo :as halo]
-            [caribou.app.middleware :as middleware]
-            [caribou.app.request :as request]
-            [caribou.app.handler :as handler]
-            [caribou.app.controller :as controller]
-            [caribou.app.helpers :as frontend-helpers]
-            [caribou.app.config :as app-config]
-            [caribou.admin.helpers :as helpers]
-            [caribou.admin.routes :as routes]))
+            [caribou
+             [config :as config]
+             [db :as db]
+             [model :as model]
+             [core :as caribou]]
+            [caribou.app
+             [i18n :as i18n]
+             [pages :as pages]
+             [template :as template]
+             [middleware :as middleware]
+             [request :as request]
+             [handler :as handler]
+             [controller :as controller]
+             [helpers :as app-helpers]
+             [config :as app-config]]
+            [caribou.admin
+             [helpers :as admin-helpers]
+             [routes :as routes]
+             [hooks :as hooks]]))
 
 (declare handler)
-
-;; todo: put session in a cookie
-
-(def base-helpers
-  {:route-for (fn [slug params & additional]
-                (pages/route-for slug (apply merge (cons params additional))))
-   :equals =})
 
 (defn reload-pages
   []
@@ -80,7 +76,7 @@
 (defn provide-helpers
   [handler]
   (fn [request]
-    (let [request (merge request base-helpers helpers/all frontend-helpers/helpers)]
+    (let [request (merge request app-helpers/helpers admin-helpers/all)]
       (handler request))))
 
 (defn admin-wrapper
