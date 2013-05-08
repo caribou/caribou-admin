@@ -326,9 +326,10 @@
           assoc-type :type
           target-id :target-id} :row
           :as association} (get-in model [:fields (keyword field)])
-        target (model/pick :model {:where {:id target-id}
-                                   :include {:fields {}}})
-        include {(keyword assoc-name) (build-includes target)}
+        target (and target-id
+                    (model/pick :model {:where {:id target-id}
+                                        :include {:fields {}}}))
+        include (and target {(keyword assoc-name) (build-includes target)})
         join-include (if (= assoc-type "link")
                        (assoc include (keyword (str assoc-name "-join")) {})
                        include)
@@ -602,8 +603,8 @@
     (when-not (->  #{"model" "field"} (set/intersection model-set) empty?)
       (query/clear-queries)
       (model/init))
-    (when-not (->  #{"page"} (set/intersection model-set) empty?)
-      (handler/reset-handler))
+    #_(when-not (->  #{"page"} (set/intersection model-set) empty?)
+        (handler/reset-handler))
     (json-response results)))
 
 (defn reorder-all

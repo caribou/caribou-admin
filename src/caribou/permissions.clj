@@ -21,7 +21,6 @@
         permissions (-> user :role :permissions)
         permission (first (filter #(= (:model-id %) (:id model)) permissions))
         mask (:mask permission)]
-    (log/debug (str "mask is " mask " in permissions/rights"))
     (assert (seq permissions))
     (assert (number? mask))
     mask))

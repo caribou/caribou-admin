@@ -42,8 +42,10 @@
                                  :session {:admin {:user {:role-id id}}}})
    :update-all (fn [id]
                  {:json-params {"data" [{"model" "page",
-                                         "fields" {"route",
-                                                   "invalid"},
+                                         "fields" {"name" "DELETE ME"
+                                                   "controller" ""
+                                                   "action" ""
+                                                   "route" "invalid"},
                                          "opts" {}}]}
                   :params {:site "admin",
                            :locale "global",
