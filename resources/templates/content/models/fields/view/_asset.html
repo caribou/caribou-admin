@@ -1,6 +1,6 @@
 {{#asset-is-image instance slug}}
     <!-- <img id="{{slug}}" class="thumbnail" style="max-width:150px" src="/{{asset-path instance slug}}">-->
-    <img id="{{slug}}" class="thumbnail" style="max-width:150px" src="{{resize instance.header-image {:width 150} }}">
+    <img id="{{slug}}" class="thumbnail" style="max-width:150px" src="{{resize-in instance slug {:width 150} }}">
 {{/asset-is-image instance slug}}
 {{^asset-is-image instance slug}}
     {{asset-path instance slug}}
