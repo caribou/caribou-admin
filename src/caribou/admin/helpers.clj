@@ -1,6 +1,7 @@
 (ns caribou.admin.helpers
   (:require [clj-time.format :as format]
             [caribou.app.pages :as pages]
+            [caribou.app.helpers :as app-helpers]
             [caribou.model :as model]))
 
 (import java.util.Date)
@@ -53,6 +54,11 @@
 (defn asset-path [m key]
   (if-let [asset (value-for-key m key)]
     (:path asset)))
+
+(defn resize-in
+  [instance slug opts]
+  (let [asset (get instance (keyword slug))]
+    (app-helpers/resize-image asset opts)))
 
 (defn part-values [field instance]
   (let [model (model/pick :model {:where {:id (:target-id field)} :include {:fields {}}})
@@ -165,6 +171,7 @@
    :yyyy-mm-dd-or-current yyyy-mm-dd-or-current
    :asset-is-image asset-is-image
    :asset-path asset-path
+   :resize-in resize-in
    :and (fn [a b] (and a b))
    :or (fn [a b] (or a b))
    :part-values part-values
