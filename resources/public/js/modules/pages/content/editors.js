@@ -171,15 +171,23 @@
     }
   });
 
-  function EnumFieldEditor( options ) { FieldEditor.call( this, options ) }
+  function EnumFieldEditor( options ) {
+    FieldEditor.call(this, options);
+    this.idField = options.idField;
+    this.value = {
+      id: options.idValue,
+      value: options.value
+    };
+    console.log("Set EnumFieldEditor's value:", this.value);
+  }
   $.extend( EnumFieldEditor.prototype, FieldEditor.prototype, {
     selector: function() { return "select[name=" + this.field.slug + "]" },
     syncToDOM: function() {
-      var id = this.value.id || ( this.value.value ? this.value.value.id : null );
+      var id = this.get("id") || this.get("value.id") || null;
       $( this.selector() ).val( id );
     },
     syncFromDOM: function() {
-      var previous = this.value.id;
+      var previous = this.get("id");
       this.value.id = $( this.selector() ).val()
       if ( previous && previous != this.value.id ) {
         this.value.value = null;
@@ -196,15 +204,7 @@
     },
   });
 
-  function PartFieldEditor( options ) {
-    FieldEditor.call( this, options );
-    this.idField = options.idField;
-    this.value = {
-      id: options.idValue,
-      value: options.value
-    };
-    console.log("Set PartFieldEditor's value:", this.value);
-  }
+  function PartFieldEditor( options ) { EnumFieldEditor.call( this, options ); }
   $.extend( PartFieldEditor.prototype, EnumFieldEditor.prototype, {
     attach: function() {
       var self = this;
