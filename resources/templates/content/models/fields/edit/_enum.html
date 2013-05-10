@@ -1,0 +1,6 @@
+<!-- enum editor -->
+<select name="{{slug}}">
+  {{#enum-values:part field instance}}
+  <option value="{{value}}" {{#selected}}selected{{/selected}}>{{name}}</option>
+  {{/enum-values:part field instance}}
+</select>

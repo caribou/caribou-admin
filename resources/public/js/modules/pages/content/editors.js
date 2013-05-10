@@ -171,16 +171,8 @@
     }
   });
 
-  function PartFieldEditor( options ) {
-    FieldEditor.call( this, options );
-    this.idField = options.idField;
-    this.value = {
-      id: options.idValue,
-      value: options.value
-    };
-    console.log("Set PartFieldEditor's value:", this.value);
-  }
-  $.extend( PartFieldEditor.prototype, FieldEditor.prototype, {
+  function EnumFieldEditor( options ) { FieldEditor.call( this, options ) }
+  $.extend( EnumFieldEditor.prototype, FieldEditor.prototype, {
     selector: function() { return "select[name=" + this.field.slug + "]" },
     syncToDOM: function() {
       var id = this.value.id || ( this.value.value ? this.value.value.id : null );
@@ -202,6 +194,18 @@
     syncsTo: function() {
       return [ this.field.slug, this.field.slug + "-id" ];
     },
+  });
+
+  function PartFieldEditor( options ) {
+    FieldEditor.call( this, options );
+    this.idField = options.idField;
+    this.value = {
+      id: options.idValue,
+      value: options.value
+    };
+    console.log("Set PartFieldEditor's value:", this.value);
+  }
+  $.extend( PartFieldEditor.prototype, EnumFieldEditor.prototype, {
     attach: function() {
       var self = this;
       var el = $( self.selector() );
@@ -399,6 +403,7 @@
     password:   PasswordFieldEditor,
     integer:    FieldEditor,
     decimal:    FieldEditor,
+    "enum":     EnumFieldEditor,
     timestamp:  DateFieldEditor,
     "boolean":  CheckBoxEditor,
     asset:      AssetFieldEditor,
@@ -479,7 +484,10 @@
           value = null;
         }
       }
-      if ( value && (child.field.type === "asset" || child.field.type === "part" || child.field.type === "address") ) {
+      if ( value && (child.field.type === "asset"
+                    || child.field.type === "part"
+                    || child.field.type === "address"
+                    || child.field.type === "enum") ) {
         self.set( child.field.slug, value.value );
         self.set( child.field.slug + "-id", value.id );
       } else {
