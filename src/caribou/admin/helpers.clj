@@ -60,6 +60,10 @@
   (let [asset (get instance (keyword slug))]
     (app-helpers/resize-image asset opts)))
 
+;; No, it's not good to hit the DB in a helper... but in this case,
+;; where it's only for an admin app, and we need to grab this
+;; info dynamically at render-time, it's much, much easier to
+;; do this than to try to do it all in the controller. IMHO.
 (defn part-values [field instance]
   (let [model (model/pick :model {:where {:id (:target-id field)} :include {:fields {}}})
         results (model/gather (:slug model))
@@ -72,6 +76,22 @@
         ]
     (conj (map #(hash-map :name (name-field %) :value (value-field %) :selected (is-selected? (value-field %))) results)
           {:name "" :value "" :selected (is-selected? "")})))
+
+(defn enum-values [field instance]
+  (let [model (get (model/models) (:model-id field))
+        values (get-in model [:fields (keyword (:slug field)) :row :enumerations])
+        _ (println values)
+        value-field (keyword (str (:slug field) "-id"))
+        default-value (:default-value field)
+        is-selected? (fn [v] (if (nil? instance)
+                               (= v default-value)
+                               (= v (get instance value-field))))
+        mapped (map #(hash-map :name (:entry %)
+                               :value (:id %)
+                               :selected (is-selected? (:id %))) values)]
+        (if (:required field)
+          mapped
+          (conj mapped {:name "" :value "" :selected (is-selected? nil)}))))
 
 (defn get-title [thing model]
   (let [best-field (first (:fields model))]
@@ -175,6 +195,7 @@
    :and (fn [a b] (and a b))
    :or (fn [a b] (or a b))
    :part-values part-values
+   :enum-values enum-values
    :get-title get-title
    :has-items has-items
    :item-count item-count
