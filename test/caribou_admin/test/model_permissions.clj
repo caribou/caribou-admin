@@ -1,6 +1,4 @@
 (ns caribou-admin.test.model-permissions
-  "lein caribou migrate resources/config/development.clj
-   lein caribou migrate resources/config/development.clj caribou.admin.migrations.roles-permissions"
   (:require [clojure
              [test :as test :refer [deftest testing is]]
              [set :as set :refer [intersection subset?]]
@@ -13,7 +11,9 @@
              [permissions :as permissions]
              [core :as caribou]]
             [caribou.app.config :as app-config]
-            [caribou.admin.hooks :as hooks]
+            [caribou.admin
+             [hooks :as hooks]
+             [rights :as rights]]
             [caribou.admin.controllers.content
              [models :as models-controller]
              [projects :as projects]
@@ -41,7 +41,8 @@
                                   :model "page"}
                                  :session {:admin {:user {:role-id id}}}})
    :update-all (fn [id]
-                 {:json-params {"data" [{"model" "page",
+                 {:test true ;because of a reset handler npe
+                  :json-params {"data" [{"model" "page",
                                          "fields" {"name" "DELETE ME"
                                                    "controller" ""
                                                    "action" ""
@@ -166,40 +167,44 @@
 
 (deftest itemize-by
   (is (= {0 {:a 0 :b 1} 1 {:a 1 :b 1}}
-         (models-controller/itemize-by :a [{:a 0 :b 1} {:a 1 :b 1}]))))
+         (rights/itemize-by :a [{:a 0 :b 1} {:a 1 :b 1}]))))
 
 (defn make-role
   [mask]
-  (let [{role-id :id} (model/impose :role {:where {:default-mask mask :name (str "in-" mask)}})]
+  (let [{role-id :id} (model/impose :role {:where {:default-mask mask :name (str "has-" mask)}})]
     role-id))
 
-(deftest inflate-request
-  (let [admin (make-role (permissions/mask :write :read :create :delete))
-        dummy (make-role 0)
-        request (fn [role-id]
-                  {:params {:locale ""}
-                   :session {:admin {:user {:role-id role-id}}}})
-        inflated (models-controller/inflate-request (request dummy))]
-    (is (= [:permissions :locale :params :session] (keys inflated)))
-    (is (= #{0} (set (map (comp :mask second) (:permissions inflated)))))))
+#_(deftest inflate-request
+    (let [admin (make-role (permissions/mask :write :read :create :delete))
+          dummy (make-role 0)
+          request (fn [role-id]
+                    {:params {:locale ""}
+                     :session {:admin {:user {:role-id role-id}}}})
+          inflated (models-controller/inflate-request (request dummy))]
+      (is (= [:permissions :locale :params :session] (keys inflated)))
+      (is (= #{0} (set (map (comp :mask second) (:permissions inflated)))))))
+
+(defn role-session
+  [id]
+  {:session {:admin {:user {:role-id id}}}})
 
 (deftest has-perms
   (let [admin (make-role (permissions/mask :write :read :delete :create))
         qa (make-role (permissions/mask :read))
         dummy (make-role 0)
-        all-permissions models-controller/all-permissions
-        has-perms models-controller/has-perms]
-    (is (has-perms 1 (all-permissions admin)
+        all-permissions rights/all-permissions
+        has-perms rights/has-perms]
+    (is (has-perms 1 (all-permissions (role-session admin))
                     [:read :write :delete :create] admin))
-    (is (not (has-perms 1 (all-permissions dummy)
+    (is (not (has-perms 1 (all-permissions (role-session dummy))
                         [:read :write :delete :create] dummy)))
     (is (not (has-perms 1 nil [:read :write :delete :create] nil)))
     (is (not (has-perms 1 (all-permissions nil)
                         [:read :write :delete :create] nil)))
-    (is (has-perms 1 (all-permissions qa) [:read] qa))
-    (is (not (has-perms 1 (all-permissions qa) [:write] qa)))
-    (is (not (has-perms 1 (all-permissions qa) [:create] qa)))
-    (is (not (has-perms 1 (all-permissions qa) [:delete] qa)))))
+    (is (has-perms 1 (all-permissions (role-session qa)) [:read] qa))
+    (is (not (has-perms 1 (all-permissions (role-session qa)) [:write] qa)))
+    (is (not (has-perms 1 (all-permissions (role-session qa)) [:create] qa)))
+    (is (not (has-perms 1 (all-permissions (role-session qa)) [:delete] qa)))))
 
 (defn is-model?
   [ob]
@@ -236,8 +241,8 @@
       (let [request (:editor-content models-requests)]
         (testing "no perms restricts access to editor content"
           (test-inaccessible (api (request nobody))))
-        (testing "read only restricts access to editor-content"
-          (test-inaccessible (api (request qa))))
+        (testing "read only access to editor-content"
+          (test-accessible (api (request qa))))
         (testing "read write access to editor-content"
           (test-accessible (api (request blogger))))
         (testing "full access to editor-content"
@@ -246,8 +251,8 @@
       (let [request (:editor-associated-content models-requests)]
         (testing "no perms restricts access to editor-associated-content"
           (test-inaccessible (api (request nobody))))
-        (testing "read only restricts access to editor-associated-content"
-          (test-inaccessible (api (request qa))))
+        (testing "read only access to editor-associated-content"
+          (test-accessible (api (request qa))))
         (testing "read write access to editor-associated-content"
           (test-accessible (api (request blogger))))
         (testing "full access to editor-associated-content"
@@ -326,35 +331,32 @@
           (test-inaccessible (api (request qa (rand-int 10000000)))))
         (testing "read-write access restricts access to delete-all"
           (test-inaccessible (api (request blogger (rand-int 10000000)))))
-        (testing "full access restricts access to delete-all with invalid id"
-          (test-inaccessible (api (request editor
-                                           (+ 10000000
-                                              (rand-int 10000000))))))
         (testing "full access allows access to delete-all with valid id"
           (model/update :model 1 {:fields [{:name "Delete Me" :type "text"}]})
           (let [field-id (model/models :model :fields :delete-me :row :id)]
             (test-accessible (api (request editor field-id)))))))
-    (testing "upload-asset permissions\n"
-      (let [request (:upload-asset models-requests)
-            test-accessible (fn [response]
-                              (is (= (#{:status :headers :body}
-                                      (-> response keys set))))
-                              (is (= 200 (:status response)))
-                              (is (= (get (:headers response) "Content-Type")
-                                     "application/json"))
-                              (is (= "hello.txt"
-                                     (-> response :body
-                                         (cheshire/parse-string true)
-                                         :state :filename))))]
-        (testing "no perms restricts access to upload-asset"
-          (test-inaccessible (api (request nobody))))
-        (testing "read only perms restricts access to upload-asset"
-          (test-inaccessible (api (request qa))))
-        (testing "read-write access restricts access to upload-asset"
-          (test-inaccessible (api (request blogger))))
-        (testing "full access allows access to upload-asset"
-          (test-accessible (api (request editor))))))
+    #_(testing "upload-asset permissions\n"
+        (let [request (:upload-asset models-requests)
+              test-accessible (fn [response]
+                                (is (= (#{:status :headers :body}
+                                        (-> response keys set))))
+                                (is (= 200 (:status response)))
+                                (is (= (get (:headers response) "Content-Type")
+                                       "application/json"))
+                                (is (= "hello.txt"
+                                       (-> response :body
+                                           (cheshire/parse-string true)
+                                           :state :filename))))]
+          (testing "no perms restricts access to upload-asset"
+            (test-inaccessible (api (request nobody))))
+          (testing "read only perms restricts access to upload-asset"
+            (test-inaccessible (api (request qa))))
+          (testing "read-write access restricts access to upload-asset"
+            (test-inaccessible (api (request blogger))))
+          (testing "full access allows access to upload-asset"
+            (test-accessible (api (request editor))))))
     (testing "remove-link permissions\n"
+      (model/init)
       (let [child (model/create :model {:name "Child Delete Me"})
             parent (model/create :model {:name "Parent Delete Me"
                                          :fields [{:name "Child"

@@ -10,6 +10,7 @@
   {:read read-bit
    :write write-bit
    :create create-bit
+   :destroy delete-bit
    :delete delete-bit})
 
 (defn rights

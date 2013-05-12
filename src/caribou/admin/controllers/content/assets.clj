@@ -1,6 +1,7 @@
 (ns caribou.admin.controllers.content.assets
   (:use caribou.app.controller)
-  (:require [caribou.model :as model]))
+(:require [caribou.model :as model]
+          [caribou.admin.rights :as rights]))
   
 (defn index
   [params]
@@ -32,6 +33,8 @@
 
 (defn matches
   [request]
-  (let [search (-> request :params :search)
-        matches (model/gather :asset {:where search})]
-    (render (merge {:assets matches} request))))
+  (rights/with-permissions "assets/matches" request
+    (fn [permissions request]
+      (let [search (-> request :params :search)
+            matches (rights/gather permissions :asset {:where search})]
+        (render (merge {:assets matches} request))))))
