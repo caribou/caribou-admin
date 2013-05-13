@@ -237,8 +237,9 @@
             specific? (= 1 (count ids))
             include   (into {}
                             (map #(vector (keyword (:slug %)) {})
-                                 (filter (fn [a] (some #(= % (:type a)) ["collection", "part", "link"])) (model/db #(:fields model)))))
-        instance  (if specific?
+                                 (filter (fn [a] (some #(= % (:type a)) ["collection", "part", "link"]))
+                                         model-fields)))
+            instance  (if specific?
                     (rights/pick permissions (keyword (:slug model)) {:where {:id (-> request :params :id)} :include include})
                     {})]
     (render (merge {:model model
