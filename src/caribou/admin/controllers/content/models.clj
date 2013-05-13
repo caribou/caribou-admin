@@ -220,9 +220,16 @@
               (clojure.string/split (-> request :params :id) #"[,:]")
               [])
         specific? (= 1 (count ids))
-        include   (into {}
-                    (map #(vector (keyword (:slug %)) {})
-                      (filter (fn [a] (some #(= % (:type a)) ["collection", "part", "link"])) (model/db #(:fields model)))))
+        include   (into
+                   {}
+                   (map
+                    #(vector (keyword (:slug %)) {})
+                    (filter
+                     (fn [a]
+                       (some
+                        #(= % (:type a))
+                        ["collection", "part", "link"]))
+                     model-fields)))
         instance  (if specific?
                     (model/pick (keyword (:slug model)) {:where {:id (-> request :params :id)} :include include})
                     {})]
