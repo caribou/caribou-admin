@@ -21,17 +21,40 @@
   $.extend( DateFieldEditor.prototype, editors.FieldEditor.prototype, {
     attach: function() {
       editors.FieldEditor.prototype.attach.call(this);
-      $( this.selector() ).parent().datepicker({
-        format: "yyyy-mm-dd",
-        viewMode: "years"
-      });
+
+      if ( this.field.format === "date" || this.field.format === "datetime" ) {
+        $( this.parent.selector + " input[name=" + this.field.slug + "-date]" ).parent().show().datepicker({
+          format: "yyyy-mm-dd",
+          viewMode: "years"
+        });
+      }
+      if ( this.field.format === "time" || this.field.format === "datetime" ) {
+        $( this.parent.selector + " input[name=" + this.field.slug + "-time]" ).show().timePicker({
+          //show24Hours: false,
+          step: 15
+        });
+      }
+    },
+    syncToDOM: function() {
+    },
+    syncFromDOM: function() {
+      var dateString = "1970-01-01";
+      if ( this.field.format.match(/date/) ) {
+        dateString = $( this.parent.selector + " input[name=" + this.field.slug + "-date]" ).val();
+      }
+      var timeString = "00:00";
+      if ( this.field.format.match(/time/) ) {
+        timeString = $( this.parent.selector + " input[name=" + this.field.slug + "-time]" ).val();
+      }
+      console.log("date string is %s and time string is %s", dateString, timeString);
+      this.value = dateString + "T" + timeString + ":00Z";
     }
   });
 
   function PasswordFieldEditor( options ) { editors.FieldEditor.call( this, options ) }
   $.extend( PasswordFieldEditor.prototype, editors.FieldEditor.prototype, {
     syncToDOM: function() {},
-    syncFromDOM:   function() {
+    syncFromDOM: function() {
       if ( $(this.selector()).data().dirty) {
         this.value = $( this.selector() ).val();
       } else {

@@ -195,6 +195,7 @@
                      :description description
                      :type field-type})
         new-model (model/update :model (:id model) {:fields [ new-field ] })]
+      (model/invoke-models)
       (controller/redirect (pages/route-for :admin.edit-model
                              (dissoc (:params request) :field-name
                                                        :field-type
