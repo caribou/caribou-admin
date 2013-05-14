@@ -429,8 +429,7 @@
       (model/init))
     (when-not (empty? (set/intersection #{"page"} (set (map :model payload))))
       (println "RESETTING HANDLER!!")
-      (handler/reset-handler)
-      )
+      (handler/reset-handler))
     (json-response results)))
 
 (defn reorder-all
