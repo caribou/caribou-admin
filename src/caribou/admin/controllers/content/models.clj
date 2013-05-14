@@ -81,7 +81,6 @@
                                )
                           fields)
         filled (map #(assoc % :friendly-path (field-path %)) stripped)]
-    (println (map :friendly-path filled))
     filled))
 
 (def all-helpers
@@ -137,7 +136,6 @@
   (let [m (model/models (keyword slug))
         ;; TODO - remove this hardcoded limit and make it work with pagination
         raw (index/search m kw (assoc opts :limit 200))
-        _ (println raw)
         includes (build-includes m)
         inflated (map (fn [r] (rights/pick permissions slug {:where {:id (:id r)} :include includes})) raw)]
     inflated))
@@ -154,7 +152,6 @@
             order-default (or (:order params) "position")
             order {:slug (first (clojure.string/split order-default #" "))
                    :direction (if (.endsWith order-default "desc") "desc" "asc")}
-            _ (println order-default order)
             kw-results (when-not (empty? (:keyword params))
                          (keyword-results (:keyword params) (:slug params) {:locale (-> locale :code)} permissions))
             spec {:limit (:limit params)
@@ -254,7 +251,6 @@
       (let [model-slug (-> request :params :slug)
             edited-instance (dissoc (:params request) :slug)
             updated-instance (rights/create permissions model-slug edited-instance)]
-        (println updated-instance)
         (controller/redirect (pages/route-for :admin.edit-model-instance {:id (:id updated-instance) :slug model-slug})
                              {:cookies {"success-message" {:value (str "You successfully updated this " model-slug)}}})))))
 
@@ -308,7 +304,6 @@
         join-include (if (= (-> association :row :type) "link")
                        (assoc include (keyword (str assoc-name "-join")) {})
                        include)
-        _ (println join-include)
         where (if (empty? (:id params)) {} {:id (:id params)})
         locale-code (if (or (nil? (:locale-code params)) (empty? (:locale-code params)))
                       nil
@@ -455,9 +450,7 @@
           (model/init))
         (when-not (or (:test request) ; because of a reset handler npe
                       (empty? (set/intersection #{"page"} (set (map :model payload)))))
-          (println "RESETTING HANDLER!!")
-          (handler/reset-handler)
-          )
+          (handler/reset-handler))
         (json-response results)))))
 
 (defn reorder-all
@@ -472,8 +465,6 @@
             items (doall (map (fn [x] {:id (Integer/parseInt (:id x)) :position (:position x)}) (:items payload)))
             results (if (and association-slug id)
                       (do
-                        (println (str "reordering " (:association payload) " of " (:model payload) " " (:id payload)
-                                      " to " items))
                         (model/order (:model payload)
                                      (:id payload)
                                      (:association payload)
@@ -518,7 +509,7 @@
 (defn reindex
   [request]
   (let [model (model/models (keyword (-> request :params :slug)))]
-    (println (index/update-all model))
+    (index/update-all model)
     (controller/redirect (pages/route-for :admin.models (dissoc (:params request) :action :slug)))))
 
 (defn slugify-filename

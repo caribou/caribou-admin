@@ -1,8 +1,8 @@
 <!-- part editor -->
 <select name="{{slug}}">
-  {{#part-values:part field instance}}
+  {{#part-values:part field instance permissions}}
   <option value="{{value}}" {{#selected}}selected{{/selected}}>{{name}}</option>
-  {{/part-values:part field instance}}
+  {{/part-values:part field instance session.admin.permissions}}
 </select>
 
 <a id="add-{{model.slug}}-{{slug}}" data-slug="{{slug}}" href="#" class="pull-right btn btn-primary"><span class="instrument-icon-circle-plus"></span> Add new</a>

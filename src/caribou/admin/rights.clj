@@ -47,8 +47,6 @@
                    0)]
       (=  required-mask (bit-and required-mask mask)))))
 
-;; (defn flatten-nest [m] (apply set/union (set (keys m)) (map flatten-nest (filter map? (vals m)))))
-
 (defn check-includes
   [model opts [role-id permissions] access]
   (let [model (model/models (keyword model))
@@ -81,12 +79,18 @@
           "sufficient permissions to destroy the requested item")
   (model/destroy slug id))
 
+(defn impose
+  [permissions slug & [opts]]
+  (check-includes slug opts permissions [:read :write :create])
+  (model/impose slug opts))
+
 (defn join [& args] (string/join \newline args))
 
 (defn with-permissions
   [action request f]
   (let [permissions (all-permissions request)]
-    (try (f permissions request)
+    (try (f permissions (assoc-in request [:permissions]
+                                  permissions))
          (catch java.lang.AssertionError assertion
            {:status 403
             :body (join (str action \:)

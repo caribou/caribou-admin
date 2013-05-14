@@ -7,7 +7,7 @@
              [auth :as auth]]
             [caribou.admin.rights :as rights]))
 
-(defn nothing (constantly nil))
+(def nothing (constantly nil))
 
 (defn index
   [request]
@@ -60,7 +60,6 @@
                     :admin
                     {:user (dissoc account :created-at :updated-at)
                      :locale locale}))]
-    (println "USER in submit-login is " (-> session :admin :user))
     (redirect target {:session session :login login})))
 
 (defn new

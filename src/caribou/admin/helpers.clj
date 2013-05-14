@@ -2,7 +2,8 @@
   (:require [clj-time.format :as format]
             [caribou.app.pages :as pages]
             [caribou.app.helpers :as app-helpers]
-            [caribou.model :as model]))
+            [caribou.model :as model]
+            [caribou.admin.rights :as rights]))
 
 (import java.util.Date)
 (import java.text.SimpleDateFormat)
@@ -64,23 +65,27 @@
 ;; where it's only for an admin app, and we need to grab this
 ;; info dynamically at render-time, it's much, much easier to
 ;; do this than to try to do it all in the controller. IMHO.
-(defn part-values [field instance]
-  (let [model (model/pick :model {:where {:id (:target-id field)} :include {:fields {}}})
-        results (model/gather (:slug model))
+(defn part-values
+  [field instance permissions]
+  (let [model (rights/pick permissions :model {:where {:id (:target-id field)}
+                                  :include {:fields {}}})
+        results (rights/gather permissions (:slug model))
         name-field (keyword (:slug (first (:fields model))))
         value-field :id
         default-value (:default-value field)
         is-selected? (fn [v] (if (nil? instance)
                                (= v default-value)
-                               (= v (get instance value-field))))
-        ]
-    (conj (map #(hash-map :name (name-field %) :value (value-field %) :selected (is-selected? (value-field %))) results)
+                               (= v (get instance value-field))))]
+    (conj (map (fn [datum]
+                 {:name (name-field datum)
+                  :value (value-field datum)
+                  :selected (is-selected? (value-field datum))})
+               results)
           {:name "" :value "" :selected (is-selected? "")})))
 
 (defn enum-values [field instance]
   (let [model (get (model/models) (:model-id field))
         values (get-in model [:fields (keyword (:slug field)) :row :enumerations])
-        _ (println values)
         value-field (keyword (str (:slug field) "-id"))
         default-value (:default-value field)
         is-selected? (fn [v] (if (nil? instance)
@@ -123,7 +128,6 @@
         position (or (get instance (keyword position-field-name))
                      (get-in instance [:join (keyword position-field-name)])
                      0)]
-    (println position-field-name " is " (str position))
     position))
 
 (defn join-model?

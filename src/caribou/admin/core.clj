@@ -18,8 +18,8 @@
             [lichen.core :as lichen]
             [caribou
              [config :as config]
-             [db :as db]
              [model :as model]
+             [db :as db]
              [core :as caribou]]
             [caribou.app
              [core :as app]
@@ -33,6 +33,7 @@
              [helpers :as app-helpers]
              [config :as app-config]]
             [caribou.admin
+             [rights :as rights]
              [helpers :as admin-helpers]
              [routes :as routes]
              [hooks :as hooks]]))
@@ -64,10 +65,12 @@
 (defn get-models
   [handler]
   (fn [request]
-    (let [models (model/gather
-                  :model
-                  {:where {:locked false :join-model false}
-                   :order {:id :asc}})]
+    (let [order-fields (fn [model]
+                         (update-in model
+                                    [:fields]
+                                    #(sort-by :position (vals %))))
+          models (map order-fields (sort-by :id
+                                            (model/local-models)))]
       (handler (assoc request :user-models models)))))
 
 (defn days-in-seconds
