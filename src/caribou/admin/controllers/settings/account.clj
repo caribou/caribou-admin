@@ -2,7 +2,8 @@
   (:use caribou.app.controller
         [cheshire.core :only (generate-string)]
         [caribou.app.pages :only [route-for]])
-  (:require [caribou
+  (:require [slingshot.slingshot :refer [throw+]]
+            [caribou
              [model :as model]
              [auth :as auth]]
             [caribou.admin.rights :as rights]))
@@ -63,12 +64,12 @@
     (redirect target {:session session :login login})))
 
 (defn new
-  [request]
-  (rights/with-permissions "settings/account/new" request
-    (fn [[role-id perms :as permissions] request]
-      (assert (rights/has-perms :account perms [:create] role-id))
-      (let [roles (rights/gather permissions :role)]
-        (render (assoc request :roles roles))))))
+  [{[role-id perms :as permissions] :permissions :as request}]
+  (when-not (rights/has-perms :account perms [:create] role-id)
+    (throw+ {:type :insufficient-permissions
+             :message "lacks permissions to make a new account"}))
+  (let [roles (rights/gather permissions :role)]
+    (render (assoc request :roles roles))))
 
 (defn create
   [{{email :email
@@ -76,19 +77,18 @@
      first :first
      last :last
      role-id :role} :params
+     permissions :permissions
      :as request}]
-  (rights/with-permissions "settings/account/create" request
-    (fn [permissions request]
-      (let [account (rights/create permissions
-                                   :account {:email email
-                                             :first-name first
-                                             :last-name last
-                                             :role-id role-id
-                                             :password password})
-            target (route-for :admin.new-account
-                              (select-keys request [:site :locale]))
-            user (dissoc account :created-at :updated-at)]
-        (redirect target {:session (:session request) :user user})))))
+  (let [account (rights/create permissions
+                               :account {:email email
+                                         :first-name first
+                                         :last-name last
+                                         :role-id role-id
+                                         :password password})
+        target (route-for :admin.new-account
+                          (select-keys request [:site :locale]))
+        user (dissoc account :created-at :updated-at)]
+    (redirect target {:session (:session request) :user user})))
 
 ;; allow target
 (defn logout

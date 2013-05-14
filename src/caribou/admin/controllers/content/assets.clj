@@ -32,9 +32,7 @@
   (render request))
 
 (defn matches
-  [request]
-  (rights/with-permissions "assets/matches" request
-    (fn [permissions request]
-      (let [search (-> request :params :search)
-            matches (rights/gather permissions :asset {:where search})]
-        (render (merge {:assets matches} request))))))
+  [{permissions :permissions :as request}]
+  (let [search (-> request :params :search)
+        matches (rights/gather permissions :asset {:where search})]
+    (render (merge {:assets matches} request))))

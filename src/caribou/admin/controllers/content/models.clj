@@ -8,6 +8,7 @@
             [clojure.set :as set]
             [clj-time.core :as timecore]
             [clojure.pprint :as pprint]
+            [slingshot.slingshot :as slingshot :refer [throw+]]
             [clojure.walk :as walk]
             [caribou.util :as util]
             [caribou.permissions :as permissions]
@@ -41,13 +42,13 @@
 
 (defn order-info
   ([model]
-    {:model model :association "position" :position-slug "position"})
+     {:model model :association "position" :position-slug "position"})
   ([model association umbrella]
-    {:model model
-     :umbrella (:id umbrella)
-     :association (or (get-in association [:slug])
-                      (get-in association [:row :slug]))
-     :position-slug (str (:slug association) "-position")}))
+     {:model model
+      :umbrella (:id umbrella)
+      :association (or (get-in association [:slug])
+                       (get-in association [:row :slug]))
+      :position-slug (str (:slug association) "-position")}))
 
 (defn field-path
   [field]
@@ -64,9 +65,12 @@
                  (map :row (vals (:fields model)))
                  (:fields model))]
     (into {}
-      (map #(vector (keyword (:slug %)) {})
-        (filter (fn [a] (and (some #(= (:type a) %) ["collection", "part", "link"])
-                             (not (:join-model (model/models (:target-id a)))))) fields)))))
+          (map #(vector (keyword (:slug %)) {})
+               (filter (fn [a]
+                         (and (some #(= (:type a) %)
+                                    ["collection", "part", "link"])
+                              (not (:join-model (model/models (:target-id a))))))
+                       fields)))))
 
 (defn human-friendly-fields
   "returns the set of fields that a human can read - is a bit hacky"
@@ -88,13 +92,15 @@
 
 (defn render
   ([content-type params]
-    (controller/render content-type params))
+     (controller/render content-type params))
   ([params]
-    (controller/render (merge all-helpers params))))
+     (controller/render (merge all-helpers params))))
 
 (defn json-response
   [data]
-  {:status 200 :body (generate-string data) :headers {"Content-Type" "application/json"}})
+  {:status 200
+   :body (generate-string data)
+   :headers {"Content-Type" "application/json"}})
 
 (defn part
   [f col]
@@ -104,30 +110,24 @@
     [yes no]))
 
 (defn index
-  [request]
-  (rights/with-permissions "index" request
-    (fn [permissions request]
-      (let [models (rights/gather permissions :model {:order {:id :asc}})
-            [locked unlocked] (part :locked models)]
-        (render (merge request {:locked locked :unlocked unlocked}))))))
+  [{permissions :permissions :as request}]
+  (let [models (rights/gather permissions :model {:order {:id :asc}})
+        [locked unlocked] (part :locked models)]
+    (render (merge request {:locked locked :unlocked unlocked}))))
 
 (defn new
-  [request]
-  (rights/with-permissions "new" request
-    (fn [permissions request]
-      (let [new-model-name (-> request :params :model-name)
-            new-model (rights/create permissions :model {:name (string/capitalize new-model-name)})]
-        (controller/redirect (pages/route-for :admin.edit-model (dissoc (merge {:slug (:slug new-model)} (:params request)) :model-name)))))))
+  [{permissions :permissions :as request}]
+  (let [new-model-name (-> request :params :model-name)
+        new-model (rights/create permissions :model {:name (string/capitalize new-model-name)})]
+    (controller/redirect (pages/route-for :admin.edit-model (dissoc (merge {:slug (:slug new-model)} (:params request)) :model-name)))))
 
 (defn view
-  [request]
-  (rights/with-permissions "view" request
-    (fn [permissions request]
-      (let [model (rights/pick permissions :model {:where {:slug (-> request :params :slug)}
-                                            :include {:fields {}}
-                                            :order {:position :asc}})
-            models (seq (sort-by :name (-> (deref (config/draw :models)) vals set)))]
-        (render (merge request {:model model :models models}))))))
+  [{permissions :permissions :as request}]
+  (let [model (rights/pick permissions :model {:where {:slug (-> request :params :slug)}
+                                               :include {:fields {}}
+                                               :order {:position :asc}})
+        models (seq (sort-by :name (-> (deref (config/draw :models)) vals set)))]
+    (render (merge request {:model model :models models}))))
 
 (defn keyword-results
   "This inefficiently inflates search results into
@@ -141,26 +141,24 @@
     inflated))
 
 (defn view-results
-  [request]
-  (rights/with-permissions "view-results" request
-    (fn [permissions request]
-      (let [request (inflate-request request)
-            locale (:locale request)
-            params (-> request :params)
-            model (rights/pick permissions :model {:where {:slug (:slug params)} :include {:fields {}}})
-            includes (build-includes model)
-            order-default (or (:order params) "position")
-            order {:slug (first (clojure.string/split order-default #" "))
-                   :direction (if (.endsWith order-default "desc") "desc" "asc")}
-            kw-results (when-not (empty? (:keyword params))
-                         (keyword-results (:keyword params) (:slug params) {:locale (-> locale :code)} permissions))
-            spec {:limit (:limit params)
-                  :offset (:offset params)
-                  :include includes
-                  :locale (-> locale :code)
-                  :order (model/process-order order-default)}
-            _ (log/debug spec)
-            results (or kw-results (rights/gather permissions (-> request :params :slug) spec))
+  [{permissions :permissions :as request}]
+  (let [request (inflate-request request)
+        locale (:locale request)
+        params (-> request :params)
+        model (rights/pick permissions :model {:where {:slug (:slug params)} :include {:fields {}}})
+        includes (build-includes model)
+        order-default (or (:order params) "position")
+        order {:slug (first (clojure.string/split order-default #" "))
+               :direction (if (.endsWith order-default "desc") "desc" "asc")}
+        kw-results (when-not (empty? (:keyword params))
+                     (keyword-results (:keyword params) (:slug params) {:locale (-> locale :code)} permissions))
+        spec {:limit (:limit params)
+              :offset (:offset params)
+              :include includes
+              :locale (-> locale :code)
+              :order (model/process-order order-default)}
+        _ (log/debug spec)
+        results (or kw-results (rights/gather permissions (-> request :params :slug) spec))
         friendly-fields (human-friendly-fields model)
         order-info (order-info model)]
     (if-let [locale (-> request :locale)]
@@ -174,85 +172,79 @@
                             :order-info order-info
                             :pager (helpers/add-pagination results {:page-size (or (:size params) 20)
                                                                     :page-slug (-> request :page :slug)
-                                                                    :current-page (:page params)})}))))))
+                                                                    :current-page (:page params)})}))))
 
 (defn new-field
-  [request]
-  (rights/with-permissions "new-field" request
-    (fn [permissions request]
-      (let [params (-> request :params)
-            field-name (:field-name params)
-            field-type (:field-type params)
-            searchable (= (:searchable params) "yes")
-            reciprocal-name (:reciprocal-name params)
-            target-id (:target-id params)
-            link-id (:link-id params)
-            fmt (:format params)
-            description (:description params)
-            ;; extra bits here, validate, etc
-            model (rights/pick permissions :model {:where {:slug (-> request :params :slug)} :include {:fields {}}})
-            new-field (if (not (nil? target-id))
-                        {:name (string/capitalize field-name)
-                         :type field-type
-                         :searchable searchable
-                         :description description
-                         :target-id target-id
-                         :reciprocal-name (string/capitalize reciprocal-name)}
-                        {:name (string/capitalize field-name)
-                         :searchable searchable
-                         :link-id link-id
-                         :format fmt
-                         :description description
-                         :type field-type})
-            new-model (rights/update permissions :model (:id model) {:fields [ new-field ] })]
-        (controller/redirect (pages/route-for :admin.edit-model
-                                              (dissoc (:params request)
-                                                      :field-name
-                                                      :field-type
-                                                      :searchable
-                                                      :target-id
-                                                      :format
-                                                      :description
-                                                      :reciprocal-name)))))))
+  [{permissions :permissions :as request}]
+  (let [params (-> request :params)
+        field-name (:field-name params)
+        field-type (:field-type params)
+        searchable (= (:searchable params) "yes")
+        reciprocal-name (:reciprocal-name params)
+        target-id (:target-id params)
+        link-id (:link-id params)
+        fmt (:format params)
+        description (:description params)
+        ;; extra bits here, validate, etc
+        model (rights/pick permissions :model {:where {:slug (-> request :params :slug)} :include {:fields {}}})
+        new-field (if (not (nil? target-id))
+                    {:name (string/capitalize field-name)
+                     :type field-type
+                     :searchable searchable
+                     :description description
+                     :target-id target-id
+                     :reciprocal-name (string/capitalize reciprocal-name)}
+                    {:name (string/capitalize field-name)
+                     :searchable searchable
+                     :link-id link-id
+                     :format fmt
+                     :description description
+                     :type field-type})
+        new-model (rights/update permissions :model (:id model) {:fields [ new-field ] })]
+    (controller/redirect (pages/route-for :admin.edit-model
+                                          (dissoc (:params request)
+                                                  :field-name
+                                                  :field-type
+                                                  :searchable
+                                                  :target-id
+                                                  :format
+                                                  :description
+                                                  :reciprocal-name)))))
 
 (defn edit
   [request]
   (view request))
 
 (defn edit-instance
-  [request]
-  (rights/with-permissions "edit-instance" request
-    (fn [permissions request]
-      (let [request (inflate-request request)
-            model-slug (-> request :params :slug)
-            model (rights/pick permissions :model {:where {:slug model-slug} :include {:fields {}}})
-            model-fields (:fields model)
-            id-param (-> request :params :id)
-            ids (if-not (nil? id-param)
-                  (clojure.string/split (-> request :params :id) #"[,:]")
-                  [])
-            specific? (= 1 (count ids))
-            include   (into {}
-                            (map #(vector (keyword (:slug %)) {})
-                                 (filter (fn [a] (some #(= % (:type a)) ["collection", "part", "link"]))
-                                         model-fields)))
-            instance  (if specific?
+  [{permissions :permissions :as request}]
+  (let [request (inflate-request request)
+        model-slug (-> request :params :slug)
+        model (rights/pick permissions :model {:where {:slug model-slug} :include {:fields {}}})
+        model-fields (:fields model)
+        id-param (-> request :params :id)
+        ids (if-not (nil? id-param)
+              (clojure.string/split (-> request :params :id) #"[,:]")
+              [])
+        specific? (= 1 (count ids))
+        include   (into {}
+                        (map #(vector (keyword (:slug %)) {})
+                             (filter (fn [a] (some #(= % (:type a)) ["collection", "part", "link"]))
+                                     model-fields)))
+        instance  (if specific?
                     (rights/pick permissions (keyword (:slug model)) {:where {:id (-> request :params :id)} :include include})
                     {})]
     (render (merge {:model model
                     :bulk? (and (> (count ids) 0) (not specific?))
                     :instance-ids (generate-string ids)
-                    :instance instance} request))))))
+                    :instance instance} request))))
 
 (defn edit-instance-post
-  [request]
-  (rights/with-permissions "edit-instance-post" request
-    (fn [permissions request]
-      (let [model-slug (-> request :params :slug)
-            edited-instance (dissoc (:params request) :slug)
-            updated-instance (rights/create permissions model-slug edited-instance)]
-        (controller/redirect (pages/route-for :admin.edit-model-instance {:id (:id updated-instance) :slug model-slug})
-                             {:cookies {"success-message" {:value (str "You successfully updated this " model-slug)}}})))))
+  [{permissions :permissions :as request}]
+  (let [model-slug (-> request :params :slug)
+        edited-instance (dissoc (:params request) :slug)
+        updated-instance (rights/create permissions model-slug edited-instance)]
+    (controller/redirect (pages/route-for :admin.edit-model-instance {:id (:id updated-instance) :slug model-slug})
+                         {:cookies {"success-message" {:value (str "You successfully updated this " model-slug)}}})))
 
 (defn create-instance
   [request]
@@ -260,38 +252,34 @@
 
 (defn editor-for
   ;; given a model slug, generates an editor for that model
-  [request]
-  (rights/with-permissions "editor-for" request
-    (fn [permissions request]
-      (let [request (inflate-request request)
-            model (rights/pick permissions :model {:where {:slug (-> request :params :model)} :include {:fields {}}})
-            template (template/find-template (util/pathify ["content" "models" "instance" "_edit.html"]))]
-        (render (merge request {:template template :model model}))))))
+  [{permissions :permissions :as request}]
+  (let [request (inflate-request request)
+        model (rights/pick permissions :model {:where {:slug (-> request :params :model)} :include {:fields {}}})
+        template (template/find-template (util/pathify ["content" "models" "instance" "_edit.html"]))]
+    (render (merge request {:template template :model model}))))
 
 
 (defn find-content
-  [params]
-  (rights/with-permissions "find-content" params
-    (fn [permissions params]
-      (let [model (rights/pick permissions :model {:where {:slug (:model params)} :include {:fields {}}})
-            include (build-includes model)
-            where (if (:where params)
-                    (model/process-where (:where params))
-                    (if (empty? (:id params)) {} {:id (:id params)}))
-            order (if (:order params) (model/process-order (:order params)) {})
-            locale-code (if (or (nil? (:locale-code params)) (empty? (:locale-code params)))
-                          nil
-                          (:locale-code params))
-            raw-content (rights/gather permissions (:slug model) {:where where
-                                                           :include include
-                                                           :limit (:limit params)
-                                                           :offset (:offset params)
-                                                           :results :clean
-                                                           :locale locale-code})
-            content (map #(if (= (:slug model) "asset")
-                            (assoc % :path (asset/asset-path %))
-                            %) raw-content)]
-        content))))
+  [params permissions]
+  (let [model (rights/pick permissions :model {:where {:slug (:model params)} :include {:fields {}}})
+        include (build-includes model)
+        where (if (:where params)
+                (model/process-where (:where params))
+                (if (empty? (:id params)) {} {:id (:id params)}))
+        order (if (:order params) (model/process-order (:order params)) {})
+        locale-code (if (or (nil? (:locale-code params)) (empty? (:locale-code params)))
+                      nil
+                      (:locale-code params))
+        raw-content (rights/gather permissions (:slug model) {:where where
+                                                              :include include
+                                                              :limit (:limit params)
+                                                              :offset (:offset params)
+                                                              :results :clean
+                                                              :locale locale-code})
+        content (map #(if (= (:slug model) "asset")
+                        (assoc % :path (asset/asset-path %))
+                        %) raw-content)]
+    content))
 
 (defn find-associated-content
   [permissions params]
@@ -309,11 +297,11 @@
                       nil
                       (:locale-code params))
         raw-content (rights/gather permissions (:slug model) {:where where
-                                                       :include join-include
-                                                       :limit (:limit params)
-                                                       :offset (:offset params)
-                                                       :results :clean
-                                                       :locale (:locale-code params)})
+                                                              :include join-include
+                                                              :limit (:limit params)
+                                                              :offset (:offset params)
+                                                              :results :clean
+                                                              :locale (:locale-code params)})
         instance (first raw-content)
         associated-content ((keyword assoc-name) instance)
         content (map #(if (= (:slug model) "asset")
@@ -324,183 +312,169 @@
 (defn editor-associated-content
   "Associated content has to be handled slightly differently because
    different information is required to fetch it."
-  [request]
-  (rights/with-permissions "editor-associated-content" request
-    (fn [permissions request]
-      (let [params (-> request :params)
-            model (model/models (keyword (:model params)))
-            association (get-in model [:fields (keyword (:field params))])
-            target (rights/pick permissions :model {:where {:id (-> association :row :target-id)} :include {:fields {}}})
-            template (template/find-template
-                      (util/pathify ["content" "models" "instance" (or (:template params) "_collection.html")]))
-            stuff (find-associated-content permissions params)
-            content (:content stuff)
-            instance (:instance stuff)
-            pager (helpers/add-pagination content
-                                          {:page-size (or (:size params) 20)  ;; TODO:kd - put default page size into config
-                                           :current-page (:page params)})
-            friendly-fields (human-friendly-fields target)
-            order-info (order-info model association instance)
-            global? (or (and (contains? params :locale-code) (empty? (:locale-code params))) (nil? (:locale params)))
-            response {:template (:body (render (merge request {:template template
-                                                               :model target
-                                                               :fields friendly-fields
-                                                               :order-info order-info
-                                                               :pager pager
-                                                               :results (:results pager)
-                                                               :global? global?
-                                                               })))
-                      :model target
-                      :state (:results pager)}]
-        (json-response response)))))
+  [{permissions :permissions :as request}]
+  (let [params (-> request :params)
+        model (model/models (keyword (:model params)))
+        association (get-in model [:fields (keyword (:field params))])
+        target (rights/pick permissions :model {:where {:id (-> association :row :target-id)} :include {:fields {}}})
+        template (template/find-template
+                  (util/pathify ["content" "models" "instance" (or (:template params) "_collection.html")]))
+        stuff (find-associated-content permissions params)
+        content (:content stuff)
+        instance (:instance stuff)
+        pager (helpers/add-pagination content
+                                      {:page-size (or (:size params) 20)  ;; TODO:kd - put default page size into config
+                                       :current-page (:page params)})
+        friendly-fields (human-friendly-fields target)
+        order-info (order-info model association instance)
+        global? (or (and (contains? params :locale-code) (empty? (:locale-code params))) (nil? (:locale params)))
+        response {:template (:body (render (merge request {:template template
+                                                           :model target
+                                                           :fields friendly-fields
+                                                           :order-info order-info
+                                                           :pager pager
+                                                           :results (:results pager)
+                                                           :global? global?
+                                                           })))
+                  :model target
+                  :state (:results pager)}]
+    (json-response response)))
 
 (defn editor-content
-  [request]
-  (rights/with-permissions "editor-content" request
-    (fn [permissions request]
-      (let [request (inflate-request request)
-            params (-> request :params)
-            model (rights/pick permissions :model {:where {:slug (:model params)} :include {:fields {}}})
-            template (template/find-template
-                      (util/pathify ["content" "models" "instance" (or (:template params) "_edit.html")]))
-            results (find-content params)
-            instance (if-not (empty? (:id params))
-                       (first results))
-            friendly-fields (human-friendly-fields model)
-            global? (or (nil? (:locale request)) (and (contains? params :locale-code) (empty? (:locale-code params))))
-            pager (helpers/add-pagination results
-                                          {:page-size (or (:size params) 20)  ; TODO:kd - put default page size into config
-                                           :current-page (:page params)})]
-        (json-response
-         {:template (:body (render (merge request {:template template
-                                                   :model model
-                                                   :instance instance
-                                                   :fields friendly-fields
-                                                   :order-info (order-info model)
-                                                   :pager pager
-                                                   :results (:results pager)
-                                                   :global? global?
-                                                   })))
-          :model model
-          :state (if-not (contains? params :id) (:results pager) instance)})))))
+  [{permissions :permissions :as request}]
+  (let [request (inflate-request request)
+        params (-> request :params)
+        model (rights/pick permissions :model {:where {:slug (:model params)} :include {:fields {}}})
+        template (template/find-template
+                  (util/pathify ["content" "models" "instance" (or (:template params) "_edit.html")]))
+        results (find-content params permissions)
+        instance (if-not (empty? (:id params))
+                   (first results))
+        friendly-fields (human-friendly-fields model)
+        global? (or (nil? (:locale request)) (and (contains? params :locale-code) (empty? (:locale-code params))))
+        pager (helpers/add-pagination results
+                                      {:page-size (or (:size params) 20)  ; TODO:kd - put default page size into config
+                                       :current-page (:page params)})]
+    (json-response
+     {:template (:body (render (merge request {:template template
+                                               :model model
+                                               :instance instance
+                                               :fields friendly-fields
+                                               :order-info (order-info model)
+                                               :pager pager
+                                               :results (:results pager)
+                                               :global? global?
+                                               })))
+      :model model
+      :state (if-not (contains? params :id) (:results pager) instance)})))
 
 (defn bulk-editor-content
-  [request]
-  (rights/with-permissions "bulk-editor-content" request
-    (fn [permissions request]
-      (let [request (inflate-request request)
-            params (:params request)
-            model-slug (:model params)
-            model (rights/pick permissions :model {:where {:slug model-slug} :include {:fields {}}})
-            id-list (clojure.string/split (:id params) #"[,:]")
-            inflated (remove nil? (map #(rights/pick permissions model-slug {:where {:id %}}) id-list))
-            all-equal (fn [a b]
-                        (if (map? a)
-                          (if (= (:id a) (:id b)) a nil)
-                          (if (= a b) a nil)))
-            merged (apply (partial merge-with all-equal) inflated)
-            global? (or (nil? (:locale request)) (and (contains? params :locale-code) (empty? (:locale-code params))))
-            template (template/find-template
-                      (util/pathify ["content" "models" "instance" (or (:template params) "_edit.html")]))]
-        (json-response
-         {:template (:body (render (merge request {:template template
-                                                   :model model
-                                                   :instance merged
-                                                   :bulk? true
-                                                   :ids (:id params)
-                                                   :fields (human-friendly-fields model)
-                                                   :order-info (order-info model)
-                                                   :global? global?
-                                                   })))
-          :model model
-          :state merged
-          :inflated inflated})))))
+  [{permissions :permissions :as request}]
+  (let [request (inflate-request request)
+        params (:params request)
+        model-slug (:model params)
+        model (rights/pick permissions :model {:where {:slug model-slug} :include {:fields {}}})
+        id-list (clojure.string/split (:id params) #"[,:]")
+        inflated (remove nil? (map #(rights/pick permissions model-slug {:where {:id %}}) id-list))
+        all-equal (fn [a b]
+                    (if (map? a)
+                      (if (= (:id a) (:id b)) a nil)
+                      (if (= a b) a nil)))
+        merged (apply (partial merge-with all-equal) inflated)
+        global? (or (nil? (:locale request)) (and (contains? params :locale-code) (empty? (:locale-code params))))
+        template (template/find-template
+                  (util/pathify ["content" "models" "instance" (or (:template params) "_edit.html")]))]
+    (json-response
+     {:template (:body (render (merge request {:template template
+                                               :model model
+                                               :instance merged
+                                               :bulk? true
+                                               :ids (:id params)
+                                               :fields (human-friendly-fields model)
+                                               :order-info (order-info model)
+                                               :global? global?
+                                               })))
+      :model model
+      :state merged
+      :inflated inflated})))
 
 (defn json-payload
   [request]
   (:data (walk/keywordize-keys (-> request :json-params))))
 
 (defn remove-link
-  [request]
-  (rights/with-permissions "remove-link" request
-    (fn [[role-id permissions] request]
-      (let [payload (json-payload request)
-            model (model/models (keyword (:model payload)))
-            _ (assert (rights/has-perms model permissions [:write] role-id)
-                      "need write perms in order to remove link")
-            association (get-in model [:fields (keyword (:field payload))])
-            deleted (link/remove-link association (:id payload) (:target-id payload))]
-        (json-response deleted)))))
+  [{[role-id permissions] :permissions :as request}]
+  (let [payload (json-payload request)
+        model (model/models (keyword (:model payload)))
+        _ (when-not (rights/has-perms model permissions [:write] role-id)
+            (throw+ {:type :insufficient-permissions
+                     :message "need write perms in order to remove link"}))
+        association (get-in model [:fields (keyword (:field payload))])
+        deleted (link/remove-link association (:id payload) (:target-id payload))]
+    (json-response deleted)))
 
-; updates multiple models.  needs some validation/idiot-proofing.
 (defn update-all
-  [request]
-  (rights/with-permissions "update-all" request
-    (fn [permissions request]
-      (let [payload (json-payload request)
-            updated (map (fn [x]
-                           (vector
-                            (:model x)
-                            (rights/create permissions (keyword (:model x)) (:fields x) (or (:opts x) {}))))
-                         payload)
-            results (doall (map second updated))]
-        (when-not (empty? (set/intersection #{"model" "field"} (set (map :model payload))))
-          (log/debug "Reloading model, clearing query cache!")
-          (query/clear-queries)
-          (model/init))
-        (when-not (or (:test request) ; because of a reset handler npe
-                      (empty? (set/intersection #{"page"} (set (map :model payload)))))
-          (handler/reset-handler))
-        (json-response results)))))
+  ;; updates multiple models.  needs some validation/idiot-proofing.
+  [{permissions :permissions :as request}]
+  (let [payload (json-payload request)
+        updated (map (fn [x]
+                       (vector
+                        (:model x)
+                        (rights/create permissions (keyword (:model x)) (:fields x) (or (:opts x) {}))))
+                     payload)
+        results (doall (map second updated))]
+    (when-not (empty? (set/intersection #{"model" "field"} (set (map :model payload))))
+      (log/debug "Reloading model, clearing query cache!")
+      (query/clear-queries)
+      (model/init))
+    (when-not (or (:test request) ; because of a reset handler npe
+                  (empty? (set/intersection #{"page"} (set (map :model payload)))))
+      (handler/reset-handler))
+    (json-response results)))
 
 (defn reorder-all
-  [request]
-  (rights/with-permissions "reorder-all" request
-    (fn [[role-id permissions] request]
-      (let [payload (json-payload request)
-            _ (assert (rights/has-perms (:model payload) permissions [:write] role-id)
-                      "need write permissions in order to reorder")
-            association-slug (:association payload)
-            id (:id payload)
-            items (doall (map (fn [x] {:id (Integer/parseInt (:id x)) :position (:position x)}) (:items payload)))
-            results (if (and association-slug id)
-                      (do
-                        (model/order (:model payload)
-                                     (:id payload)
-                                     (:association payload)
-                                     items))
-                      (model/order (:model payload) items))]
-        (json-response results)))))
+  [{[role-id permissions] :permissions :as request}]
+  (let [payload (json-payload request)
+        _ (when-not (rights/has-perms (:model payload) permissions
+                                      [:write] role-id)
+            (throw+ {:type :insufficient-permissions
+                     :message "need write permissions in order to reorder"}))
+        association-slug (:association payload)
+        id (:id payload)
+        items (doall (map (fn [x] {:id (Integer/parseInt (:id x)) :position (:position x)}) (:items payload)))
+        results (if (and association-slug id)
+                  (do
+                    (model/order (:model payload)
+                                 (:id payload)
+                                 (:association payload)
+                                 items))
+                  (model/order (:model payload) items))]
+    (json-response results)))
 
-; this is too drastic and should probably have some sanity checking.
+;; this is too drastic and should probably have some sanity checking.
 (defn delete-all
-  [request]
-  (rights/with-permissions "delete-all" request
-    (fn [permissions request]
-      (let [payload (json-payload request)
-            results (map #(rights/destroy permissions (keyword (:model %)) (:id %)) payload)]
-        (query/clear-queries)
-        (model/init)
-        (json-response results)))))
+  [{permissions :permissions :as request}]
+  (let [payload (json-payload request)
+        results (doall (map #(rights/destroy permissions
+                              (keyword (:model %)) (:id %)) payload))]
+    (query/clear-queries)
+    (model/init)
+    (doall (json-response results))))
 
 (defn find-all
-  [request]
-  (rights/with-permissions "find-all" request
-    (fn [permissions request]
-      (let [model (or (keyword (-> request :params :model)) :model)
-            include (-> request :params :include)]
-        (rights/check-includes model {:include include} permissions [:read])
-        (json-response (model/find-all model {:include include}))))))
+  [{permissions :permissions :as request}]
+  (let [model (or (keyword (-> request :params :model)) :model)
+        include (-> request :params :include)]
+    (rights/check-includes model {:include include} permissions [:read])
+    (json-response (model/find-all model {:include include}))))
 
 (defn find-one
-  [request]
-  (rights/with-permissions "find-one" request
-    (fn [permissions request]
-      (let [params (-> request :params)
-            slug (or (keyword (:model params)) :model)
-            include (:include params)
-            where (if (:slug params) {:slug (:slug params)} {:id (:id params)})]
-        (json-response (rights/pick permissions slug {:where where :include (model/process-include include)}))))))
+  [{permissions :permissions :as request}]
+  (let [params (-> request :params)
+        slug (or (keyword (:model params)) :model)
+        include (:include params)
+        where (if (:slug params) {:slug (:slug params)} {:id (:id params)})]
+    (json-response (rights/pick permissions slug {:where where :include (model/process-include include)}))))
 
 (defn to-route
   [request]
@@ -546,7 +520,7 @@
                                 :when (some #(and (= 1 (count %))
                                                   (.startsWith (name (first %)) "req")) (:arglists (meta (second kv))))] (first kv)))
         actioned (map #(assoc %
-                  :actions (-> % :namespace symbol arg-check sort)) mapped)
+                         :actions (-> % :namespace symbol arg-check sort)) mapped)
         ]
     (json-response actioned)))
 

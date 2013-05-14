@@ -11,8 +11,6 @@
   (controller/render (merge (all-helpers) params)))
 
 (defn index
-  [request]
-  (rights/with-permissions "pages/index" request
-    (fn [permissions request]
-      (let [model (rights/pick permissions :model {:where {:name "Page"}})]
-        (render (assoc request :model model))))))
+  [{permissions :permissions :as request}]
+  (let [model (rights/pick permissions :model {:where {:name "Page"}})]
+    (render (assoc request :model model))))

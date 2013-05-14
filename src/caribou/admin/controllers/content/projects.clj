@@ -19,12 +19,10 @@
     (result (first (keys result)))))
 
 (defn index
-  [request]
-  (rights/with-permissions "content/projects/index" request
-    (fn [permissions params]
-      (let [limit 10
-            offset (* limit (dec (Integer/parseInt (or (-> params :params :page) "1"))))
-            projects (rights/gather permissions :project {:order {:id :asc} :where {:site-id 1} :limit limit :offset offset})
+  [{permissions :permissions :as params}]
+  (let [limit 10
+        offset (* limit (dec (Integer/parseInt (or (-> params :params :page) "1"))))
+        projects (rights/gather permissions :project {:order {:id :asc} :where {:site-id 1} :limit limit :offset offset})
         project-count (count-instances :project "1 = 1")
         published-project-count (count-instances :project "status = 1")
         draft-project-count (count-instances :project "status = 0")]
@@ -35,7 +33,7 @@
               :published-project-count published-project-count
               :draft-project-count draft-project-count
               :active active
-              :next-page next-page))))))
+              :next-page next-page))))
 
 (defn view
   [params]

@@ -114,12 +114,15 @@
           :template "settings/model/index.html", :method "", :action "index",
           :name "Model List", :controller "settings.model"}
          {:path "role-editor/:title", :children [], :slug "admin.edit-roles",
-          :position nil, :template "settings/role_editor.html", :method "",
+          :position nil, :template "settings/role/edit.html", :method "",
           :action "edit-roles", :name "Edit Roles", :controller "roles"}
          {:path "submit-edit-roles/:title", :children [],
           :slug "admin.submit-edit-roles", :position nil, :template "",
           :method "POST", :action "submit-edit-roles", :name "Submit Edit Roles",
           :controller "roles"}
+         {:path "create-role", :name "Create Role" :slug "admin.create-role"
+          :position nil :template "settings/role/create.html", :method "",
+          :action "create-role" :controller "roles" :children []}
          {:path "accounts", :slug "admin.accounts", :position nil,
           :template "settings/account/index.html", :method "",
           :action "index", :name "Accounts", :controller "settings.account"

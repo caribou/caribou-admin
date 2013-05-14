@@ -236,7 +236,7 @@
         blogger (make-role (permissions/mask :write :read))
         editor (make-role (permissions/mask :write :read :create :delete))
         nobody (make-role 0)
-        api models-controller/api]
+        api (rights/with-permissions models-controller/api)]
     (testing "editor-content permissions\n"
       (let [request (:editor-content models-requests)]
         (testing "no perms restricts access to editor content"
@@ -319,22 +319,34 @@
           (test-accessible (api (request editor))))))
     (testing "delete-all permissions\n"
       (let [request (:delete-all models-requests)
-            test-accessible (fn [response]
-                              (is (= 200 (:status response)))
-                              (is (= "Delete Me"
-                                     (-> response :body
-                                         (cheshire/parse-string true)
-                                         first :name))))]
+            access (fn [predicate]
+                     (fn [get-response]
+                       (or (model/pick :field {:where {:model_id 1
+                                                       :name "Delete Me"}})
+                           (model/update :model 1
+                                         {:fields [{:name "Delete Me"
+                                                    :type "text"}]}))
+                       (let [field-id (model/models :model :fields
+                                                    :delete-me :row :id)]
+                         (predicate (doall (get-response field-id))))))
+            test-accessible (access
+                             (fn [response]
+                               (is (= 200 (:status response)))
+                               (is (= "Delete Me"
+                                      (-> response :body
+                                          (cheshire/parse-string true)
+                                          first :name)))))
+            test-inaccessible (access
+                               (fn [response]
+                                 (test-inaccessible response)))]
         (testing "no perms restricts access to delete-all"
-          (test-inaccessible (api (request nobody (rand-int 10000000)))))
+          (test-inaccessible #(api (request nobody %))))
         (testing "read only perms restricts access to delete-all"
-          (test-inaccessible (api (request qa (rand-int 10000000)))))
+          (test-inaccessible #(api (request qa %))))
         (testing "read-write access restricts access to delete-all"
-          (test-inaccessible (api (request blogger (rand-int 10000000)))))
+          (test-inaccessible #(api (request blogger %))))
         (testing "full access allows access to delete-all with valid id"
-          (model/update :model 1 {:fields [{:name "Delete Me" :type "text"}]})
-          (let [field-id (model/models :model :fields :delete-me :row :id)]
-            (test-accessible (api (request editor field-id)))))))
+          (test-accessible #(api (request editor %))))))
     #_(testing "upload-asset permissions\n"
         (let [request (:upload-asset models-requests)
               test-accessible (fn [response]
@@ -432,15 +444,16 @@
                             (is (subset? #{:session :status :body}
                                          (set (keys response))))
                             (is (= (:status response) 200))
-                            (is (string? (:body response))))]
+                            (is (string? (:body response))))
+          matches (rights/with-permissions assets/matches)]
       (testing "no perms restricts access to matches"
-        (test-inaccessible (assets/matches (request nobody))))
+        (test-inaccessible (matches (request nobody))))
       (testing "read only perms allows access to matches"
-        (test-accessible (assets/matches (request qa))))
+        (test-accessible (matches (request qa))))
       (testing "read write perms allows access to matches"
-        (test-accessible (assets/matches (request blogger))))
+        (test-accessible (matches (request blogger))))
       (testing "full perms allows access to matches"
-        (test-accessible (assets/matches (request editor)))))
+        (test-accessible (matches (request editor)))))
     #_(let [request (fn [user]
                     {:session {:admin {:user user}}})
           test-accessible (fn [response]

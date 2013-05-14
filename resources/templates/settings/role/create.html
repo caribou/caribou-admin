@@ -1,0 +1,86 @@
+{{%content}}
+
+<div class="column" id="add-edit-view-column">
+  <div class="titlebar">
+    <span class="add-edit-view-title">Create Role Admin</span>
+    <span class="add-edit-subtitle subtle"></span>
+  </div>
+  <form action="{{route-for :admin.submit-create-roles params}}"
+	class="create-role"
+	id="create-role-1"
+	method="post">
+    <div class="scrollable-view">
+      <div class="fieldset">
+	<label class="text-field-label content-label-container" for="role-name">
+	  <span class="content-label">Name</span>
+	</label>
+	<div class="field">
+	  <input class="text" id="role-name" label="name" name="role[name]"
+		 size="30" type="text"
+	</div>
+      </div>
+      <div class="fieldset">
+	<label class="select-label content-label-container"
+	       for="role-default-level">
+	  <span class="content-label">Default Level</span>
+	</label>
+	<div class="field">
+	  <select class="select" id="role-default-level" label="default-level"
+		  name="role[default-level]">
+	    <option value="1">Read</option>
+	    <option value="3">Edit</option>
+	    <option value="7">Create</option>
+	    <option value="15">Delete</option>
+	    <option value="15">All</option>
+	  </select>
+	</div>
+      </div>
+      <hr>
+      <div class="fieldset">
+	<div class="field">
+	  <table cellspacing="0" class="association-table content-permission"
+		 id="global-content-permissions-table">
+	    <thead></thead>
+	    <colgroup><col><col><col><col><col><col></colgroup>
+	    {{#models}}
+	    <tbody>
+	      <tr>
+		<th>{{slug}}</th>
+		<th style="width: 12%">
+		  <input id="read-{{slug}}"
+			 name="read-{{slug}}"
+			 type="checkbox"> Read
+		</th>
+		<th style="width: 12%">
+		  <input id="write-{{slug}}"
+			 name="write-{{slug}}"
+			 type="checkbox"> Edit
+		</th>
+		<th style="width: 12%">
+		  <input id="create-{{slug}}"
+			 name="create-{{slug}}"
+			 type="checkbox"> Create
+		</th>
+		<th style="width: 12%">
+		  <input id="delete-{{slug}}"
+			 name="delete-{{slug}}"
+			 type="checkbox"> Delete
+		</th>
+		<th style="width: 12%">
+		  <input id="all-{{slug}}"
+			 name="all-{{slug}}"
+			 type="checkbox"> All
+		</th>
+	      </tr>
+	    </tbody>
+	    {{/models}}
+	  </table>
+	</div>
+      </div>
+      <hr>
+    </div>
+    <input type="submit">Submit New Role</input>
+  </form>
+</div>
+
+{{/content}}

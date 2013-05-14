@@ -3,6 +3,7 @@
              [model :as model]
              [association :as assoc]
              [permissions :as permissions]]
+            [slingshot.slingshot :refer [try+ throw+]]
             [clojure
              [set :as set]
              [string :as string]]))
@@ -52,9 +53,10 @@
   (let [model (model/models (keyword model))
         include (set (assoc/span-models-involved model opts []))
         all-included (set/union #{(:id model)} include)]
-    (assert (every? #(has-perms (model/models %) permissions access role-id)
-                    all-included))
-    "sufficient permissions to collect the requested data"))
+    (when-not (every? #(has-perms (model/models %) permissions access role-id)
+                      all-included)
+      (throw+ {:type :insufficient-permissions
+               :message "insufficient perms to collect the requested data"}))))
 
 (defn gather
   [permissions slug & [opts]]
@@ -75,8 +77,9 @@
 
 (defn destroy
   [[role-id permissions] slug id]
-  (assert (has-perms slug permissions [:destroy] role-id)
-          "sufficient permissions to destroy the requested item")
+  (when-not (has-perms slug permissions [:destroy] role-id)
+    (throw+ {:type :insufficient-permissions
+             :message "insufficient perms to destroy the requested item"}))
   (model/destroy slug id))
 
 (defn impose
@@ -87,12 +90,14 @@
 (defn join [& args] (string/join \newline args))
 
 (defn with-permissions
-  [action request f]
-  (let [permissions (all-permissions request)]
-    (try (f permissions (assoc-in request [:permissions]
-                                  permissions))
-         (catch java.lang.AssertionError assertion
-           {:status 403
-            :body (join (str action \:)
-                        "insufficient permissions to perform this action."
-                        (.getMessage assertion))}))))
+  [handler]
+  (fn [request]
+    (let [permissions (all-permissions request)
+          request (assoc request :permissions permissions)]
+      (try+ (handler request)
+           (catch [:type :insufficient-permissions] {:keys [message]}
+             {:status 403
+              :body (str "insufficient permissions to perform this action.\n"
+                         message \newline
+                         (string/join \newline
+                                      (:stack-trace &throw-context)))})))))

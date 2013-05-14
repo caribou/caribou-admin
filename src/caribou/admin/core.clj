@@ -86,6 +86,7 @@
 (defn admin-wrapper
   [handler]
   (-> handler
+      (rights/with-permissions)
       (provide-helpers)
       (user-required)
       (get-models)))
