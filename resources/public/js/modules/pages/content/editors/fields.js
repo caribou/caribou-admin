@@ -38,7 +38,7 @@
     syncToDOM: function() {
     },
     syncFromDOM: function() {
-      var dateString = "1970-01-01";
+      var dateString = "1900-01-01";
       if ( this.field.format.match(/date/) ) {
         dateString = $( this.parent.selector + " input[name=" + this.field.slug + "-date]" ).val();
       }
