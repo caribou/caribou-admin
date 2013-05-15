@@ -186,7 +186,9 @@
         fmt (:format params)
         description (:description params)
         ;; extra bits here, validate, etc
-        model (rights/pick permissions :model {:where {:slug (-> request :params :slug)} :include {:fields {}}})
+        model (rights/pick permissions :model
+                           {:where {:slug (-> request :params :slug)}
+                            :include {:fields {}}})
         new-field (if (not (nil? target-id))
                     {:name (string/capitalize field-name)
                      :type field-type
@@ -200,7 +202,9 @@
                      :format fmt
                      :description description
                      :type field-type})
-        new-model (rights/update permissions :model (:id model) {:fields [ new-field ] })]
+        new-model (rights/update permissions :model
+                                 (:id model) {:fields [ new-field]})]
+    (model/invoke-models)
     (controller/redirect (pages/route-for :admin.edit-model
                                           (dissoc (:params request)
                                                   :field-name
@@ -410,7 +414,8 @@
             (throw+ {:type :insufficient-permissions
                      :message "need write perms in order to remove link"}))
         association (get-in model [:fields (keyword (:field payload))])
-        deleted (link/remove-link association (:id payload) (:target-id payload))]
+        deleted (link/remove-link association (:id payload)
+                                  (:target-id payload))]
     (json-response deleted)))
 
 (defn update-all
@@ -428,7 +433,8 @@
       (query/clear-queries)
       (model/init))
     (when-not (or (:test request) ; because of a reset handler npe
-                  (empty? (set/intersection #{"page"} (set (map :model payload)))))
+                  (empty? (set/intersection #{"page"}
+                                            (set (map :model payload)))))
       (handler/reset-handler))
     (json-response results)))
 

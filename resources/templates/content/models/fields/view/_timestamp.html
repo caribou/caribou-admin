@@ -1,1 +1,10 @@
-{{date-year instance slug}}/{{date-month instance slug}}/{{date-day instance slug}}
+{{#equals format "date"}}
+  {{date-year instance slug}}/{{date-month instance slug}}/{{date-day instance slug}}
+{{/equals format "date"}}
+{{#equals format "datetime"}}
+  {{date-year instance slug}}/{{date-month instance slug}}/{{date-day instance slug}}
+  {{hh-mm instance slug}}
+{{/equals format "datetime"}}
+{{#equals format "time"}}
+  {{hh-mm instance slug}}
+{{/equals format "time"}}

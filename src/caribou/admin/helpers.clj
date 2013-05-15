@@ -25,7 +25,7 @@
 
 (defn date-day [m key]
   (if-let [date (value-for-key m key)]
-    (+ (. date getDay))
+    (+ (. date getDate))
     nil))
 
 (defn yyyy-mm-dd [m key]
@@ -43,6 +43,11 @@
   (if-let [date-string (yyyy-mm-dd m key)]
     date-string
     (yyyy-mm-dd {:d (current-date)} :d)))
+
+(defn hh-mm [m key]
+  (if-let [date (value-for-key m key)]
+    (.format (java.text.SimpleDateFormat. "HH:mm") date)
+    "00:00"))
 
 (defn safe-route-for
   [slug & args]
@@ -193,6 +198,7 @@
    :current-date current-date
    :yyyy-mm-dd yyyy-mm-dd
    :yyyy-mm-dd-or-current yyyy-mm-dd-or-current
+   :hh-mm hh-mm
    :asset-is-image asset-is-image
    :asset-path asset-path
    :resize-in resize-in

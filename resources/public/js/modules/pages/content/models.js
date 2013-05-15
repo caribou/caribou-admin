@@ -29,14 +29,17 @@
           items: "tr:not(.ui-state-disabled)",
           cancel: ".ui-state-disabled",
           update: function(e, ui) {
-            $('.changeOrderMessage').show();
+            updateOrdering(function() {
+              console.log("Updated ordering automatically");
+            });
+            //$('.changeOrderMessage').show();
             // TODO:kd - disable other controls?
           },
           stop: function(e, ui) {
             ui.item.addClass('ui-sortable-highlight');
             setTimeout(function() {
               ui.item.removeClass('ui-sortable-highlight');
-            },500);
+            }, 500);
           }
         });
       } else {
@@ -63,7 +66,7 @@
       });
     }
 
-    var updateOrdering = function() {
+    var updateOrdering = function( success ) {
       var selector = $( ".sortable" ).sortable( "option", "items" );
       var parentData = $(".sortable").data("position");
       var items = [];
@@ -83,7 +86,7 @@
       payload.items = items;
       console.log(payload);
       // submit items
-      _post( "reorder-all", payload );
+      _post( "reorder-all", payload, success );
     }
 
     var showDeleteDialog = function( el, callback ) {
