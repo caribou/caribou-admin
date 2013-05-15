@@ -113,13 +113,17 @@
         [{:path "models", :children [], :slug "admin.model-list", :position nil,
           :template "settings/model/index.html", :method "", :action "index",
           :name "Model List", :controller "settings.model"}
-         {:path "role-editor/:title", :children [], :slug "admin.edit-roles",
+         {:path "role-editor/:title", :children [], :slug "admin.edit-role",
           :position nil, :template "settings/role/edit.html", :method "",
-          :action "edit-roles", :name "Edit Roles", :controller "roles"}
-         {:path "submit-edit-roles/:title", :children [],
-          :slug "admin.submit-edit-roles", :position nil, :template "",
-          :method "POST", :action "submit-edit-roles", :name "Submit Edit Roles",
+          :action "edit-role", :name "Edit Role", :controller "roles"}
+         {:path "submit-edit-role/:title", :children [],
+          :slug "admin.submit-edit-role", :position nil, :template "",
+          :method "POST", :action "submit-edit-role", :name "Submit Edit Role",
           :controller "roles"}
+         {:path "submit-create-role", :children [],
+          :slug "admin.submit-create-role", :position nil :template "",
+          :method "POST", :action "submit-create-role",
+          :name "Submit Create Role" :controller "roles"}
          {:path "create-role", :name "Create Role" :slug "admin.create-role"
           :position nil :template "settings/role/create.html", :method "",
           :action "create-role" :controller "roles" :children []}

@@ -5,7 +5,7 @@
     <span class="add-edit-view-title">Create Role Admin</span>
     <span class="add-edit-subtitle subtle"></span>
   </div>
-  <form action="{{route-for :admin.submit-create-roles params}}"
+  <form action="{{route-for :admin.submit-create-role params}}"
 	class="create-role"
 	id="create-role-1"
 	method="post">
@@ -15,7 +15,7 @@
 	  <span class="content-label">Name</span>
 	</label>
 	<div class="field">
-	  <input class="text" id="role-name" label="name" name="role[name]"
+	  <input class="text" id="title" label="title" name="title"
 		 size="30" type="text"
 	</div>
       </div>
@@ -25,14 +25,16 @@
 	  <span class="content-label">Default Level</span>
 	</label>
 	<div class="field">
-	  <select class="select" id="role-default-level" label="default-level"
-		  name="role[default-level]">
-	    <option value="1">Read</option>
-	    <option value="3">Edit</option>
-	    <option value="7">Create</option>
-	    <option value="15">Delete</option>
-	    <option value="15">All</option>
-	  </select>
+	  <input id="read-default" name="read-default" type="checkbox">
+	  Read</input>
+	  <input id="edit-default" name="edit-default" type="checkbox">
+	  Edit</input>
+	  <input id="create-default" name="create-default" type="checkbox">
+	  Create</input>
+	  <input id="delete-default" name="delete-default" type="checkbox">
+	  Delete</input>
+	  <input id="all-default" name="all-default" type="checkbox">
+	  All</input>
 	</div>
       </div>
       <hr>

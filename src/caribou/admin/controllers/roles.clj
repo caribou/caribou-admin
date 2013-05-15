@@ -5,7 +5,7 @@
             [caribou.model :as model]
             [caribou.permissions :as permissions]))
 
-(defn edit-roles
+(defn edit-role
   [{permissions :permissions :as request}]
   (let [role (rights/pick permissions :role
                           {:where {:title (-> request :params :title)}
@@ -31,15 +31,15 @@
   (let [models (map #(select-keys % [:id :slug]) (model/models))]
     (render (assoc request :models models))))
 
-(declare submit-edit-roles)
+(declare submit-edit-role)
 
 (defn submit-create-role
   [{{title :tile} :params permissions :permissions :as request}]
   ;; not holding onto this, because we need to pick with permissions anyway
   (rights/create permissions :role {:where {:title title}})
-  (submit-edit-roles request))
+  (submit-edit-role request))
 
-(defn submit-edit-roles
+(defn submit-edit-role
   [{permissions :permissions :as request}]
   (let [title (-> request :params :title)
         role (rights/pick permissions :role
@@ -77,6 +77,6 @@
             id (second orig-perm)]
         (rights/update permissions :permission
                        id {:mask (second perm)})))
-    (redirect (route-for :admin.edit-roles
-                         (select-route :admin.edit-roles (:params request)))
+    (redirect (route-for :admin.edit-role
+                         (select-route :admin.edit-role (:params request)))
               (:session request))))
