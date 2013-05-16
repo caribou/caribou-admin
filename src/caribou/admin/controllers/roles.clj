@@ -3,6 +3,7 @@
         [caribou.app.pages :only [route-for select-route]])
   (:require [caribou.admin.rights :as rights]
             [caribou.model :as model]
+            [caribou.logger :as log]
             [caribou.permissions :as permissions]))
 
 (defn edit-role
@@ -26,25 +27,52 @@
         request (assoc request :title (:title role) :tasks perms)]
     (render request)))
 
-(defn create-role
-  [{permissions :permissions :as request}]
-  (let [models (map #(select-keys % [:id :slug]) (model/models))]
-    (render (assoc request :models models))))
+(def create-role render)
 
 (declare submit-edit-role)
 
+(defonce rq (atom nil))
+
+(defn default-mask
+  [params]
+  (let [{:keys [title
+                all-default
+                update-default
+                read-default
+                edit-default
+                create-default
+                delete-default]} params
+         permset (map first
+                      (filter #(or (second %)
+                                   all-default)
+                              [[:read read-default]
+                               [:edit edit-default]
+                               [:create create-default]
+                               [:destroy delete-default]
+                               [:update update-default]]))
+         _ (println "permset is" permset)
+         default-mask (apply permissions/mask permset)]
+    default-mask))
+
 (defn submit-create-role
-  [{{title :tile} :params permissions :permissions :as request}]
+  [{:keys [params permissions] :as request}]
+  (reset! rq request)
   ;; not holding onto this, because we need to pick with permissions anyway
-  (rights/create permissions :role {:where {:title title}})
-  (submit-edit-role request))
+    (println "default-mask is" default-mask)
+    (rights/create permissions :role {:title (:title params)
+                                      :default-mask (default-mask params)})
+    (submit-edit-role request))
+
+(defonce rq2 (atom nil))
 
 (defn submit-edit-role
-  [{permissions :permissions :as request}]
-  (let [title (-> request :params :title)
+  [{:keys [params permissions] :as request}]
+  (reset! rq2 request)
+  (let [{title :title} params
         role (rights/pick permissions :role
                           {:where {:title title}
                            :include {:permissions {:model {}}}})
+        default-mask (default-mask params)
         keystrings (map name (filter keyword? (keys (:params request))))
         split- (fn [s]
                  (->> s (split-with (comp not #{\-}))
@@ -77,6 +105,8 @@
             id (second orig-perm)]
         (rights/update permissions :permission
                        id {:mask (second perm)})))
+    (rights/update permissions :role
+                   (:id role) {:default-mask default-mask})
     (redirect (route-for :admin.edit-role
                          (select-route :admin.edit-role (:params request)))
               (:session request))))

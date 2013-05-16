@@ -58,8 +58,16 @@
       (throw+ {:type :insufficient-permissions
                :message "insufficient perms to collect the requested data"}))))
 
+(defn no-nil-vals
+  [mp & [opts]]
+  (let [mp-vals (vals mp)]
+    (assert (or (not-any? nil? mp-vals) (println (str "opts were: " opts))))
+    (doseq [m (filter map? mp-vals)]
+      (no-nil-vals m opts))))
+
 (defn gather
   [permissions slug & [opts]]
+  (no-nil-vals (:where opts) opts)
   (check-includes slug opts permissions [:read])
   (model/gather slug opts))
 
@@ -72,6 +80,7 @@
 
 (defn update
   [permissions slug id opts]
+  (no-nil-vals (:where opts) opts)
   (check-includes slug opts permissions [:write :create])
   (model/update slug id opts))
 
