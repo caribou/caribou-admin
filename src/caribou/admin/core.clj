@@ -14,7 +14,6 @@
         [ring.middleware.cookies :only (wrap-cookies)]
         [ring.middleware.content-type :only (wrap-content-type)])
   (:require [clojure.string :as string]
-            [swank.swank :as swank]
             [lichen.core :as lichen]
             [caribou
              [config :as config]
@@ -118,6 +117,5 @@
             (wrap-session {:store (cookie-store {:key "vEanzxBCC9xkQUoQ"})
                            :cookie-name "caribou-admin-session"
                            :cookie-attrs {:max-age (days-in-seconds 90)}})
-            (wrap-cookies)))
+            (wrap-cookies))))))
 
-      (swank/start-server :host "127.0.0.1" :port 4011))))

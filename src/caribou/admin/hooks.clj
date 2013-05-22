@@ -2,30 +2,6 @@
   (:require [caribou.model :as model :refer [create gather destroy]]
             [caribou.hooks :as hooks]))
 
-(declare make-permissions-role
-         remove-permissions-role
-         make-permissions-model
-         remove-permissions-model)
-
-(defn init
-  []
-  (hooks/add-hook :model
-                  :after-create
-                  :make-permissions
-                  make-permissions-model)
-  (hooks/add-hook :model
-                  :after-destroy
-                  :remove-permissions
-                  remove-permissions-model)
-  (hooks/add-hook :role
-                  :after-create
-                  :make-permisisons
-                  make-permissions-role)
-  (hooks/add-hook :role
-                  :after-destroy
-                  :remove-permissions
-                  remove-permissions-role))
-
 (defn make-permissions-role
   "a hook to create a permission for a new row with an apropriate mask
   for every model"
@@ -60,3 +36,23 @@
     (doseq [{id :id} perms]
       (destroy :permission id)))
   env)
+
+(defn init
+  []
+  (hooks/add-hook :model
+                  :after-create
+                  :make-permissions
+                  make-permissions-model)
+  (hooks/add-hook :model
+                  :after-destroy
+                  :remove-permissions
+                  remove-permissions-model)
+  (hooks/add-hook :role
+                  :after-create
+                  :make-permisisons
+                  make-permissions-role)
+  (hooks/add-hook :role
+                  :after-destroy
+                  :remove-permissions
+                  remove-permissions-role))
+
