@@ -50,7 +50,6 @@
                                [:create create-default]
                                [:destroy delete-default]
                                [:update update-default]]))
-         _ (println "permset is" permset)
          default-mask (apply permissions/mask permset)]
     default-mask))
 
@@ -58,7 +57,6 @@
   [{:keys [params permissions] :as request}]
   (reset! rq request)
   ;; not holding onto this, because we need to pick with permissions anyway
-    (println "default-mask is" default-mask)
     (rights/create permissions :role {:title (:title params)
                                       :default-mask (default-mask params)})
     (submit-edit-role request))
