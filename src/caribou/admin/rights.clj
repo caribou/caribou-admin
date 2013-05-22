@@ -61,7 +61,7 @@
 (defn no-nil-vals
   [mp & [opts]]
   (let [mp-vals (vals mp)]
-    (assert (or (not-any? nil? mp-vals) (println (str "opts were: " opts))))
+    (assert (not-any? nil? mp-vals))
     (doseq [m (filter map? mp-vals)]
       (no-nil-vals m opts))))
 
