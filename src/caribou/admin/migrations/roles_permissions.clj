@@ -28,9 +28,7 @@
 
 (defn apply-roles-perms
   []
-  (let [{caribou-id
-         :id} (model/pick :account {:where {:email "caribou"}})
-        admin-mask (perms/mask :read :write :create :delete)
+  (let [admin-mask (perms/mask :read :write :create :delete)
         model-ids (filter number? (keys (model/models)))
         {admin-id
          :id} (create :role {:title "Admin"
@@ -40,7 +38,10 @@
                                     (create :permission {:mask admin-mask
                                                          :model-id id}))
                                   model-ids)})]
-    (update :account caribou-id {:role-id admin-id})))
+    ;; make all existing users admins, since there was no privelege separation
+    ;; up until this migration
+    (doseq [{caribou-id :id} (model/gather :account)]
+      (update :account caribou-id {:role-id admin-id}))))
 
 (defn migrate
   []
