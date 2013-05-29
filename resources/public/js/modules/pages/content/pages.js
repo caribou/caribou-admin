@@ -190,13 +190,14 @@
   $.extend( PageTreeDelegate.prototype, editors.TreeEditorDelegate.prototype, {
     // ack!
     makeHeader: function() {
-      return $('<tr><th>Route</th><th>Path</th><th>Controller</th><th>Action</th><th>Template</th><th>Controls</th></tr>');
+      return $('<tr><th>Route</th><th>Path</th><th>Method</th><th>Controller</th><th>Action</th><th>Template</th><th>Controls</th></tr>');
     },
     makeNode: function( node ) {
       var self = this;
       return $('<tr data-id="' + (node.id) +
         '" data-parent-id="' + (node.id? (node.parentId || "0") : "") + '" >' +
         '<td class="treenode">' + node.label + '</td><td>' + self.labelFor(node) + '</td>' +
+        '<td>' + (node.node.method || "any") + '</td>' +
         '<td>' + (node.node.controller || "") + '</td><td>' + (node.node.action || "") + '</td>' +
         '<td>' + (node.node.template || "") + '</td><td class="controls">&nbsp;</td></tr>');
     },

@@ -1,23 +1,64 @@
 {{< templates/layouts/app.html}}
+
 {{%content}}
+<div class="page-header">
+  <div class="container-fluid clearfix">
+    <h1>Users</h1>
+  </div>
+</div>
 
-    <h1>Create Account</h1>
-    <form id="create"
-	  action="{{route-for :admin.create-account session}}"
-	  method="post">
-      <input id="email" name="email" placeholder="email" required>
-      <input id="password" type="password" name="password"
-	     placeholder="password" required>
-      <input id="first" name="first" placeholder="first name">
-      <input id="last" name="last" placeholder="last name">
-      role:
-      <select name="role" required>
-	<option selected="selected"/>
-	{{#roles}}
-	<option value={{id}}>{{title}}</option>
-	{{/roles}}
-      </select>
-      <input type="submit" value="create account" />
+<div class="container-fluid">
+  <section>
+    
+    <div class="row-fluid">
+      <div class="span12 column">
+        <h2>Create Account</h2>
+
+        <form class="form-horizontal"
+              id="create"
+              action="{{route-for :admin.create-account session}}"
+              method="post">
+
+          <div class="control-group">
+            <label class="control-label" for="email">Email</label>
+            <div class="controls">
+              <input type="text" id="email" name="email" placeholder="email" required>
+            </div>
+          </div>  
+
+          <div class="control-group">
+            <label class="control-label" for="password">Password</label>
+            <div class="controls">
+              <input id="password" type="password" name="password"
+                     placeholder="password" required>
+            </div>
+          </div>  
+          <div class="control-group">
+            <label class="control-label" for="first">First name</label>
+            <div class="controls">
+              <input type="text" id="first" name="first" placeholder="first name">
+            </div>
+          </div>  
+          <div class="control-group">
+            <label class="control-label" for="last">Last name</label>
+            <div class="controls">
+              <input type="text" id="last" name="last" placeholder="last name">
+            </div>
+          </div>  
+          <div class="control-group">
+            <label class="control-label" for="role">Role</label>
+            <div class="controls">
+              <select name="role" required>
+                <option selected="selected"/>
+                {{#roles}}
+                  <option value="{{id}}">{{title}}</option>
+                {{/roles}}
+              </select>
+        </div>
+      </div>
+
+      <button class="btn btn-primary">Create account</button>
     </form>
-
+  </div>
+</div>
 {{/content}}
