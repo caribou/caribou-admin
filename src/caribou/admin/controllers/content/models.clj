@@ -522,11 +522,14 @@
   (let [matched (map #(vector (str %) (second (re-find #"\.controllers\.(.+)$" (str %)))) (all-ns))
         filtered (remove #(nil? (second %)) matched)
         mapped (map #(assoc {} :namespace (first %) :path (second %)) filtered)
-        arg-check (fn [n] (for [kv (ns-publics n)
-                                :when (some #(and (= 1 (count %))
-                                                  (.startsWith (name (first %)) "req")) (:arglists (meta (second kv))))] (first kv)))
-        actioned (map #(assoc %
-                         :actions (-> % :namespace symbol arg-check sort)) mapped)
+        ;;arg-check (fn [n] (for [kv (ns-publics n)
+        ;;                        :when (some #(and (= 1 (count %))
+        ;;                                          (.startsWith (name (first %)) "req")) (:arglists (meta (second kv))))] (first kv)))
+        ;;actioned (map #(assoc %
+        ;;                 :actions (-> % :namespace symbol arg-check sort)) mapped)
+        arg-check (fn [n] (for [kv (ns-publics n)]
+                            (first kv)))
+        actioned (map #(assoc % :actions (-> % :namespace symbol arg-check sort)) mapped)
         ]
     (json-response actioned)))
 
