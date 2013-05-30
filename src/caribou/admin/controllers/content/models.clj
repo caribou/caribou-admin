@@ -513,7 +513,7 @@
         location (asset/asset-location asset)
         path (asset/asset-path asset)]
     (if (config/draw :aws :bucket)
-      (asset/upload-to-s3 location (-> params :upload :tempfile))
+      (asset/upload-to-s3 location (:tempfile upload))
       (asset/persist-asset-on-disk dir path (:tempfile upload)))
     (json-response {:state (assoc asset :path path)})))
 
