@@ -18,7 +18,7 @@
     :position nil, :template "", :method "POST", :action "submit-login",
     :name "Submit Login", :controller "settings.account"}
    {:path ":site", :slug "admin.subsite", :position nil, :template "",
-    :method "", :action "nothing", :name "Subsite", :controller "admin.settings",
+    :method "", :action "nothing", :name "Subsite", :controller "settings",
     :children
     [{:path ":locale", :slug "admin.locale", :position nil, :template "",
       :method "", :action "nothing", :name "Locale",
