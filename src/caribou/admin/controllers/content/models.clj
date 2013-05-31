@@ -509,12 +509,8 @@
                {:filename slug
                 :content-type (:content-type upload)
                 :size (:size upload)})
-        dir (asset/asset-dir asset)
-        location (asset/asset-location asset)
         path (asset/asset-path asset)]
-    (if (config/draw :aws :bucket)
-      (asset/upload-to-s3 location (:tempfile upload))
-      (asset/persist-asset-on-disk dir path (:tempfile upload)))
+    (asset/put-asset (:tempfile upload) asset)
     (json-response {:state (assoc asset :path path)})))
 
 (defn list-controllers-and-actions
@@ -522,11 +518,14 @@
   (let [matched (map #(vector (str %) (second (re-find #"\.controllers\.(.+)$" (str %)))) (all-ns))
         filtered (remove #(nil? (second %)) matched)
         mapped (map #(assoc {} :namespace (first %) :path (second %)) filtered)
-        arg-check (fn [n] (for [kv (ns-publics n)
-                                :when (some #(and (= 1 (count %))
-                                                  (.startsWith (name (first %)) "req")) (:arglists (meta (second kv))))] (first kv)))
-        actioned (map #(assoc %
-                         :actions (-> % :namespace symbol arg-check sort)) mapped)
+        ;;arg-check (fn [n] (for [kv (ns-publics n)
+        ;;                        :when (some #(and (= 1 (count %))
+        ;;                                          (.startsWith (name (first %)) "req")) (:arglists (meta (second kv))))] (first kv)))
+        ;;actioned (map #(assoc %
+        ;;                 :actions (-> % :namespace symbol arg-check sort)) mapped)
+        arg-check (fn [n] (for [kv (ns-publics n)]
+                            (first kv)))
+        actioned (map #(assoc % :actions (-> % :namespace symbol arg-check sort)) mapped)
         ]
     (json-response actioned)))
 

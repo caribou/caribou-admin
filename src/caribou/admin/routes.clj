@@ -39,12 +39,12 @@
             :name "New Project", :controller "content.projects"}
            {:path ":id", :slug "admin.view-project", :position nil,
             :template "content/projects/view.html", :method "", :action "view",
-            :name "View Project", :controller "content.projects"},
-           :children
+            :name "View Project", :controller "content.projects",
+            :children
             [{:path "edit", :children [], :slug "admin.edit-project",
               :position nil, :template "content/projects/edit.html",
               :method "", :action "edit", :name "Edit Project",
-              :controller "content.projects"}]]}
+              :controller "content.projects"}]}]}
          {:path "models", :slug "admin.models", :position nil,
           :template "content/models/index.html", :method "", :action "index",
           :name "Models", :controller "content.models",

@@ -36,7 +36,7 @@
                   <a href='{{safe-route-for :admin.results params {:slug slug} }}'>See all</a>
                 | <a href='{{safe-route-for :admin.edit-model params {:slug slug} }}'>Tweak fields</a>
                 | <a href="{{safe-route-for :admin.edit-model-instance params {:slug "model" :id id} }}">Edit</a>
-                | <a href="{{safe-route-for :admin.model-api params {:action "reindex" :slug slug} }}">Reindex</a>
+                | <a href="{{route-for :admin.model-api params {:action "reindex" :slug slug} }}">Reindex</a>
                 | <a href="#" class="delete-link" data-model="model" data-id="{{id}}">Delete</a>
                 {{/join-model}}
                 {{#join-model}}Join models are locked{{/join-model}}
