@@ -175,6 +175,11 @@
   (function ($) {
     $.fn.editorStack = function( options ) {
       var selector = this.selector;
+      if ( !options ) {
+        if ( $(this.selector).data("stack") ) {
+          return $(this.selector).data("stack");
+        }
+      }
       var opts = $.extend( options, { selector: selector } );
       var stack = new EditorStack( opts );
       this.data({ stack: stack });
