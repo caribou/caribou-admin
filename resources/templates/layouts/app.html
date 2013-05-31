@@ -100,8 +100,8 @@
                 {{/session.user}}
                 <b class="caret"></b></a>
               <ul class="dropdown-menu">
-                <li><a href="{{safe-route-for :admin.edit-model-instance params {:id session.user.id} }}">My account</a></li>
-                <li><a href="{{safe-route-for :admin.logout}}">Logout</a></li>
+                <li><a href="{{safe-route-for :admin.edit-model-instance params {:id session.admin.user.id} }}">My account</a></li>
+                <li><a href="{{safe-route-for :admin.logout params }}">Logout</a></li>
               </ul>
             </li>
           </ul>
