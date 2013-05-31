@@ -49,7 +49,11 @@
             <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Content <b class="caret"></b></a>
               <ul class="dropdown-menu">
                 {{#user-models}}
+                {{^locked}}
+                {{^join-model}}
                 <li><a href="{{safe-route-for :admin.results params {:slug slug} }}">{{name}}</a></li>
+                {{/join-model}}
+                {{/locked}}
                 {{/user-models}}
               </ul>
             </li>
@@ -72,10 +76,9 @@
           <ul class="nav pull-right">
 
             <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Site <b class="caret"></b></a>
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Accounts<b class="caret"></b></a>
               <ul class="dropdown-menu">
-                <li><a href="#settings">Frontend</a></li>
-                <li><a href="#settings">Admin</a></li>
+                <li><a href="{{safe-route-for :admin.create-model-instance params {:slug "account"} }}">Create New Account</a></li>
               </ul>
             </li>
             <li class="divider-vertical"></li>
@@ -97,8 +100,8 @@
                 {{/session.user}}
                 <b class="caret"></b></a>
               <ul class="dropdown-menu">
-                <li><a href="#settings">My account</a></li>
-                <li><a href="{{safe-route-for :admin.logout}}">Logout</a></li>
+                <li><a href="{{safe-route-for :admin.edit-model-instance params {:id session.admin.user.id} }}">My account</a></li>
+                <li><a href="{{safe-route-for :admin.logout params }}">Logout</a></li>
               </ul>
             </li>
           </ul>
