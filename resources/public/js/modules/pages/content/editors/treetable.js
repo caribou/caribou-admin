@@ -58,8 +58,6 @@
       var dom = self.produce( $("<table class='table-striped'>"), tree );
       dom.prepend( self.delegate.makeHeader() );
 
-      //console.log(dom);
-
       $( self.selector ).empty().append( dom );
 
       // turn it into a tree:
@@ -90,8 +88,12 @@
         $(this).parents("tr:first").droppable({
           accept: ".treenode",
           drop: function(e, ui) {
-            console.log("dropped!");
-            var dropped = ui.draggable.parents("tr");
+            var dropped = ui.draggable.parents("tr:first");
+            // verify that it can be dropped on $(this)
+            if (self.isDescendentOf($(this).data("id"), dropped.data("id"))) {
+              console.log("can't drop onto a child of itself");
+              return;
+            }
             $( self.selector + " table:first").treetable("move", dropped.data( "id" ), $(this).data( "id" ));
             dropped.data().parentId = $(this).data().id;
             self.syncFromDOM();
@@ -182,6 +184,12 @@
         return next( diffs );
       }
       return diffs;
+    },
+    isDescendentOf: function( human, ape ) {
+      var self = this;
+      if (human == ape) { return true }
+      if (!self.tree[human].parentId) { return false }
+      return self.isDescendentOf( self.tree[human].parentId, ape );
     }
   });
 

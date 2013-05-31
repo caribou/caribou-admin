@@ -6,7 +6,8 @@
             [caribou
              [model :as model]
              [auth :as auth]]
-            [caribou.admin.rights :as rights]))
+            [caribou.admin.rights :as rights]
+            [caribou.app.pages :as pages]))
 
 (def nothing (constantly nil))
 
@@ -36,7 +37,10 @@
 
 (defn login
   [request]
-  (render request))
+  (let [locale (or (-> request :params :locale) "global")]
+    (if (-> request :session :admin)
+      (redirect (route-for :admin.models {:locale locale :site "admin"}))
+      (render request))))
 
 (defn submit-login
   [request]
@@ -93,7 +97,7 @@
 ;; allow target
 (defn logout
   [request]
-  (render request {:session (dissoc (:session request) :admin)}))
+  (redirect (route-for :admin.login {}) {:session (dissoc (:session request) :admin)}))
 
 (defn forgot-password
   [request]
