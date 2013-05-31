@@ -1,4 +1,4 @@
-(defproject antler/caribou-admin "0.11.10"
+(defproject antler/caribou-admin "0.11.12"
   :description "Generic admin tool for Caribou projects"
   :dependencies [[org.clojure/clojure "1.4.0"]
                  [antler/caribou-frontend "0.11.4"]
