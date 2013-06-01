@@ -13,7 +13,6 @@
 
 <div class="container-fluid">
   <section>
-    
     <div class="row-fluid">
       <div class="span12 column">
         <h2>Custom Models</h2>
@@ -48,7 +47,7 @@
         {{^unlocked}}
           <div class="alert alert-error"><span class="instrument-icon-circle-exclamation"></span> &nbsp;Oh no!  Nobody has created any models yet!</div>
         {{/unlocked}}
-        
+
         <h2>System Models</h2>
         <table class="table table-striped table-bordered">
           <thead>
@@ -65,7 +64,10 @@
               <td>{{id}}</td>
               <td>{{name}}</td>
               <td>{{created-at}}</td>
-              <td><a href="{{safe-route-for :admin.edit-model params {:slug slug} }}">View fields</a></td>
+              <td>
+                  <a href='{{safe-route-for :admin.results params {:slug slug} }}'>See all</a>
+                | <a href="{{safe-route-for :admin.edit-model params {:slug slug} }}">View fields</a>
+              </td>
             </tr>
             {{/locked}}
           </tbody>
@@ -73,7 +75,6 @@
       </div>
 
     </div>
-    
   </section>
 </div>
 

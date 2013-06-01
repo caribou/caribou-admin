@@ -83,6 +83,12 @@
             success: success,
             failure: failure
           });
+        },
+        cookieValue: function( key ) {
+          return $.cookie(key);
+        },
+        setCookieValue: function( key, value ) {
+          $.cookie( key, value );
         }
       };
 
