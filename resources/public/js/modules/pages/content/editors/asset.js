@@ -10,7 +10,9 @@
     syncToDOM: function() {
       var asset = this.value.value;
       if ( asset ) {
-        $("img#" + this.field.slug).attr({ src: "/" + asset.path });
+        $("img#" + this.field.slug).attr({ src: "/" + asset.path }).show();
+      } else {
+        $("img#" + this.field.slug).hide();
       }
     },
     syncFromDOM: function() {},
@@ -21,6 +23,18 @@
         console.log(self, "Upload/choose an image");
         return self.uploadOrChoose();
       });
+      if (this.value.value) {
+        var removeLink = $("<a href='#' class='btn btn-primary'>Remove</a>").on("click", function(e) {
+          e.preventDefault();
+          self.setBlank();
+          $(this).remove();
+        });
+        $("#" + self.model.slug + "-" + self.field.slug).find("a").after(removeLink);
+      }
+    },
+    setBlank: function() {
+      this.value = { value: null, id: null };
+      this.syncToDOM();
     },
     uploadOrChoose: function() {
       var self = this;
