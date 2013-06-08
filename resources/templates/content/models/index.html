@@ -3,7 +3,7 @@
 
 <div class="page-header">
   <div class="container-fluid clearfix">
-    <h1>Models</h1>
+    <h1>Dashboard</h1>
     <a class="btn" data-toggle="modal" data-target="#new-model" >New Model</a>
   </div>
 </div>
@@ -19,18 +19,19 @@
         <table class="table table-striped table-bordered">
           <thead>
             <tr>
-              <th>ID</th>
+              <!-- <th>ID</th> -->
               <th>Title</th>
-              <th>Created At</th>
+              <!-- <th>Created At</th> -->
               <th></th>
             </tr>
           </thead>
           <tbody class="sortable" data-position-field="position" data-position-model="model">
             {{#unlocked}}
+            {{page-association}}
             <tr {{#join-model}}class="disabled_bg"{{/join-model}}>
-              <td>{{id}}</td>
+              <!-- <td>{{id}}</td> -->
               <td>{{name}}</td>
-              <td>{{created-at}}</td>
+              <!-- <td>{{created-at}}</td> -->
               <td>{{^join-model}}
                   <a href='{{safe-route-for :admin.results params {:slug slug} }}'>See all</a>
                 | <a href='{{safe-route-for :admin.edit-model params {:slug slug} }}'>Tweak fields</a>
