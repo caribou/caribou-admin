@@ -17,6 +17,7 @@
 </div>
 
 <div class="container-fluid">
+	<h4 class="collection-header">{{model.description}}</h4>
   {{> templates/content/models/collection/_commands.html}}
   {{> templates/content/models/instance/_paged_collection.html}}
 	<a class="btn" href="{{safe-route-for :admin.create-model-instance params {:slug model.slug} }}">Create a {{model.name}}</a>
