@@ -22,20 +22,21 @@
 	}
 	</style>
 	<link rel="stylesheet" type="text/css" href="/css/bootstrap-responsive.min.css" />
-  <link rel="stylesheet" type="text/css" href="/css/instrument-ui.css" />
-  <link rel="stylesheet" type="text/css" href="/css/datepicker.css" />
-  <link rel="stylesheet" type="text/css" href="/css/image-picker.css" />
-  <link rel="stylesheet" type="text/css" href="/css/jquery.treetable.css" />
-  <link rel="stylesheet" type="text/css" href="/css/jquery.treetable.theme.default.css" />
-  <link rel="stylesheet" type="text/css" href="/css/timepicker.css" />
+    <link rel="stylesheet" type="text/css" href="/css/instrument-ui.css" />
+    <link rel="stylesheet" type="text/css" href="/css/datepicker.css" />
+    <link rel="stylesheet" type="text/css" href="/css/image-picker.css" />
+    <link rel="stylesheet" type="text/css" href="/css/jquery.treetable.css" />
+    <link rel="stylesheet" type="text/css" href="/css/jquery.treetable.theme.default.css" />
+    <link rel="stylesheet" type="text/css" href="/css/timepicker.css" />
+    <link rel="stylesheet" type="text/css" href="/css/style.css" />
 
-  <!-- jquery moved to top so a page can include scripts that fire on page ready -->
-  <script src="/js/libs/jquery-1.7.2.min.js"></script>
-	<script src="/js/libs/modernizr-2.5.3-respond-1.1.0.min.js"></script>
+    <!-- jquery moved to top so a page can include scripts that fire on page ready -->
+    <script src="/js/libs/jquery-1.7.2.min.js"></script>
+    <script src="/js/libs/modernizr-2.5.3-respond-1.1.0.min.js"></script>
 </head>
 <body id="{{page.slug}}" data-controller="{{page.slug}}" data-model="{{model.slug}}" data-api="{{safe-route-for :admin.model-api params}}" data-instance-ids="{{instance-ids}}" data-locale="{{locale-code params.locale}}">
 <!--[if lt IE 7]><p class=chromeframe>Your browser is <em>ancient!</em> <a href="http://browsehappy.com/">Upgrade to a different browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">install Google Chrome Frame</a> to experience this site.</p><![endif]-->
-  <div class="navbar navbar-inverse navbar-fixed-top">
+  <div class="navbar navbar-fixed-top">
     <div class="navbar-inner">
       <div class="container-fluid">
         <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
@@ -43,19 +44,37 @@
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
         </a>
-        <a class="brand" href="{{safe-route-for :admin.models params}}">Zinio</a>
+        <a class="brand" href="{{safe-route-for :admin.zinio params}}">Zinio</a>
         <div class="nav-collapse">
           <ul class="nav">
-          	<li><a href="{{safe-route-for :admin.models params}}">Dashboard</a></li>
+          	<li><a href="{{safe-route-for :admin.zinio params}}">Dashboard</a></li>
             <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Content <b class="caret"></b></a>
               <ul class="dropdown-menu">
-                {{#user-models}}
-                {{^locked}}
-                {{^join-model}}
-                <li><a href="{{safe-route-for :admin.results params {:slug slug} }}">{{name}}</a></li>
-                {{/join-model}}
-                {{/locked}}
-                {{/user-models}}
+              	<li class="disabled"><a href="#">Meet Zinio</a></li>
+              	{{#home-models}}
+              		<li><a href="{{safe-route-for :admin.results params {:slug slug} }}">{{name}}</a></li>
+              	{{/home-models}}
+
+                <li class="divider"></li>
+
+              	<li class="disabled"><a href="#">Partners</a></li>
+                {{#partner-models}}
+              		<li><a href="{{safe-route-for :admin.results params {:slug slug} }}">{{name}}</a></li>
+          		{{/partner-models}}
+
+                <li class="divider"></li>
+
+              	<li class="disabled"><a href="#">About Us</a></li>
+                {{#about-models}}
+              		<li><a href="{{safe-route-for :admin.results params {:slug slug} }}">{{name}}</a></li>
+          		{{/about-models}}
+
+                <li class="divider"></li>
+
+              	<li class="disabled"><a href="#">News</a></li>
+                {{#news-models}}
+              		<li><a href="{{safe-route-for :admin.results params {:slug slug} }}">{{name}}</a></li>
+          		{{/news-models}}
               </ul>
             </li>
             <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Structure <b class="caret"></b></a>
@@ -150,6 +169,8 @@
   <script src="/js/modules/pages/content/pages.js"></script>
   <script src="/js/modules/pages/content/breadcrumbs.js"></script>
   <script src="/js/modules/pages/content/status.js"></script>
+  <script type="text/javascript" src="//use.typekit.net/bgb4pby.js"></script>
+  <script type="text/javascript">try{Typekit.load();}catch(e){}</script>
 
 </body>
 </html>

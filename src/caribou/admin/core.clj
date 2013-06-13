@@ -90,6 +90,51 @@
       (user-required)
       (get-models)))
 
+
+(defn provide-models
+  [handler]
+  (fn [request]
+	  (let [
+	  		;; Define page IDs
+	  		home (model/pick :page {:where {:slug "home"}})
+	  		partners (model/pick :page {:where {:slug "partners"}})
+	  		about (model/pick :page {:where {:slug "about"}})
+	  		news (model/pick :page {:where {:slug "news"}})
+
+	  		;; Meet Zinio/Home Content
+	  	    home-models (model/gather :model {:where {:page-association-id (:id home)}})
+	  	    home-copy (model/gather :copy {:where {:page-id (:id home)}})
+
+	  		;; Partners Content
+	  	    partner-models (model/gather :model {:where {:page-association-id (:id partners)}})
+	  	    partner-copy (model/gather :copy {:where {:page-id (:id partners)}})
+
+	  		;; About Us Content
+	  		about-models (model/gather :model {:where {:page-association-id (:id about)}})
+	  		about-copy (model/gather :copy {:where {:page-id (:id about)}})
+
+	  		;; News Content
+	  		news-models (model/gather :model {:where {:page-association-id (:id news)}})
+	  		news-copy (model/gather :copy {:where {:page-id (:id news)}})
+
+	  	    ]
+	  	(handler (assoc request
+	  				   ;; Home Assignments
+	  				   :home-models home-models
+	  				   :home-copy home-copy
+	  				   ;; Partner Assignments
+	  				   :partner-models partner-models
+	  				   :partner-copy partner-copy
+	  				   ;; About Us Assignments
+	  				   :about-models about-models
+	  				   :about-copy about-copy
+	  				   ;; News Assignments
+	  				   :news-models news-models
+	  				   :news-copy news-copy
+	  				   ))))
+		)
+
+
 (defn init
   []
   (let [config (app/environment-config)]
@@ -98,6 +143,7 @@
       (hooks/init)
       (def handler
         (-> (handler/handler #'reload-pages)
+        	(provide-models)
             (admin-wrapper)
             (wrap-reload)
             (wrap-file (config/draw :assets :dir))

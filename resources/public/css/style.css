@@ -9,6 +9,13 @@
 
 body {
   /*background: #fff url("/admin/img/pizazz-light.png") repeat center top;*/
+  font-family: "proxima-nova" , "Helvetica Neue" , Helvetica , Arial , sans-serif;
+}
+
+.container-fluid {
+	margin: 0 auto;
+	max-width: 1000px;
+	width: 85%;
 }
 
 
@@ -35,6 +42,29 @@ table a {
 table td {
   overflow: hidden;
   position: relative;
+}
+
+table thead tr {
+	background: rgb( 53, 55, 67 );
+	color: white;
+	font-weight: bold;
+}
+
+.table th {
+	background: inherit;
+	color: white;
+}
+
+.table th a {
+	color: white;
+}
+
+table tr:last-child {
+	border-bottom: 1px solid #d9d9d9;
+}
+
+.table-bordered {
+	border-radius: 0;
 }
    
    
@@ -91,3 +121,156 @@ li.treenode {
   list-style: none;
   border-top: 1px dotted #eee;
 }
+
+
+/* Custom: Zinio-specific
+-------------------------------------------------- */
+
+
+* {
+	outline: none;
+}
+
+/*
+	Links
+*/
+
+a {
+	color: rgb( 5, 103, 126 );
+}
+
+a:hover {
+	color: rgb( 53, 55, 67 );
+}
+
+/*
+	Headers
+*/
+
+.page-header {
+	/*border-bottom: 0;*/
+	margin-top: 3em;
+}
+
+.page-header h1 {
+	color: rgb( 53, 55, 67 );
+}
+
+h2 {
+	font-weight: 300;
+	color: #444;
+}
+
+h3 {
+
+}
+
+h4 {
+	font-style: italic;
+	font-weight: 300;
+	color: #777;
+}
+
+/*
+	Table Collection Overrides
+*/
+
+.model-group {
+	margin-bottom: 2em;
+}
+
+.model-group table {
+	margin-bottom: 2em;
+}
+
+.model-group .table td,
+.table td,
+.table th {
+	padding: 13px 15px;
+}
+
+.model-group .field-name-column,
+.model-group .content-type-column {
+	width: 25%;
+}
+
+.model-group .description-column,
+.model-group .current-content-column{
+	width: 50%;
+}
+
+.table-actions {
+	color: #CCC;
+}
+
+.group-description {
+	margin: 1.5em 0;
+}
+
+.header-field {
+	font-weight: bold;
+}
+
+table p {
+	margin-bottom: 0;
+}
+
+.system-models .hidden-content {
+	display: none;
+}
+
+
+/*
+	Buttons
+*/
+
+.new-model {
+
+}
+
+#sys-model-show {
+	margin-bottom: 1em;
+}
+
+/*
+	Menus
+*/
+
+.navbar-fixed-top .navbar-inner .nav > li > a {
+	padding: 10px 15px;
+}
+
+.dropdown-menu li {
+
+}
+
+.dropdown-menu li.divider {
+	display: block;
+}
+
+.dropdown-menu li.disabled:hover > a {
+	background: transparent;
+	box-shadow: none;
+}
+
+.dropdown-menu li a:hover {
+	background: rgb( 5, 103, 126 );
+	box-shadow: none;
+}
+
+.breadcrumb {
+	background: transparent;
+	padding: 0;
+}
+
+/*
+	Miscellaneous
+*/
+
+textarea {
+	display: block;
+	box-sizing: border-box;
+	min-width: 100%;
+	max-width: 100%;
+}
+

@@ -1,0 +1,317 @@
+{{< templates/layouts/app.html}}
+{{%content}}
+
+<div class="page-header">
+  <div class="container-fluid clearfix">
+    <h1>Dashboard</h1>
+  </div>
+</div>
+
+{{> templates/content/models/dialogs/new.html}}
+{{> templates/content/models/dialogs/delete.html}}
+
+<div class="container-fluid">
+  <section>
+    <div class="row-fluid">
+      <div class="span12 column">
+
+
+		<!-- Home / Meet Zinio -->
+		<div class="model-group page-models">
+	        <h2>Home</h2>
+	        <p class="group-description">
+	        	This section governs content in the &ldquo;Meet Zinio&rdquo; page.
+	        </p>
+	        <h4>Media</h4>
+			<table class="table table-striped">
+				<thead>
+					<td class="content-type-column">Content Type</td>
+					<td class="description-column">Description</td>
+					<td class="actions-column">Actions</td>
+				</thead>
+				<tbody class="" data-position-field="position" data-position-model="model">
+					{{#home-models}}
+					<tr {{#join-model}}class="disabled_bg"{{/join-model}}>
+						<!-- <td>{{id}}</td> -->
+						<td class="table-name">{{name}}</td>
+						<td class="table-description">{{description}}</td>
+						<!-- <td>{{created-at}}</td> -->
+						<td class="table-actions">
+							{{^join-model}}
+							<a href='{{safe-route-for :admin.results params {:slug slug} }}'>See all</a>
+							<!--
+							/ <a href='{{safe-route-for :admin.edit-model params {:slug slug} }}'>Tweak fields</a>
+							/ <a href="{{safe-route-for :admin.edit-model-instance params {:slug "model" :id id} }}">Edit</a>
+							/ <a href="{{route-for :admin.model-api params {:action "reindex" :slug slug} }}">Reindex</a>
+							/ <a href="#" class="delete-link" data-model="model" data-id="{{id}}">Delete</a>
+							-->
+							{{/join-model}}
+							{{#join-model}}Join models are locked{{/join-model}}
+						</td>
+					</tr>
+					{{/home-models}}
+				</tbody>
+	 		</table>
+	 		<h4>Text</h4>
+			<table class="table table-striped">
+				<thead>
+					<td class="field-name-column">Field Name</td>
+					<td class="current-content-column">Current Content</td>
+					<td class="actions-column">Actions</td>
+				</thead>
+				<tbody class="" data-position-field="position" data-position-model="model">
+	 				{{#home-copy}}
+					<tr>
+						<!-- <td>{{id}}</td> -->
+						<td>{{name}}</td>
+						<td>
+							<p class="header-field">{{header}}</p>
+							<p>{{body}}</p>
+						</td>
+						<!-- <td>{{created-at}}</td> -->
+						<td><a class="edit-link" href="{{safe-route-for :admin.edit-model-instance params {:id id :slug "copy"} }}" data-model="copy" data-id="{{id}}">Edit</a></td>
+					</tr>
+					{{/home-copy}}
+				</tbody>
+	 		</table>
+	 	</div>
+
+		<!-- Partners -->
+		<div class="model-group page-models">
+	      	<h2>Partners</h2>
+
+	        <p class="group-description">
+	        	This section governs content in the &ldquo;Partners&rdquo; page.
+	        </p>
+
+	      	<h4>Media</h4>
+			<table class="table table-striped">
+				<thead>
+					<td class="content-type-column">Content Type</td>
+					<td class="description-column">Description</td>
+					<td class="actions-column">Actions</td>
+				</thead>
+				<tbody class="" data-position-field="position" data-position-model="model">
+					{{#partner-models}}
+					<tr {{#join-model}}class="disabled_bg"{{/join-model}}>
+						<!-- <td>{{id}}</td> -->
+						<td class="table-name">{{name}}</td>
+						<td class="table-description">{{description}}</td>
+						<!-- <td>{{created-at}}</td> -->
+						<td class="table-actions">
+							{{^join-model}}
+							<a href='{{safe-route-for :admin.results params {:slug slug} }}'>See all</a>
+							<!--
+							/ <a href='{{safe-route-for :admin.edit-model params {:slug slug} }}'>Tweak fields</a>
+							/ <a href="{{safe-route-for :admin.edit-model-instance params {:slug "model" :id id} }}">Edit</a>
+							/ <a href="{{route-for :admin.model-api params {:action "reindex" :slug slug} }}">Reindex</a>
+							/ <a href="#" class="delete-link" data-model="model" data-id="{{id}}">Delete</a>
+							-->
+							{{/join-model}}
+							{{#join-model}}Join models are locked{{/join-model}}
+						</td>
+					</tr>
+					{{/partner-models}}
+				</tbody>
+	 		</table>
+
+	 		<h4>Text</h4>
+	 		<table class="table table-striped">
+				<thead>
+					<td class="field-name-column">Field Name</td>
+					<td class="current-content-column">Current Content</td>
+					<td class="actions-column">Actions</td>
+				</thead>
+				<tbody class="" data-position-field="position" data-position-model="model">
+	 				{{#partner-copy}}
+					<tr>
+						<!-- <td>{{id}}</td> -->
+						<td>{{name}}</td>
+						<td>
+							<p class="header-field">{{header}}</p>
+							<p>{{body}}</p>
+						</td>
+						<!-- <td>{{created-at}}</td> -->
+						<td><a class="edit-link" href="{{safe-route-for :admin.edit-model-instance params {:id id :slug "copy"} }}" data-model="copy" data-id="{{id}}">Edit</a></td>
+					</tr>
+					{{/partner-copy}}
+				</tbody>
+			</table>
+		</div>
+
+		<!-- About Us -->
+
+		<div class="model-group page-models">
+			<h2>About Us</h2>
+
+	        <p class="group-description">
+	        	This section governs content in the &ldquo;About Us&rdquo; page.
+	        </p>
+	        
+	      	<h4>Media</h4>
+			<table class="table table-striped content-media">
+				<thead>
+					<td class="content-type-column">Content Type</td>
+					<td class="description-column">Description</td>
+					<td class="actions-column">Actions</td>
+				</thead>
+				<tbody class="" data-position-field="position" data-position-model="model">
+					{{#about-models}}
+					<tr {{#join-model}}class="disabled_bg"{{/join-model}}>
+						<!-- <td>{{id}}</td> -->
+						<td class="table-name">{{name}}</td>
+						<td class="table-description">{{description}}</td>
+						<!-- <td>{{created-at}}</td> -->
+						<td class="table-actions">
+							{{^join-model}}
+							<a href='{{safe-route-for :admin.results params {:slug slug} }}'>See all</a>
+							<!--
+							/ <a href='{{safe-route-for :admin.edit-model params {:slug slug} }}'>Tweak fields</a>
+							/ <a href="{{safe-route-for :admin.edit-model-instance params {:slug "model" :id id} }}">Edit</a>
+							/ <a href="{{route-for :admin.model-api params {:action "reindex" :slug slug} }}">Reindex</a>
+							/ <a href="#" class="delete-link" data-model="model" data-id="{{id}}">Delete</a>
+							-->
+							{{/join-model}}
+							{{#join-model}}Join models are locked{{/join-model}}
+						</td>
+					</tr>
+					{{/about-models}}
+				</tbody>
+	 		</table>
+
+	 		<h4>Text</h4>
+	 		<table class="table table-striped content-text">
+				<thead>
+					<td class="field-name-column">Field Name</td>
+					<td class="current-content-column">Current Content</td>
+					<td class="actions-column">Actions</td>
+				</thead>
+				<tbody class="" data-position-field="position" data-position-model="model">
+	 				{{#about-copy}}
+					<tr>
+						<!-- <td>{{id}}</td> -->
+						<td>{{name}}</td>
+						<td>
+							<p class="header-field">{{header}}</p>
+							<p>{{body}}</p>
+						</td>
+						<!-- <td>{{created-at}}</td> -->
+						<td><a class="edit-link" href="{{safe-route-for :admin.edit-model-instance params {:id id :slug "copy"} }}" data-model="copy" data-id="{{id}}">Edit</a></td>
+					</tr>
+					{{/about-copy}}
+				</tbody>
+			</table>
+		</div>
+
+		<!-- News -->
+
+		<div class="model-group page-models">
+			<h2>News</h2>
+
+	        <p class="group-description">
+	        	This section governs content in the &ldquo;News&rdquo; page.
+	        </p>
+	        
+	      	<h4>Media</h4>
+			<table class="table table-striped content-media">
+				<thead>
+					<td class="content-type-column">Content Type</td>
+					<td class="description-column">Description</td>
+					<td class="actions-column">Actions</td>
+				</thead>
+				<tbody class="" data-position-field="position" data-position-model="model">
+					{{#news-models}}
+					<tr {{#join-model}}class="disabled_bg"{{/join-model}}>
+						<!-- <td>{{id}}</td> -->
+						<td class="table-name">{{name}}</td>
+						<td class="table-description">{{description}}</td>
+						<!-- <td>{{created-at}}</td> -->
+						<td class="table-actions">
+							{{^join-model}}
+							<a href='{{safe-route-for :admin.results params {:slug slug} }}'>See all</a>
+							<!--
+							/ <a href='{{safe-route-for :admin.edit-model params {:slug slug} }}'>Tweak fields</a>
+							/ <a href="{{safe-route-for :admin.edit-model-instance params {:slug "model" :id id} }}">Edit</a>
+							/ <a href="{{route-for :admin.model-api params {:action "reindex" :slug slug} }}">Reindex</a>
+							/ <a href="#" class="delete-link" data-model="model" data-id="{{id}}">Delete</a>
+							-->
+							{{/join-model}}
+							{{#join-model}}Join models are locked{{/join-model}}
+						</td>
+					</tr>
+					{{/news-models}}
+				</tbody>
+	 		</table>
+
+	 		<h4>Text</h4>
+	 		<table class="table table-striped content-text">
+				<thead>
+					<td class="field-name-column">Field Name</td>
+					<td class="current-content-column">Current Content</td>
+					<td class="actions-column">Actions</td>
+				</thead>
+				<tbody class="" data-position-field="position" data-position-model="model">
+	 				{{#news-copy}}
+					<tr>
+						<!-- <td>{{id}}</td> -->
+						<td>{{name}}</td>
+						<td>
+							<p class="header-field">{{header}}</p>
+							<p>{{body}}</p>
+						</td>
+						<!-- <td>{{created-at}}</td> -->
+						<td><a class="edit-link" href="{{safe-route-for :admin.edit-model-instance params {:id id :slug "copy"} }}" data-model="copy" data-id="{{id}}">Edit</a></td>
+					</tr>
+					{{/news-copy}}
+				</tbody>
+			</table>
+		</div>
+
+
+		<div class="model-group system-models">
+
+			<h2>System Models</h2>
+
+	        <p class="group-description">
+	        	Data models that affect core system functionality have been hidden to prevent tampering.
+	        </p>
+			<button class="btn" id="sys-model-show">I know what I'm doing</button>
+			<script>
+				$('#sys-model-show').on('click',function(){
+					$('.system-models .hidden-content').slideToggle();
+				});
+        	</script>
+	        <div class="hidden-content">
+		        <table class="table table-striped">
+		          <thead>
+		            <tr>
+		              <th>ID</th>
+		              <th>Title</th>
+		              <th>Created At</th>
+		              <th>Fun stuff</th>
+		            </tr>
+		          </thead>
+		          <tbody>
+		            {{#locked}}
+		            <tr>
+		              <td>{{id}}</td>
+		              <td>{{name}}</td>
+		              <td>{{created-at}}</td>
+		              <td>
+		                  <a href='{{safe-route-for :admin.results params {:slug slug} }}'>See all</a>
+		                | <a href="{{safe-route-for :admin.edit-model params {:slug slug} }}">View fields</a>
+		              </td>
+		            </tr>
+		            {{/locked}}
+		          </tbody>
+		        </table>
+		    	<a class="btn new-model" data-toggle="modal" data-target="#new-model" >New Model</a>
+		    </div>
+	    </div>
+      </div>
+
+    </div>
+  </section>
+</div>
+
+{{/content}}

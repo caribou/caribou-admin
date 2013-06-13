@@ -17,9 +17,9 @@
    {:path "submit-login", :children [], :slug "admin.submit-login",
     :position nil, :template "", :method "POST", :action "submit-login",
     :name "Submit Login", :controller "settings.account"}
-   {:path ":site", :slug "admin.subsite", :position nil, :template "",
-    :method "", :action "nothing", :name "Subsite", :controller "settings",
-    :children
+   {:path ":site" :slug "admin.zinio" :template "dashboard-zinio.html" :controller "zinio-content" :action "index"
+      :method "GET"
+     :children
     [{:path ":locale", :slug "admin.locale", :position nil, :template "",
       :method "", :action "nothing", :name "Locale",
       :controller "settings.account"
