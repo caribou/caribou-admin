@@ -59,12 +59,14 @@
   <tbody>
     <tr>
       <td>
-        <select name="locale">
-          <option value="">Global</option>
-          {{#locales:item}}
-          <option value="{{item.code}}" {{#equals item.code locale.code}}selected{{/equals item.code locale.code}}>{{item.code}}{{#item.language}} ({{item.language}}){{/item.language}} {{#item.region}} ({{item.region}}){{/item.region}}</option>
-          {{/locales:item}}
-        </select> 
+        {{#instance.id}}
+          <select name="locale">
+            <option value="">Global</option>
+            {{#locales:item}}
+            <option value="{{item.code}}" {{#equals item.code locale.code}}selected{{/equals item.code locale.code}}>{{item.code}}{{#item.language}} ({{item.language}}){{/item.language}} {{#item.region}} ({{item.region}}){{/item.region}}</option>
+            {{/locales:item}}
+          </select> 
+        {{/instance.id}}
       </td>
     </tr>
   </tbody>
