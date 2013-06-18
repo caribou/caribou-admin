@@ -72,11 +72,15 @@
       $("#upload-asset").ajaxfileupload({
         action: self.api().routeFor("upload-asset"),
         onComplete: function(response) {
-          self.value = response.state;
-          $("#current-image").attr("src", "/" + self.value.path);
-          self.load(function( data, error, jqxhr ) {
-            self.refreshAssets();
-          });
+          try {
+            self.value = response.state;
+            $("#current-image").attr("src", "/" + self.value.path);
+            self.load(function( data, error, jqxhr ) {
+              self.refreshAssets();
+            });
+          } catch (e) {
+            global.caribou.status.addErrorMessage("Unable to upload that asset.  Is it too big?").render();
+          }
         }
       });
       $("#upload-button").click( function(e) {
