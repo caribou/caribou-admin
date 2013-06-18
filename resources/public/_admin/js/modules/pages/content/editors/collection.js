@@ -76,6 +76,20 @@
       if (data) { method = "POST" }
       $.ajax({ url: route, type: method, data: data, success: success });
     },
+    // TODO: don't cut/paste this from base.js
+    prepareForUpdate: function( data ) {
+      var blacklist = _( this.model.fields ).chain().filter(
+        function(f) {
+          if ( f.type === "id" ) { return false }
+          if ( f.slug === "type" ) { return false }
+          if ( f.type === "integer" && f.slug.match(/(^|_|-)id$/) ) { return false }
+          if ( f.type === "part" ) { return true } // because the part_id is ok
+          if ( f.type === "password" && data[f.slug] === null ) { return true }
+          //if ( f.type === "link" || f.type === "collection" ) { return true }
+          return !f.editable;
+        }).map( function(f) { return f.slug }).value();
+      return _( data ).omit( blacklist );
+    },
     // too much copy & paste here - refactor this from here
     // and from CollectionChooser
     selected: function() {

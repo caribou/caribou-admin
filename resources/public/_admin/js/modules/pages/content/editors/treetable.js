@@ -108,6 +108,8 @@
 
     arrange: function( content ) {
       var self = this;
+      // any id of zero needs to be translated to a nil before being
+      // committed to the server
       var nodesById = { 0: {
         parentId: null,
         id: 0,
@@ -145,8 +147,8 @@
       $( self.selector ).find("table:first").find("tr").has("td").each( function() {
         var el = $(this);
         var pair = {
-          id: el.data().id,
-          parentId: el.data().parentId
+          id: el.data().id || null,
+          parentId: el.data().parentId || null
         };
         pairs.push(pair);
       });
@@ -178,6 +180,7 @@
       var self = this;
       self.syncFromDOM();
       var diffs = self.diffs();
+
       self.delegate.update(self, diffs);
 
       if (next) {
