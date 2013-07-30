@@ -53,9 +53,12 @@
   [slug & args]
   (pages/route-for slug (pages/select-route slug (apply merge args))))
 
-(defn asset-is-image [m key]
-  (if-let [asset (value-for-key m key)]
-    (.startsWith (or (:content-type asset) "") "image")))
+(defn asset-is-image
+  ([asset]
+    (.startsWith (or (:content-type asset) "") "image"))
+  ([m key]
+    (if-let [asset (value-for-key m key)]
+      (.startsWith (or (:content-type asset) "") "image"))))
 
 (defn asset-path [m key]
   (if-let [asset (value-for-key m key)]
