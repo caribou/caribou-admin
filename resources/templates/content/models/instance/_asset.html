@@ -3,7 +3,12 @@
     <td colspan="3">
 
       {{#instance.path}}
+        {{#asset-is-image instance}}
       <img id="current-image" class="thumbnail pull-right" style="max-width:150px" src="/{{instance.path}}">
+        {{/asset-is-image instance}}
+        {{^asset-is-image instance}}
+      <img id="current-image" title="{{instance.path}}" class="thumbnail pull-right" style="max-width:150px" src="/img/file-icon.png">
+        {{/asset-is-image instance}}
       {{/instance.path}}
 
       Upload a new asset: <input id="upload-asset" type="file" name="upload">

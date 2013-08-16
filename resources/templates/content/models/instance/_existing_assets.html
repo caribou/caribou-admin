@@ -1,4 +1,3 @@
-{{! for now let's just do images }}
 <style type="text/css">
 .thumbnail {
     max-width: 80px;
@@ -10,9 +9,13 @@
 <div id="asset-container" style="max-height: 700px; overflow: scroll;">
   <select name="images">
     <option value=""></option>
-    {{#pager.results:image}}
-    <!-- <option value="{{image.id}}" data-img-src="/{{image.path}}" data-img-label="{{image.filename}}">{{image.filename}}</option>-->
-    <option value="{{image.id}}" data-img-src="{{resize image {:width 100} }}" data-img-label="{{image.filename}}">{{image.filename}}</option>
-    {{/pager.results:image}}
+    {{#pager.results:asset}}
+      {{#asset-is-image asset}}
+    <option value="{{asset.id}}" data-img-src="{{resize asset {:width 100} }}" data-img-label="{{asset.filename}}">{{asset.filename}}</option>
+      {{/asset-is-image asset}}
+      {{^asset-is-image asset}}
+    <option value="{{asset.id}}" data-img-src="/img/file-icon.png" data-img-label="{{asset.filename}}">{{asset.filename}}</option>
+      {{/asset-is-image asset}}
+    {{/pager.results:asset}}
   </select>
 </div>
