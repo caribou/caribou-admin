@@ -10,7 +10,12 @@
     syncToDOM: function() {
       var asset = this.value.value;
       if ( asset ) {
-        $("img#" + this.field.slug).attr({ src: "/" + asset.path }).show();
+        if ( asset['content-type'].indexOf("image") === 0 ) {
+          $("img#" + this.field.slug).attr({ src: "/" + asset.path }).show();
+        } else {
+          $("img#" + this.field.slug).attr({ src: "/img/file-icon.png" }).show();
+          $("img#" + this.field.slug).after(asset.path);
+        }
       } else {
         $("img#" + this.field.slug).hide();
       }
@@ -20,7 +25,7 @@
       var self = this;
       $("#" + self.model.slug + "-" + self.field.slug).find("a").click( function(e) {
         e.preventDefault();
-        console.log(self, "Upload/choose an image");
+        console.log(self, "Upload/choose an asset");
         return self.uploadOrChoose();
       });
       if (this.value.value) {
@@ -71,10 +76,15 @@
       var self = this;
       $("#upload-asset").ajaxfileupload({
         action: self.api().routeFor("upload-asset"),
+        valid_extensions: null,
         onComplete: function(response) {
           try {
             self.value = response.state;
-            $("#current-image").attr("src", "/" + self.value.path);
+            if ( self.value['content-type'].indexOf("image") === 0 ) {
+              $("#current-image").show().attr("src", "/" + self.value.path);
+            } else {
+              $("#current-image").hide().after("<b>" + self.value.path + "</b>" );
+            }
             self.load(function( data, error, jqxhr ) {
               self.refreshAssets();
             });
@@ -117,7 +127,7 @@
         success: function( data, error, jqxhr ) {
           self.loadAssets(data.state);
           $("#assets").html( data.template );
-          $("#assets").find("select[name=images]").imagepicker({ show_label: false });
+          $("#assets").find("select[name=images]").imagepicker({ show_label: true });
           $("#assets a").click( function(e) {
             e.preventDefault();
             self.refreshAssets($(this).data().page);

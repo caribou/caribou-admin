@@ -1,8 +1,7 @@
-(defproject antler/caribou-admin "0.11.28"
+(defproject antler/caribou-admin "0.11.38"
   :description "Generic admin tool for Caribou projects"
   :dependencies [[org.clojure/clojure "1.4.0"]
-                 [antler/caribou-frontend "0.11.22"]
-                 [antler/lichen "0.3.3"]
+                 [antler/caribou-frontend "0.11.34"]
                  [clj-time "0.4.4"]]
   :jvm-opts ["-agentlib:jdwp=transport=dt_socket,server=y,suspend=n"
              "-Djava.awt.headless=true"
