@@ -31,8 +31,8 @@ $(function () {
         if (next) {
           next( d.length > 1 ? d : d[0] );
         } else {
-          window.history.back();
-          //location.href = api.routeFor( "to-route", { page: "admin.results", slug: pageInfo.model } );
+          //window.history.back();
+          location.href = api.routeFor( "to-route", { page: "admin.results", slug: pageInfo.model } );
         }
       });
     }

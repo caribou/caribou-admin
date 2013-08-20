@@ -443,7 +443,7 @@
         updated (map (fn [x]
                        (vector
                         (:model x)
-                        (rights/create permissions (keyword (:model x)) (:fields x) (or (:opts x) {}))))
+                        (rights/create permissions (keyword (:model x)) (dissoc (:fields x) :created-at) (or (:opts x) {}))))
                      payload)
         results (doall (map second updated))]
     (when-not (empty? (set/intersection #{"model" "field"} (set (map :model payload))))

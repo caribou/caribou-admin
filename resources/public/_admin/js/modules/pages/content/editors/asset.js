@@ -10,8 +10,9 @@
     syncToDOM: function() {
       var asset = this.value.value;
       if ( asset ) {
-        if ( asset['content-type'].indexOf("image") === 0 ) {
+        if ( asset['content-type'].indexOf("image") >= 0 ) {
           $("img#" + this.field.slug).attr({ src: "/" + asset.path }).show();
+          console.log("using " + asset.path + " for image");
         } else {
           $("img#" + this.field.slug).attr({ src: "/img/file-icon.png" }).show();
           $("img#" + this.field.slug).after(asset.path);
