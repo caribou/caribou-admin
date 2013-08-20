@@ -372,6 +372,7 @@
                    (first results))
         friendly-fields (human-friendly-fields model)
         global? (or (nil? (:locale request)) (and (contains? params :locale-code) (empty? (:locale-code params))))
+        localized? (some :localized (:fields model))
         pager (helpers/add-pagination results
                                       {:page-size (or (:size params) 20)  ; TODO:kd - put default page size into config
                                        :current-page (:page params)})]
@@ -384,6 +385,7 @@
                                                :pager pager
                                                :results (:results pager)
                                                :global? global?
+                                               :localized? localized?
                                                })))
       :model model
       :state (if-not (contains? params :id) (:results pager) instance)})))
