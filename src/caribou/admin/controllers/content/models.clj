@@ -7,6 +7,8 @@
             [clojure.string :as string]
             [clojure.set :as set]
             [clj-time.core :as timecore]
+            [clj-time.format :as timeformat]
+            [clj-time.coerce :as timecoerce]
             [clojure.pprint :as pprint]
             [slingshot.slingshot :as slingshot :refer [throw+]]
             [clojure.walk :as walk]
@@ -87,8 +89,22 @@
         filled (map #(assoc % :friendly-path (field-path %)) stripped)]
     filled))
 
+
+(def datetime-formatter (timeformat/formatter "MM/dd/yyyy -- h:mm a"))
+(def date-formatter (timeformat/formatter "MM/dd/yyyy"))
+
+(defn convert-time
+  "Convert db timestamp to friendly display"
+  [formatter time]
+  (let [date (timecoerce/from-sql-date time)
+        out (timeformat/unparse formatter date)]
+    out))
+
 (def all-helpers
-  {:order-get-in order-get-in})
+  {:order-get-in order-get-in
+   :type type
+   :convert-time convert-time
+   :formatters {:datetime datetime-formatter :date date-formatter}})
 
 (defn render
   ([content-type params]

@@ -28,6 +28,8 @@
       vertical-align: middle;
       border-color: $grayLight;
     }
+
+    td.center { text-align: center; }
     //style the placeholder where an row can be dropped
     tbody tr.ui-sortable-placeholder td,
     tbody tr.ui-sortable-placeholder.disabled_bg td {
