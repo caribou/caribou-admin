@@ -1,5 +1,5 @@
 {{#asset-is-image instance slug}}
-    <img id="{{slug}}" class="thumbnail" style="max-width:150px" src="{{resize-in instance slug {:width 150} }}">
+    <img class="thumbnail image-{{slug}}" style="max-width:150px" src="{{resize-in instance slug {:width 150} }}">
 {{/asset-is-image instance slug}}
 {{^asset-is-image instance slug}}
     {{asset-path instance slug}}    
