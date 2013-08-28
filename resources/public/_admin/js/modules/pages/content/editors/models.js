@@ -61,13 +61,24 @@
     },
     load: function( success ) {
       var self = this;
-      var route = self.api().routeFor( "editor-content", {
+      var params = {
         model: self.model.slug,
         id: self.value && self.value.id ? self.value.id : null,
         // if we call it "locale" it will get stomped on by the
         // locale in the URL itself.
-        "locale-code": (self.locale? self.locale : "")
-      });
+        "locale-code": (self.locale? self.locale : ""),
+      }; 
+
+      /**
+      * Options templates param. Should only be passed
+      * in if it exists.
+      *
+      */
+      if(self.options.template){
+        params.template = self.options.template;
+      }
+
+      var route = self.api().routeFor( "editor-content", params);
       $.ajax({ url: route, success: success });
     },
     syncToDOM: function() {
@@ -78,6 +89,7 @@
     syncFromDOM: function() {
       $( this.children ).each( function( index, child ) {
         child.syncFromDOM();
+
         child.callback("sync");
       });
     },

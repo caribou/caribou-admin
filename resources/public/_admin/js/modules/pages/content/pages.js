@@ -3,6 +3,38 @@
   var api     = global.caribou.api;
   var models  = global.caribou.models;
 
+  /**
+  * Initialize Siphon functionality
+  *
+  */
+  function initSiphons(){
+    $('.add-siphon').on('click', function(){
+       console.log('add siphon');               
+       addSiphon();
+    });
+  }
+
+  /**
+  * Add siphon input row onto existing table
+  *
+  */
+  function addSiphon(){
+    var tbody = $('div.siphons table tbody');
+    var newTR =  '<tr>'
+                    +'<td><input type="text" autocomplete="off" name="siphon-name" id="siphon-name"></td>'
+                    +'<td><select name="siphon-types">'
+                    +  '<option value="0">string</option>'
+                    +  '<option value="1">integer</option>'
+                    +   '<option value="2">collection</option>'
+                    +   '<option value="3">part</option>'
+                    +'</select></td>'
+                    +'<td>No item(s)<a id="edit-page-siphons" data-slug="siphons" href="#" class="pull-right btn btn-primary hide" style="display: inline;">Edit</a></td>'
+                  +'</tr>';
+    
+    tbody.append(newTR);
+    
+  }
+
   if (!editors || !editors.TreeEditor) {
     throw "editors.js and tree.js have not been included";
   }
@@ -209,8 +241,8 @@
       var options = {
         model: api.model( "page" ),
         value: { id: pageInfo.id },
+        template: '_edit_page.html', //********CUSTOM TEMPLATE FOR PAGE EDITITNG.***********
         submit: function( value, next ) {
-          console.log("Holy smokes, batman!", value);
           var data = [{ model: "page", fields: editor.prepareForUpdate( value ) }]
           api.post( data, function( d ) {
             console.log(d);
@@ -231,7 +263,11 @@
         editor.syncToChildren();
         editor.template = data.template;
         editorStack.push(editor);
+
+        //Initialize siphon actions
+        initSiphons();
       });
+
     },
 
     labelFor: function( node, isShort ) {
@@ -255,6 +291,10 @@
 
       var controls = el.find("td.controls");
 
+      /**
+      * Click action for Pencil Icons.
+      *
+      */
       if (node.id) {
         var selectLink = $("<a href='#'><span class='instrument-icon-pencil'></span></a>").on("click", function(e) {
           console.log(node);
@@ -263,6 +303,10 @@
         controls.append( selectLink );
       }
 
+      /**
+      * Click action for Plus Icons.
+      *
+      */
       var addLink = $("<a href='#'><span class='instrument-icon-circle-plus'></span></a>").on("click", function(e) {
         showNewDialog( node, self.labelFor(node) );
       });
