@@ -9,7 +9,6 @@
   */
   function initSiphons(){
     $('.add-siphon').on('click', function(){
-       console.log('add siphon');               
        addSiphon();
     });
   }
@@ -28,11 +27,24 @@
                     +   '<option value="2">collection</option>'
                     +   '<option value="3">part</option>'
                     +'</select></td>'
+                    +'<td><select name="models">'
+                    +  '<option value="0">employee</option>'
+                    +  '<option value="1">project</option>'
+                    +   '<option value="2">slideshow</option>'
+                    +   '<option value="3">slide</option>'
+                    +'</select></td>'
                     +'<td>No item(s)<a id="edit-page-siphons" data-slug="siphons" href="#" class="pull-right btn btn-primary hide" style="display: inline;">Edit</a></td>'
                   +'</tr>';
     
     tbody.append(newTR);
-    
+  }
+
+  /**
+  * Remove siphon from table
+  *
+  */
+  function removeSiphon(){
+
   }
 
   if (!editors || !editors.TreeEditor) {
