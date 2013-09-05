@@ -1,3 +1,11 @@
+//-------------------------------------------------------
+// editors/collection.js
+// A "collection" is commonly known as a "to-many" or
+// "has-many" relationship.
+// A "link" is commonly known as a "many-to-many"
+// relationship.
+//-------------------------------------------------------
+
 (function (global) {
   global.caribou = global.caribou || {};
   var editors = global.caribou.editors;
@@ -21,6 +29,8 @@
         });
       } else {
         editButton.hide();
+        // TODO: get rid of this and allow a user to edit related content
+        // to an un-committed model
         editButton.before("You can edit this after you've saved your work.");
       }
     },

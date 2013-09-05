@@ -1,9 +1,9 @@
-// This requires editors.js to have been included first.
+// This requires editors/base.js to have been included first.
 
 (function(global) {
   var editors = global.caribou.editors;
   if (!editors) {
-    throw "editors.js has not been included";
+    throw "editors/base.js has not been included";
   }
 
   // Subclass/override to provide your own

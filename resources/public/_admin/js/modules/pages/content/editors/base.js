@@ -1,4 +1,16 @@
+//-------------------------------------------------------
+// editors/base.js
+// This is the core of the editing system used by the
+// admin.
+//-------------------------------------------------------
+
 (function (global) {
+
+  //-------------------------------------------------------
+  // Editor is the parent class of all editors.  An editor
+  // has a value (some JS value or object) and knows how
+  // to sync values to and from the DOM.
+  //-------------------------------------------------------
   function Editor( options ) {
     var self = this;
 
@@ -107,7 +119,14 @@
     on: function( event, fn ) { console.error(this + " can't handle " + event); }
   });
 
-  // Parent class for editors representing fields
+  //-------------------------------------------------------
+  // FieldEditor is the parent class of each mini editor
+  // that represents a single field within a larger editor.
+  // There is generally one of these per caribou "field"
+  // within a given model.  See editors/fields.js to
+  // see examples of how specific types of fields are
+  // built.
+  //-------------------------------------------------------
   function FieldEditor( options ) {
     var self = this;
     Editor.call( self, options );
@@ -146,10 +165,12 @@
     }
   });
 
-  // export the classes through the global
+  //-------------------------------------------------------
+  // Export everything through the global (usually "window")
   // Other scripts that create subclasses of these
   // components will push them into this global
   // so they are available everywhere.
+  //-------------------------------------------------------
   global.caribou = global.caribou || {};
   global.caribou.editors = {
     registry: new EditorRegistry(),
@@ -157,6 +178,4 @@
     FieldEditor: FieldEditor
   };
 })(window);
-
-
 

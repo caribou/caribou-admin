@@ -1,3 +1,7 @@
+/**********************************************************
+ * editors.js
+ *********************************************************/
+
 _.templateSettings = {
   interpolate : /\{\{(.+?)\}\}/g
 };
@@ -17,7 +21,7 @@ $(function () {
     model: api.model( pageInfo.model ),
     locale: (pageInfo.locale === "global" ? null : pageInfo.locale),
     submit: function( value, next ) {
-      console.log("Holy smokes, batman!", value);
+      console.log(value);
       var values = _.isArray( value ) ? value : [value];
       var opts = {};
       if (editor.locale && editor.locale !== "") {
