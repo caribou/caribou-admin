@@ -1,5 +1,16 @@
+//-------------------------------------------------------
+// editors/part.js
+// "Part" fields are commonly known as "to-one" or
+// "has-one" relationships.  The PartFieldEditor
+// class provides the generic functionality for
+// editing a single related piece of content.  It is
+// further customised by AssetFieldEditorm, amongst
+// others.
+//-------------------------------------------------------
+
 (function (global) {
   global.caribou = global.caribou || {};
+
   var editors = global.caribou.editors;
   if (!editors) {
     throw "editors/base.js and editors/fields.js have not been included";

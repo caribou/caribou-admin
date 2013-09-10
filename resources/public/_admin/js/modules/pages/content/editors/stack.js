@@ -1,3 +1,29 @@
+//-------------------------------------------------------
+// editors/stack.js
+// The Caribou admin allows you to edit complex
+// object graphs.  It does this by having the concept
+// of a "stack" of editors. If you need to add or edit
+// content associated with whatever you are currently
+// viewing, a new "editor" is pushed onto the stack and
+// activated.  When you are done with your new content,
+// the editor is popped off, and you are returned to
+// where you were before.
+//
+// The EditorStack class is defined in this file.  It
+// controls all of the actions of the stack, including
+// pushing and popping of editors, notifying the
+// editors of events, and sending important callbacks
+// to the appropriate editors at the right time.
+//
+// An editor stack can be created and injected into the
+// DOM like this:
+//
+// $("#foo").editorStack({options});
+//
+// The editor stack will be instatiated with the options,
+// and will be accessible via $("#foo").data().stack
+//-------------------------------------------------------
+
 (function (global) {
   global.caribou = global.caribou || {};
   var editors = global.caribou.editors;

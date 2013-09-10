@@ -1,3 +1,12 @@
+//-------------------------------------------------------
+// editors/fields.js
+// This is where the specific individual field editors
+// are defined, one for each type of caribou field
+// that can exist on a model.  When a generic model
+// editor starts up, it builds an array of child field
+// editors, one for each of its fields.
+//-------------------------------------------------------
+
 (function (global) {
 
   global.caribou = global.caribou || {};

@@ -129,45 +129,126 @@
       });
     };
 
-    var showAddFieldDialog = function( el ) {
-      var data = $( el ).data();
-      $("#new-field").modal();
-      $("#new-field select[name='field-type']").change(function( e ) {
-        $("#new-field #slug-controls").hide();
-        $("#new-field #association-controls").hide();
-        $("#new-field #timestamp-controls").hide();
-        $("#new-field #association-controls select").prop("disabled", true);
-        $("#new-field #searchable").prop("disabled", false);
-        $("#new-field #slug-controls select").prop("disabled", true);
-        var v = $( this ).val();
+
+    function AddFieldDialog(options) {
+      var self = this;
+      self.options = options;
+      self._selector = options.selector || "#new-field";
+      self._element = $(self._selector);
+      self._data = options.data;
+
+      self.form                 = self._element.find("form");
+      self.typeSelection        = self._element.find("select[name=field-type]");
+      self.associationControls  = self._element.find("#association-controls");
+      self.associationSelection = self.associationControls.find("select");
+      self.reciprocalNameField  = self.associationControls.find("#reciprocal-name");
+      self.timestampControls    = self._element.find("#timestamp-controls");
+      self.enumerationControls  = self._element.find("#enumeration-controls");
+      self.searchableCheckbox   = self._element.find("#searchable");
+      self.slugControls         = self._element.find("#slug-controls");
+      self.slugSelection        = self.slugControls.find("select");
+      self.enumerationValues    = self.enumerationControls.find("#values");
+      self.submitButton         = self._element.find("input[type=submit]");
+      self.attach();
+    }
+
+    $.extend(AddFieldDialog.prototype, {
+      open: function() {
+        this._element.modal();
+      },
+      close: function() {
+      },
+      attach: function() {
+        var self = this;
+        self.typeSelection.off("change").on("change", function(e) {
+          e.stopPropagation();
+          self.changeTypeSelection();
+        });
+        self.submitButton.off("click").on("click", function(e) {
+          self.submit();
+        });
+      },
+      submit: function() {
+        var self = this;
+        self.form.submit();
+      },
+      changeTypeSelection: function() {
+        var self = this;
+        self.hideControls();
+        self.resetControls();
+        var v = self.typeSelection.val();
         switch (v) {
           case "collection":
           case "part":
           case "link":
-            $("#new-field #association-controls").show();
-            $("#new-field #association-controls select").prop("disabled", false);
-            if ( v === "part" ) {
-              $("#new-field #reciprocal-name").val( owl.pluralize( data.model ) );
+            self.associationControls.show();
+            self.associationSelection.prop("disabled", false);
+            if (v === "part") {
+              self.reciprocalNameField.val(owl.pluralize(self.data.model));
             } else {
-              $("#new-field #reciprocal-name").val( data.model );
+              self.reciprocalNameField.val(self.data.model);
             }
             break;
           case "slug":
           case "urlslug":
-            $("#new-field #slug-controls select").prop("disabled", false);
-            $("#new-field #slug-controls").show();
+            self.slugSelection.prop("disabled", false);
+            self.slugControls.show();
             break;
           case "password":
-            $("#new-field #searchable").prop("checked", false);
-            $("#new-field #searchable").prop("disabled", true);
+            self.searchableCheckbox.prop("checked", false);
+            self.searchableCheckbox.prop("disabled", true);
             break;
           case "timestamp":
-            $("#new-field #timestamp-controls").show();
+            self.timestampControls.show();
+            break;
+          case "enum":
+            self.resetEnumerationControls();
+            self.enumerationControls.show();
             break;
           default:
             break;
         }
-      });
+      },
+      hideControls: function() {
+        var self = this;
+        self.slugControls.hide();
+        self.associationControls.hide();
+        self.enumerationControls.hide();
+        self.timestampControls.hide();
+      },
+      resetControls: function() {
+        var self = this;
+        self.searchableCheckbox.prop("disabled", false);
+        self.associationSelection.prop("disabled", true);
+        self.slugSelection.prop("disabled", true);
+      },
+      newEnumerationValueField: function(value, shouldAdd, shouldRemove) {
+        var self = this;
+        var newValue = $("<input type='text' name='value' />");
+        var addValueButton = $("<a href='#' class='btn btn-primary'>+</a>").on("click", function(e) {
+          self.enumerationValues.append(self.newEnumerationValueField("", true, true));
+        });
+        var removeValueButton = $("<a href='#' class='btn btn-primary'>-</a>").on("click", function(e) {
+          $(this).parent("li").remove();
+        });
+        var newField = $("<li>").append(newValue);
+        if (shouldAdd) {
+          newField.append(addValueButton);
+        }
+        if (shouldRemove) {
+          newField.append(removeValueButton);
+        }
+        return newField;
+      },
+      resetEnumerationControls: function() {
+        var self = this;
+        self.enumerationValues.empty().append(self.newEnumerationValueField("", true, false));
+      }
+    });
+
+    var showAddFieldDialog = function( el ) {
+      var dialog = new AddFieldDialog({ data: $(el).data() });
+      dialog.open();
     }
 
     var enableDeleteLinks = function( opts ) {

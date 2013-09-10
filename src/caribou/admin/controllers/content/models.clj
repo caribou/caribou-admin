@@ -190,6 +190,14 @@
                                                                     :page-slug (-> request :page :slug)
                                                                     :current-page (:page params)})}))))
 
+(defn add-enum-values
+  [m field values]
+  (let [new-field (model/pick :field {:where {:name (:name field) :model {:id (:id m)}}})]
+    (do
+      (doall (for [v values]
+               (model/create :enumeration {:entry v :field-id (:id new-field)})))
+      (model/invoke-models))))
+
 (defn new-field
   [{permissions :permissions :as request}]
   (let [params (-> request :params)
@@ -200,6 +208,10 @@
         target-id (:target-id params)
         link-id (:link-id params)
         fmt (:format params)
+        values (-> request :form-params (get "value"))
+        values (if (sequential? values)
+                 values
+                 (vector values))
         description (:description params)
         ;; extra bits here, validate, etc
         model (rights/pick permissions :model
@@ -218,12 +230,18 @@
                      :format fmt
                      :description description
                      :type field-type})
-        new-model (try 
-                    (rights/update 
+
+        new-model (try
+                    (rights/update
                      permissions :model
                      (:id model) {:fields [new-field]})
                     (catch Exception e (log/render-exception e)))]
     (model/invoke-models)
+
+    ;; add enumerated values if there are any
+    (when (and (not (empty? values)) (= field-type "enum"))
+      (add-enum-values model new-field values))
+
     (controller/redirect (pages/route-for :admin.edit-model
                                           (dissoc (:params request)
                                                   :field-name

@@ -1,3 +1,14 @@
+//-------------------------------------------------------
+// editors/models.js
+// The generic model editors ("ModelEditor" and
+// "BulkModelEditor") are defined here.  They will work
+// with pretty much any Caribou model.
+//
+// This file also currently contains the master map that
+// decides which individual field editors should be used
+// for each Caribou field type.
+//-------------------------------------------------------
+
 (function (global) {
   global.caribou = global.caribou || {};
   var editors = global.caribou.editors;
@@ -25,7 +36,15 @@
     // etc.
   };
 
-  // plain editor for plain form
+  // -------------------------------------------------------
+  // ModelEditor is the generic editor that can be used to
+  // edit almost any kind of Caribou model.
+  //
+  // It has a collection of "children", one for each field
+  // in the model that is being edited, and it syncs its
+  // values to and from those children (which in turn sync
+  // their values to and from the DOM).
+  // -------------------------------------------------------
   function ModelEditor( options ) {
     var self = this;
     editors.Editor.call( this, options );
@@ -146,6 +165,20 @@
     }
   });
 
+  // -------------------------------------------------------
+  // BulkModelEditor is a subclass of model editor, and
+  // differs from its parent in one very specific way:
+  // it provides the ability to edit multiple models
+  // of the same type at the same time.  The purpose of
+  // this is to allow an admin user to select numerous
+  // pieces of content, and then apply a single edit to
+  // all of those simultaneously.   One common example
+  // of this might be to publish a set of blog posts
+  // all at the same time.  Its behaviour is loosely based
+  // on the "Edit info" facility in iTunes, which allows
+  // the editing of metadata for multiple music tracks
+  // at the same time.
+  // -------------------------------------------------------
   function BulkModelEditor( options ) {
     ModelEditor.call( this, options );
     this.ids = options.ids;
