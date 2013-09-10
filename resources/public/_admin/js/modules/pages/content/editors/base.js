@@ -95,7 +95,7 @@
           if ( f.type === "id" ) { return false }
           if ( f.slug === "type" ) { return false }
           if ( f.type === "integer" && f.slug.match(/(^|_|-)id$/) ) { return false }
-          if ( f.type === "part" ) { return true } // because the part_id is ok
+          if ( f.type === "part" || f.type == "enum" || f.type == "asset" ) { return true } // because the id field is present
           if ( f.type === "password" && data[f.slug] === null ) { return true }
           if ( f.type === "link" || f.type === "collection" ) { return true }
           return !f.editable;
