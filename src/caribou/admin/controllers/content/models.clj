@@ -231,8 +231,11 @@
                      :description description
                      :type field-type})
 
-        new-model (rights/update permissions :model
-                                 (:id model) {:fields [new-field]})]
+        new-model (try
+                    (rights/update
+                     permissions :model
+                     (:id model) {:fields [new-field]})
+                    (catch Exception e (log/render-exception e)))]
     (model/invoke-models)
 
     ;; add enumerated values if there are any
