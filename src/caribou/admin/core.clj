@@ -1,5 +1,5 @@
 (ns caribou.admin.core
-  (:use [ring.middleware.json-params :only (wrap-json-params)]
+  (:use [ring.middleware.json :only (wrap-json-params)]
         [ring.middleware.multipart-params :only (wrap-multipart-params)]
         [ring.middleware.params :only (wrap-params)]
         [ring.middleware.file :only (wrap-file)]
