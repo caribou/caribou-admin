@@ -46,7 +46,7 @@
       var target = self.api().model( self.field["target-id"] );
       var value = {};
 
-      var editor = new editors.ModelEditor({
+      var editor = global.caribou.editors.registry.editor({
         model: target,
         value: value,
         // TODO: all these callbacks should just be methods

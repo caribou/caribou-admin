@@ -12,6 +12,11 @@
         },
         nodeId: function(self, node) { return node.id },
         nodeType: function(self, node) { return node.type },
+        hasChildren: function(tree, dom, node) {
+            var children = node[tree.childRelationship] || [];
+            var leaves = node[tree.leafRelationship] || [];
+            return (children.length + leaves.length > 0)
+        },
         makeSubtree: function(self) { return $("<ul>") },
         openBranch: function(self, dom, node) {
             console.log("open branch");
@@ -22,7 +27,9 @@
             console.log(dom, node);
         },
         moveNode: function(self, dropped, on) {},
-        moveLeaf: function(self, dropped, on) {}
+        moveLeaf: function(self, dropped, on) {},
+        addNodeControls: function() {},
+        addLeafControls: function() {}
     });
 
     var TreeEditor = function(options) {
@@ -30,9 +37,9 @@
         this.delegate = options.delegate || new TreeEditorDelegate();
         this.needsRender = true;
         this.childRelationship      = options.childRelationship || "children";
-        this.leafRelationship       = options.leafRelationship  || null;
+        this.leafRelationship       = options.leafRelationship  || "leaves";
         this.parentRelationship     = options.parentRelationship     || "parent";
-        this.leafParentRelationship = options.leafParentRelationship || null;
+        this.leafParentRelationship = options.leafParentRelationship || "parent";
         this.openClass              = options.openClass || "open";
         this.closedClass            = options.closedClass || "closed";
         this.treeClass              = options.treeClass || "tree";
@@ -196,6 +203,7 @@
             var self = this;
             return;
             /*
+            // TODO make this configurable
             dom.find(".node > .node-name").droppable({
                 accept: ".node, .leaf",
                 hoverClass: "ui-state-hover",
@@ -309,8 +317,8 @@
         }
     });
 
-    global.dtc = global.dtc || {};
-    global.dtc.editors = global.dtc.editors || {};
-    global.dtc.editors.TreeEditor = TreeEditor;
-    global.dtc.editors.TreeEditorDelegate = TreeEditorDelegate;
+    global.caribou = global.caribou || {};
+    global.caribou.editors = global.caribou.editors || {};
+    global.caribou.editors.TreeEditor = TreeEditor;
+    global.caribou.editors.TreeEditorDelegate = TreeEditorDelegate;
 })(window);

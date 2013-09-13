@@ -21,7 +21,11 @@
         },
         initWithModel: function( model ) {
           self._model = self._model || {};
+          self._modelSlugs = self._modelSlugs || [];
           _( model ).each( function(m) {
+            if (!self._model[ m.slug ]) {
+              self._modelSlugs.push(m.slug);
+            }
             self._model[ m.slug ] = m;
             self._model[ m.id ] = m;
           });
@@ -45,6 +49,23 @@
             }
           });
           return self._model[ slug ];
+        },
+        invokeModels: function() {
+          self._allModelsLoaded = true;
+          $.ajax({
+            type: "GET",
+            async: false,
+            url: self.routeFor("find-all", { model: "model", include: "fields" }),
+            success: function( data ) {
+              self.initWithModel(data);
+            }
+          });
+        },
+        allModelSlugs: function() {
+          if (!self._allModelsLoaded) {
+            self.invokeModels();
+          }
+          return self._modelSlugs;
         },
         bestTitle: function( m, slug ) {
           var model = self.model( slug );

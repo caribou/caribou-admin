@@ -225,7 +225,7 @@
         }
       };
 
-      var editor = new window.caribou.editors.ModelEditor(options);
+      var editor = window.caribou.editors.registry.editor(options);
       editor.load( function( data, error, xhr ) {
         editor.value = data.state || {};
         editor.syncToChildren();

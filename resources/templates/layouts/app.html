@@ -30,8 +30,8 @@
   <link rel="stylesheet" type="text/css" href="/_admin/css/timepicker.css" />
 
   <!-- jquery moved to top so a page can include scripts that fire on page ready -->
-  <script src="/_admin/js/libs/jquery-1.7.2.min.js"></script>
-	<script src="/_admin/js/libs/modernizr-2.5.3-respond-1.1.0.min.js"></script>
+  <script src="/_admin/js/libs/jquery-1.10.2.min.js"></script>
+  <script src="/_admin/js/libs/modernizr-2.5.3-respond-1.1.0.min.js"></script>
 </head>
 <body id="{{page.slug}}" data-controller="{{page.slug}}" data-model="{{model.slug}}" data-api="{{safe-route-for :admin.model-api params}}" data-instance-ids="{{instance-ids}}" data-locale="{{locale-code params.locale}}">
 <!--[if lt IE 7]><p class=chromeframe>Your browser is <em>ancient!</em> <a href="http://browsehappy.com/">Upgrade to a different browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">install Google Chrome Frame</a> to experience this site.</p><![endif]-->
@@ -137,14 +137,17 @@
 
   <script src="/_admin/js/modules/pages/content/editors/base.js"></script>
   <script src="/_admin/js/modules/pages/content/editors/fields.js"></script>
+  <script src="/_admin/js/modules/pages/content/editors/structure.js"></script>
   <script src="/_admin/js/modules/pages/content/editors/part.js"></script>
   <script src="/_admin/js/modules/pages/content/editors/collection.js"></script>
   <script src="/_admin/js/modules/pages/content/editors/asset.js"></script>
   <script src="/_admin/js/modules/pages/content/editors/address.js"></script>
   <script src="/_admin/js/modules/pages/content/editors/models.js"></script>
   <script src="/_admin/js/modules/pages/content/editors/stack.js"></script>
-  <script src="/_admin/js/modules/pages/content/editors.js"></script>
   <script src="/_admin/js/modules/pages/content/editors/treetable.js"></script>
+  <script src="/_admin/js/modules/pages/content/editors/tree.js"></script>
+  <script src="/_admin/js/modules/pages/content/editors/siphon.js"></script>
+  <script src="/_admin/js/modules/pages/content/editors.js"></script>
   <script src="/_admin/js/modules/pages/content/models.js"></script>
   <script src="/_admin/js/modules/pages/content/pages.js"></script>
   <script src="/_admin/js/modules/pages/content/breadcrumbs.js"></script>

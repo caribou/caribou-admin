@@ -158,28 +158,28 @@
         value[reciprocalField.slug] = [ self.instance ];
       }
 
-      var editor = new editors.ModelEditor({
+      var editor = global.caribou.editors.registry.editor({
         model: self.model,
         value: value,
-        submit: function( value, next ) {
-          self.saveChanges( value, next );
+        submit: function(value, next) {
+          self.saveChanges(value, next);
         }
       });
 
       editor.load( function(data, error, xhr) {
         editor.template = data.template;
-        self.stack().push( editor );
+        self.stack().push(editor);
       });
 
       return false;
     },
     editExisting: function( existing ) {
       var self = this;
-      var editor = new editors.ModelEditor({
+      var editor = global.caribou.editors.registry.editor({
         model: self.model,
         value: { id: existing.id },
-        submit: function( value, next ) {
-          self.saveChanges( value, next );
+        submit: function(value, next) {
+          self.saveChanges(value, next);
         }
       });
 
@@ -187,7 +187,7 @@
         editor.template = data.template;
         editor.value = data.state;
         editor.syncToChildren();
-        self.stack().push( editor );
+        self.stack().push(editor);
       });
     },
     removeExisting: function( existing ) {
@@ -363,7 +363,7 @@
     // of BulkModelEditor.
     editExisting: function( existing ) {
       var self = this;
-      var editor = new editors.ModelEditor({
+      var editor = global.caribou.editors.registry.editor({
         model: self.model,
         value: { id: existing.id },
         submit: function( value, next ) {

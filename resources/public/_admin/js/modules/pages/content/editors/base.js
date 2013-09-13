@@ -138,6 +138,13 @@
   $.extend( FieldEditor.prototype, Editor.prototype, {
     description:   function() { return this.field.slug },
     selector:      function() { return this.parent.selector + " input[name=" + this.field.slug + "]" },
+    element:       function() {
+      var self = this;
+      if (!self._element) {
+        self._element = $(self.selector());
+      }
+      return self._element;
+    },
     syncToDOM:     function() { $( this.selector() ).val( this.value ) },
     syncFromDOM:   function() { this.value = $( this.selector() ).val() },
     syncValueFrom: function(from) { this.value = from.get( this.field.slug ) },
@@ -148,6 +155,14 @@
       $( this.selector() ).on( event, fn );
     }
   });
+
+  //-------------------------------------------------------
+  // The EditorRegistry maps model slugs to editors,
+  // and is where you specify which editor is to be used
+  // for which model.  If you don't specify anything,
+  // the system will pick the generic ModelEditor, which
+  // should allow you to edit most things.
+  //-------------------------------------------------------
 
   function EditorRegistry() {
     this.map = {};
@@ -161,6 +176,7 @@
         var editorClass = this.map[model.slug];
         return new editorClass( options );
       }
+      console.log("No specific editor for " + model.slug + " so using generic");
       return new global.caribou.editors.ModelEditor( options );
     }
   });

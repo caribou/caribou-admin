@@ -31,8 +31,8 @@
     collection: editors.CollectionFieldEditor,
     part:       editors.PartFieldEditor,
     link:       editors.LinkFieldEditor,
-    address:    editors.AddressFieldEditor
-    //structure:  editors.StructureFieldEditor
+    address:    editors.AddressFieldEditor,
+    structure:  editors.StructureFieldEditor
     // etc.
   };
 
@@ -48,23 +48,7 @@
   function ModelEditor( options ) {
     var self = this;
     editors.Editor.call( this, options );
-    self.children = [];
-    $( self.model.fields ).each( function( index, field ) {
-      if ( field.editable ) {
-        var fieldEditorClass = fieldEditorMap[ field.type ] || editors.FieldEditor;
-        var editor;
-        editor = new fieldEditorClass({
-          model: self.model,
-          field: field,
-          parent: self,
-          idField: _( self.model.fields ).find( function(f) { return f.slug === field.slug + "-id" } ),
-          value: self.get( field.slug ),
-          idValue: self.get( field.slug + "-id" ),
-          sync: function( value, next ) { self.syncFromChild( editor, value, next ); }
-        });
-        self.children.push( editor );
-      }
-    });
+    self.constructChildren();
   }
 
   $.extend( ModelEditor.prototype, editors.Editor.prototype, {
@@ -88,6 +72,31 @@
         "locale-code": (self.locale? self.locale : "")
       });
       $.ajax({ url: route, success: success });
+    },
+    constructChildren: function() {
+      var self = this;
+      self.children = [];
+      $( self.model.fields ).each( function( index, field ) {
+        var editor = self.constructChild(field);
+        if (editor) { self.children.push(editor) }
+
+      });
+    },
+    constructChild: function(field) {
+      var self = this;
+      if (!field.editable) { return null }
+
+      var fieldEditorClass = fieldEditorMap[ field.type ] || editors.FieldEditor;
+      var editor = new fieldEditorClass({
+        model: self.model,
+        field: field,
+        parent: self,
+        idField: _( self.model.fields ).find( function(f) { return f.slug === field.slug + "-id" } ),
+        value: self.get( field.slug ),
+        idValue: self.get( field.slug + "-id" ),
+        sync: function( value, next ) { self.syncFromChild( editor, value, next ); }
+      });
+      return editor;
     },
     syncToDOM: function() {
       $( this.children ).each( function( index, child ) {
