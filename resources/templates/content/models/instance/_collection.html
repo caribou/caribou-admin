@@ -1,9 +1,5 @@
     <div class="row-fluid">
       <div class="span12 column">
-        <div class="status-messages alert alert-error alert-block hide changeOrderMessage clearfix">
-          You've changed the order. Be sure to save!
-          <button class='btn btn-danger' onclick='window.caribou.models.updateOrdering();'>Save</button>
-        </div>
         <table class="table table-striped table-bordered">
           <thead>
             <tr>
@@ -30,14 +26,14 @@
               <th></th>
             </tr>
           </thead>
-          <tbody class="sortable" data-position='{ "model":"{{order-info.model.slug}}", "offset": {{pager.start-index}}, "association":"{{order-info.association }}", "umbrella":{{or order-info.umbrella "null"}} }'>
+          <tbody class="sortable caribou-results" data-position='{ "model":"{{order-info.model.slug}}", "offset": {{pager.start-index}}, "association":"{{order-info.association }}", "umbrella":{{or order-info.umbrella "null"}} }'>
             {{#pager.results:instance}}
             <tr data-position='{ "position": {{order-get-in instance order-info.position-slug}}, "id": "{{get-in instance "id" }}" }' {{#locked}}class="disable_bg"{{/locked}}>
               <!-- <td class="sort"><span class="instrument-icon-up"></span><span class="instrument-icon-down"></span></td>-->
               <td><input type="checkbox" name="id" value="{{get-in instance "id" }}" /></td>
               {{#env.fields:field}}
                 {{^system-field? field}}
-                <td>
+                <td class="caribou-{{field.type}} caribou-{{field.slug}} caribou-{{model.slug}}-{{field.slug}}">
                   {{> templates/content/models/fields/view/_[[type]].html }}
                 </td>
                 {{/system-field? field}}

@@ -6,6 +6,10 @@
     <li {{#equals loop.index pager.current}}class="active"{{/equals loop.index pager.current}}><a data-page="{{loop.index}}" href="{{#pager.pagination-target}}{{route-for pager.pagination-target params {:page loop.index} }}{{/pager.pagination-target}}">{{loop.inc-index}}</a></li>
     {{/pager.pages}}
     {{#pager.next-page?}}<li><a data-page="{{pager.next-page}}" href="{{#pager.pagination-target}}{{route-for pager.pagination-target params {:page pager.next-page} }}{{/pager.pagination-target}}">Next</a></li>{{/pager.next-page?}}
+
+    {{#pager.pagination-target}}
+      <li><a href="{{route-for pager.pagination-target params {:size pager.count :page 0} }}">All</a></li>
+    {{/pager.pagination-target}}
   </ul>
 </div>
 {{/pager.pagination?}}
