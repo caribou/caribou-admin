@@ -28,12 +28,12 @@
     }
   });
 
+
   var SPEC_FIELD_OPERANDS_BY_OPERAND = {
-    "'or": true,
-    "'and": true,
-    "'not": true
+    "||": true,
+    "&&": true,
   };
-  var SPEC_FIELD_OPERANDS = [ "'and", "'or", "'not" ];
+  var SPEC_FIELD_OPERANDS = [ "&&", "||" ];
   var SPEC_FIELD_COMPARATORS = [ "=", "!=", ">", "<", "<=", ">=", "<>", "LIKE" ];
 
   // Handles the rendering and management of the "where" clause tree
@@ -43,7 +43,7 @@
 
   $.extend( SpecFieldWhereDelegate.prototype, editors.TreeEditorDelegate.prototype, {
     nodeId: function(tree, node) {
-      return (node.category? "asset":"category") + "-" + node.id;
+      return node.id;
     },
     makeNode: function(tree, node) {
       var self = this;
@@ -76,24 +76,38 @@
         comparisonContainer.hide();
       }
 
-      var keyInput = $("<input type='text'>");
+      var keyInput = $("<input type='text'>").typeahead({
+        source: self.unrollFieldSlugs(tree.model.slug, 1)
+      });
+
       keyInput.val(node.key);
+      keyInput.on("keyup change", function(e) {
+        e.stopPropagation();
+        node.key = keyInput.val();
+      });
 
       var comparatorSelection = $("<select>");
       _(SPEC_FIELD_COMPARATORS).each(function(c) {
         comparatorSelection.append("<option value='" + c + "'>" + c + "</option>");
       });
       comparatorSelection.val(node.operand);
+      comparatorSelection.on("change", function(e) {
+        e.stopPropagation();
+        node.operand = comparatorSelection.val();
+      });
 
       var valueInput = $("<input type='text'>");
       valueInput.val(node.value);
+      valueInput.on("keyup change", function(e) {
+        e.stopPropagation();
+        node.value = valueInput.val();
+      });
 
       comparisonContainer.append(keyInput).append(comparatorSelection).append(valueInput);
 
       var nodeTypeSelection = $("<select>").
-            append("<option value=\"'and\">all of these are true</option>").
-            append("<option value=\"'or\">any of these are true</option>").
-            append("<option value=\"'not\">none of these are true</option>").
+            append("<option value=\"&&\">all of these are true</option>").
+            append("<option value=\"||\">any of these are true</option>").
             val(node.operand);
 
       nodeTypeSelection.on("change", function(e) {
@@ -119,6 +133,13 @@
         node.value = valueInput.val();
       });
 
+      var negateCheckbox = $("<input type='checkbox'>");
+      negateCheckbox.prop("checked", node.negate);
+      negateCheckbox.on("change", function(e) {
+        e.stopPropagation();
+        node.negate = negateCheckbox.prop("checked");
+      });
+
       if (self.hasChildren(tree, dom, node)) {
         nodeTypeSelection.show();
         comparatorSelection.hide();
@@ -129,7 +150,7 @@
         tree.forceClosed(dom, node);
       }
 
-      nodeEditor.append(nodeTypeSelection).append(comparisonContainer);
+      nodeEditor.append(nodeTypeSelection).append(comparisonContainer).append("&nbsp;").append(negateCheckbox).append(" negate?");
       return nodeEditor;
     },
     /*
@@ -175,51 +196,116 @@
 
       var controls = dom.find(".controls");
 
-      var addClauseLink = self.newControl("+", function(e) {
+      var addClauseLink = self.newControl("Add", function(e) {
         e.stopPropagation();
-        console.log("Add a subclause");
+        self.addClause(tree, dom, node);
       });
 
-      var removeClauseLink = self.newControl("-", function(e) {
+      var removeClauseLink = self.newControl("Delete", function(e) {
         e.stopPropagation();
-        console.log("Remove a subclause");
-        var parentDom = dom.parents("li:first");
-        var parentNode = node.parent;
-
-        // TODO what happens if this is the root?
-        dom.remove();
-        parentNode.children = _(parentNode.children).without(node);
-
-        if (parentNode.children.length === 1) {
-          console.log("Only one clause left, promoting...")
-          var siblingDom = parentDom.find("li:first");
-          var siblingNode = parentNode.children[0];
-
-          // TODO copy is silly but is there a better way?
-          parentNode.key = siblingNode.key;
-          parentNode.operand = siblingNode.operand;
-          parentNode.value = siblingNode.value;
-          parentNode.children = [];
-
-          var newDom = self.makeNode(tree, parentNode);
-          self.addNodeControls(tree, newDom, parentNode);
-          parentDom.replaceWith(newDom);
-        }
+        self.removeClause(tree, dom, node);
       });
 
-      controls.append(addClauseLink).append("&nbsp;").append(removeClauseLink);
+      controls.append(addClauseLink);
+      if (node.parent && node.parent.children && node.parent.children.length > 1) {
+        controls.append("&nbsp;").append(removeClauseLink);
+      }
     },
     addLeafControls: function(tree, dom, node) {
       var self = this;
       return self.addNodeControls(tree, dom, node);
+    },
+    addClause: function(tree, dom, node) {
+      var self = this;
+
+      var newNode = {
+        key: "",
+        value: "",
+        operand: "=",
+        parent: node,
+        negate: false,
+        children: []
+      };
+
+      if (node.children.length === 0) {
+        var currentNode = {
+          key: node.key,
+          operand: node.operand,
+          value: node.value,
+          parent: node,
+          negate: node.negate,
+          children: []
+        };
+
+        // change the current node to now be an AND node
+        node.operand = "&&";
+        node.key = null;
+        node.value = null;
+        node.children = [currentNode, newNode];
+        node.negate = false;
+
+        var newDom = tree.produce(node);
+        dom.replaceWith(newDom);
+      } else {
+        node.children.push(newNode);
+        var newDom = self.makeNode(tree, newNode);
+        self.addNodeControls(tree, newDom, newNode);
+        dom.find("ul:first").append(newDom);
+      }
+    },
+    removeClause: function(tree, dom, node) {
+      var self = this;
+      var parentDom = dom.parents("li:first");
+      var parentNode = node.parent;
+
+      // TODO what happens if this is the root?
+      dom.remove();
+      parentNode.children = _(parentNode.children).without(node);
+
+      if (parentNode.children.length === 1) {
+        console.log("Only one clause left, promoting...")
+        var siblingDom = parentDom.find("li:first");
+        var siblingNode = parentNode.children[0];
+
+        // TODO copy is silly but is there a better way?
+        parentNode.key = siblingNode.key;
+        parentNode.operand = siblingNode.operand;
+        parentNode.value = siblingNode.value;
+        parentNode.children = siblingNode.children;
+        parentNode.negate = siblingNode.negate;
+        _(parentNode.children).each(function(c) {
+          c.parent = parentNode;
+        });
+
+        var newDom = tree.produce(parentNode);
+        parentDom.replaceWith(newDom);
+      }
+    },
+    unrollFieldSlugs: function(modelName, depth) {
+      var self = this;
+      var model = global.caribou.api.model(modelName);
+      if (!model) return [];
+
+      var slugs = [];
+      _(model.fields).each(function(f) {
+        if (depth > 0 && (f.type === "link" || f.type === "part" || f.type === "collection")) {
+          var targetModel = global.caribou.api.model(f['target-id']);
+          if (targetModel) {
+            var associationNames = self.unrollFieldSlugs(targetModel.slug, depth - 1);
+            _(associationNames).each(function(a) {
+              slugs.push(f.slug + "." + a);
+            });
+          }
+        }
+        slugs.push(f.slug);
+      });
+      return slugs;
     }
   });
 
   function SpecFieldEditor(options) {
     var self = this;
-    // load all the models
-    global.caribou.api.invokeModels();
-
+    global.caribou.api.invokeModels(); // load all the models
     editors.StructureFieldEditor.call(this, options);
   }
 
@@ -232,7 +318,7 @@
           op: "gather",
           limit: null,
           offset: null,
-          where: {"'and": [ {"'or": [{"foo":3}, {"bar": {">":2}}]}, {"bar":4} ]},
+          where: { "": {"=": ""} },
           include: {},
           order: {}
         };
@@ -251,6 +337,11 @@
       var operation = $("<select class='spec-op'>").on("change", function(e) {
         var v = $(this).val();
         self.spec().op = v;
+        if (v === "pick") {
+          limit.hide();
+        } else {
+          limit.show();
+        }
       });
       operation.append("<option value='gather'>Gather</option");
       operation.append("<option value='pick'>Pick</option");
@@ -266,43 +357,69 @@
       var modelSelection = $("<select class='spec-model'>").on("change", function(e) {
         var v = $(this).val();
         self.spec().model = v;
+
+        if (v) {
+          var m = global.caribou.api.model(v);
+          var whereTree = new editors.TreeEditor({
+            model: m,
+            value: self.unrollWhere(self.spec().where),
+            childRelationship: "children",
+            leafRelationship: "kvps",
+            parentRelationship: "parent",
+            leafParentRelationship: "parent",
+            delegate: new SpecFieldWhereDelegate()
+          });
+          whereTree.render(".spec-where").attach();
+          self._whereTree = whereTree;
+          where.show();
+        } else {
+          where.hide();
+        }
       });
       _(global.caribou.api.allModelSlugs()).each(function(slug) {
         modelSelection.append("<option value='" + slug + "'>" + global.caribou.api.model(slug).name + "</option>");
       });
       modelSelection.sortOptionList();
-      modelSelection.val(self.spec().model);
+      modelSelection.prepend("<option value=''></option>");
 
-      var offset = $("<input type='text' placeholder='this many items' class='spec-limit' />").on("caribou:change", function(e) {
-        e.stopPropagation();
-        self.spec().limit = $(this).val();
-      });
+      var where = $("<span>where:</span><br /><div class='spec-where'></div>").hide();
 
-      var where = $("<div class='spec-where'>");
+      //var order = self.makeOrderEditor();
+      //var include = self.makeIncludeEditor();
+
 
       // build editor HTML
       self.element().append(operation).
-                     append(limit).
+      append(limit).
                      append("of type").
                      append(modelSelection).
-                     append("where:<br />").
                      append(where);
 
-      // crappy
-      var whereTree = new editors.TreeEditor({
-        model: null,
-        value: self.unrollWhere(self.spec().where),
-        childRelationship: "children",
-        leafRelationship: "kvps",
-        parentRelationship: "parent",
-        leafParentRelationship: "parent",
-        delegate: new SpecFieldWhereDelegate()
-      });
-      whereTree.render(".spec-where").attach();
+      modelSelection.val(self.spec().model);
+      modelSelection.trigger("change");
+
     },
+    /*
+    makeOrderEditor: function() {
+      var self = this;
+
+      var editor = $("<div class='spec-order'>");
+
+    },
+    makeIncludeEditor: function() {
+
+    },
+    */
     syncToDOM: function() {
     },
     syncFromDOM: function() {
+      var self = this;
+      console.log("syncing from DOM");
+
+      debugger;
+      var value = self.rollUpWhere(self.pruneWhere(self._whereTree.value));
+
+      self.value.where = value;
     },
 
     // returns an unrolled tree built from a where clause
@@ -312,13 +429,20 @@
 
       var node = {
         id: nodeCounter++,
+        negate: false,
         children: []
       };
+
+      if (where["!"]) {
+        node.negate = true;
+        where = where["!"];
+      }
 
       var keys = _(where).keys();
 
       if (keys.length === 1) {
         var k = keys[0];
+
         if (!SPEC_FIELD_OPERANDS_BY_OPERAND[k]) {
           v = where[k];
           var value = null;
@@ -352,7 +476,7 @@
           });
         } else {
           // node has naked key/values, so it's an AND
-          node.operand = "'and";
+          node.operand = "&&";
 
           var v = where[k];
           var c = {};
@@ -363,6 +487,67 @@
         }
       });
       return node;
+    },
+    rollUpWhere: function(w) {
+      var self = this;
+      // build pure structure from nodes
+      var root = {};
+
+      // node is a not
+      if (w.negate) {
+        var negate = {
+          children: w.children,
+          key: w.key,
+          value: w.value,
+          operand: w.operand,
+          negate: false
+        };
+        root["!"] = self.rollUpWhere(negate);
+        return root;
+      }
+
+      // node is an and/or/not
+      if (SPEC_FIELD_OPERANDS_BY_OPERAND[w.operand]) {
+        var children = [];
+        _(w.children).each(function(c) {
+          var child = self.rollUpWhere(c);
+          children.push(child);
+        });
+        root[w.operand] = children;
+        return root;
+      }
+
+      // node is a comparison
+      if (w.operand === "=") {
+        root[w.key] = w.value;
+        return root;
+      }
+      root[w.key] = {};
+      root[w.key][w.operand] = w.value;
+      return root;
+    },
+    pruneWhere: function(w) {
+      var self = this;
+
+      // if it's an empty node, return
+      if (!w.key && !w.value && !SPEC_FIELD_OPERANDS_BY_OPERAND[w.operand]) { return }
+
+      // prune the children
+      var children = [];
+      _(w.children).each(function(c) {
+        var child = self.pruneWhere(c);
+        if (!child) { return }
+        child.parent = w;
+        children.push(child);
+      });
+      w.children = children;
+
+      if (SPEC_FIELD_OPERANDS_BY_OPERAND[w.operand] && w.children && w.children.length === 1) {
+        var child = w.children[0];
+        child.parent = null;
+        return child;
+      }
+      return w;
     }
   });
 
