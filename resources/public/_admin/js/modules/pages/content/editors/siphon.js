@@ -10,6 +10,10 @@
   }
 
   $.extend( SiphonEditor.prototype, editors.ModelEditor.prototype, {
+    // override the default behaviour
+    fieldIsEditable: function(field) {
+      return field.editable || field.slug.match(/-key$/);
+    },
     constructChild: function(field) {
       var self = this;
       if (field.slug === "spec") {
@@ -384,7 +388,7 @@
 
       var where = $("<span>where:</span><br /><div class='spec-where'></div>").hide();
 
-      //var order = self.makeOrderEditor();
+      var order = self.makeOrderEditor();
       //var include = self.makeIncludeEditor();
 
 
@@ -399,13 +403,13 @@
       modelSelection.trigger("change");
 
     },
-    /*
     makeOrderEditor: function() {
       var self = this;
 
       var editor = $("<div class='spec-order'>");
 
     },
+    /*
     makeIncludeEditor: function() {
 
     },
@@ -416,9 +420,7 @@
       var self = this;
       console.log("syncing from DOM");
 
-      debugger;
       var value = self.rollUpWhere(self.pruneWhere(self._whereTree.value));
-
       self.value.where = value;
     },
 

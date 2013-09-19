@@ -30,6 +30,7 @@ $(function () {
       var data = _.map( values, function(v) {
         return { model: pageInfo.model, fields: editor.prepareForUpdate( v ), opts: opts };
       });
+      debugger;
       api.post( data, function( d ) {
         console.log(d);
         if (next) {

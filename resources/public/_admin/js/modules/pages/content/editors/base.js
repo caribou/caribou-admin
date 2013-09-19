@@ -89,6 +89,9 @@
       this.syncFromDOM();
       this.callback("cancel", next);
     },
+    fieldIsEditable: function( field ) {
+      return field.editable;
+    },
     prepareForUpdate: function( data ) {
       var blacklist = _( this.model.fields ).chain().filter(
         function(f) {
@@ -98,6 +101,7 @@
           if ( f.type === "part" || f.type == "enum" || f.type == "asset" ) { return true } // because the id field is present
           if ( f.type === "password" && data[f.slug] === null ) { return true }
           if ( f.type === "link" || f.type === "collection" ) { return true }
+          if ( f.type === "string" && f.slug.match(/-key$/) ) { return false }
           return !f.editable;
         }).map( function(f) { return f.slug }).value();
       return _( data ).omit( blacklist );

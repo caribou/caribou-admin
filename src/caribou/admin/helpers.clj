@@ -175,6 +175,12 @@
       (.endsWith (:slug field) "-position")))
 
 
+(defn editable? [field params]
+  (or (:editable field)
+      (:show-hidden params)
+      ;;; This is super-lame.
+      (.endsWith (:slug field) "-key")))
+
 ;; -------- locale helpers --------
 
 (defn locales []
@@ -221,4 +227,5 @@
    :localized-models localized-models
    :locale-code locale-code
    :equals =
+   :editable? editable?
    })

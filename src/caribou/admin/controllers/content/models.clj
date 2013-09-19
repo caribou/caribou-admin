@@ -135,7 +135,10 @@
   [{permissions :permissions :as request}]
   (let [new-model-name (-> request :params :model-name)
         new-model (rights/create permissions :model {:name (string/capitalize new-model-name)})]
-    (controller/redirect (pages/route-for :admin.edit-model (dissoc (merge {:slug (:slug new-model)} (:params request)) :model-name)))))
+    (controller/redirect
+     (pages/route-for :admin.edit-model
+                      (dissoc
+                       (merge {:slug (:slug new-model)} (:params request)) :model-name)))))
 
 (defn view
   [{permissions :permissions :as request}]

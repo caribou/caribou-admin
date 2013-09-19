@@ -84,7 +84,7 @@
     },
     constructChild: function(field) {
       var self = this;
-      if (!field.editable) { return null }
+      if (!self.fieldIsEditable(field)) { return null }
 
       var fieldEditorClass = fieldEditorMap[ field.type ] || editors.FieldEditor;
       var editor = new fieldEditorClass({
