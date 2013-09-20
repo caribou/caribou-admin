@@ -129,6 +129,27 @@
       });
     };
 
+    var unrollFieldSlugs = function(modelName, depth, test) {
+      var model = global.caribou.api.model(modelName);
+      if (!model) return [];
+
+      var slugs = [];
+      _(model.fields).each(function(f) {
+        if (depth > 0 && (f.type === "link" || f.type === "part" || f.type === "collection")) {
+          var targetModel = global.caribou.api.model(f['target-id']);
+          if (targetModel) {
+            var associationNames = unrollFieldSlugs(targetModel.slug, depth - 1, test);
+            _(associationNames).each(function(a) {
+              slugs.push(f.slug + "." + a);
+            });
+          }
+        }
+        if (!test || (test && test(f))) {
+          slugs.push(f.slug);
+        }
+      });
+      return slugs;
+    };
 
     function AddFieldDialog(options) {
       var self = this;
@@ -271,7 +292,8 @@
       post: _post,
       enableSorting: enableSorting,
       formatAddress: formatAddress,
-      mapImageURL: mapImageURL
+      mapImageURL: mapImageURL,
+      unrollFieldSlugs: unrollFieldSlugs
     };
   }
 

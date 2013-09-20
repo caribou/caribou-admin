@@ -81,7 +81,7 @@
       }
 
       var keyInput = $("<input type='text'>").typeahead({
-        source: self.unrollFieldSlugs(tree.model.slug, 1)
+        source: global.caribou.models.unrollFieldSlugs(tree.model.slug, 1)
       });
 
       keyInput.val(node.key);
@@ -284,27 +284,8 @@
         var newDom = tree.produce(parentNode);
         parentDom.replaceWith(newDom);
       }
-    },
-    unrollFieldSlugs: function(modelName, depth) {
-      var self = this;
-      var model = global.caribou.api.model(modelName);
-      if (!model) return [];
-
-      var slugs = [];
-      _(model.fields).each(function(f) {
-        if (depth > 0 && (f.type === "link" || f.type === "part" || f.type === "collection")) {
-          var targetModel = global.caribou.api.model(f['target-id']);
-          if (targetModel) {
-            var associationNames = self.unrollFieldSlugs(targetModel.slug, depth - 1);
-            _(associationNames).each(function(a) {
-              slugs.push(f.slug + "." + a);
-            });
-          }
-        }
-        slugs.push(f.slug);
-      });
-      return slugs;
     }
+
   });
 
   function SpecFieldEditor(options) {
@@ -324,7 +305,7 @@
           offset: null,
           where: { "": {"=": ""} },
           include: {},
-          order: {}
+          order: [ {} ],
         };
       }
       return self.value;
@@ -347,8 +328,8 @@
           limit.show();
         }
       });
-      operation.append("<option value='gather'>Gather</option");
-      operation.append("<option value='pick'>Pick</option");
+      operation.append("<option value='gather'>Gather (find all)</option");
+      operation.append("<option value='pick'>Pick (find one)</option");
       operation.val(self.spec().op);
 
       // how many
@@ -356,9 +337,20 @@
         e.stopPropagation();
         self.spec().limit = $(this).val();
       });
+      limit.val(self.spec().limit);
+
+      var where   = $("<h4>where</h4><div class='spec-where'></div>").hide();
+      var order   = $("<h4>ordered by</h4><div class='spec-order'></div>").hide();
+      var include = $("<h4>including</h4><div class='spec-include'></div>").hide();
 
       // Which model to fetch
-      var modelSelection = $("<select class='spec-model'>").on("change", function(e) {
+      var modelSelection = $("<select class='spec-model'>");
+      _(global.caribou.api.allModelSlugs()).each(function(slug) {
+        modelSelection.append("<option value='" + slug + "'>" + global.caribou.api.model(slug).name + "</option>");
+      });
+      modelSelection.sortOptionList();
+      modelSelection.prepend("<option value=''></option>");
+      modelSelection.on("change", function(e) {
         var v = $(this).val();
         self.spec().model = v;
 
@@ -376,52 +368,189 @@
           whereTree.render(".spec-where").attach();
           self._whereTree = whereTree;
           where.show();
+
+          var orderEditor = self.makeOrderEditor();
+          self._element.find(".spec-order").empty().append(orderEditor);
+          order.show();
+
+          var includeEditor = self.makeIncludeEditor();
+          self._element.find(".spec-include").empty().append(includeEditor);
+          include.show();
         } else {
           where.hide();
+          order.hide();
+          include.hide();
         }
       });
-      _(global.caribou.api.allModelSlugs()).each(function(slug) {
-        modelSelection.append("<option value='" + slug + "'>" + global.caribou.api.model(slug).name + "</option>");
-      });
-      modelSelection.sortOptionList();
-      modelSelection.prepend("<option value=''></option>");
-
-      var where = $("<span>where:</span><br /><div class='spec-where'></div>").hide();
-
-      var order = self.makeOrderEditor();
-      //var include = self.makeIncludeEditor();
-
 
       // build editor HTML
       self.element().append(operation).
       append(limit).
                      append("of type").
                      append(modelSelection).
-                     append(where);
+                     append(where).
+                     append(order).
+                     append(include);
 
       modelSelection.val(self.spec().model);
       modelSelection.trigger("change");
-
+    },
+    newControl: function(text, f) {
+      var control = $("<a href='#' class='table-link'>" + text + "</a>");
+      if (f) {
+        control.on("click", f);
+      }
+      return control;
     },
     makeOrderEditor: function() {
       var self = this;
 
-      var editor = $("<div class='spec-order'>");
+      var editor = $("<div>");
 
+      var editors = $("<ul>");
+      $(self.spec().order).each(function(index, order) {
+        editors.append(self.makeOrderEditorRow(order));
+      });
+
+      var removeLink = self.newControl("Remove", function(e) {
+        e.stopPropagation();
+        self.spec().order.pop();
+        editors.find("li:last").remove();
+        if (self.spec().order.length <= 1) {
+          removeLink.hide();
+        }
+      });
+
+      if (self.spec().order.length <= 1) {
+        removeLink.hide();
+      }
+
+      var addLink = self.newControl("Add", function(e) {
+        e.stopPropagation();
+        var newOrder = {};
+        self.spec().order.push(newOrder);
+        editors.append(self.makeOrderEditorRow(newOrder));
+        removeLink.show();
+      });
+
+
+      var controls = $("<div class='spec-order-controls'>");
+      controls.append(addLink).append("&nbsp;").append(removeLink);
+
+      return editor.append(editors).append(controls);
     },
-    /*
+    makeOrderEditorRow: function(order) {
+      var self = this;
+      var editor = $("<li class='spec-order-editor'>");
+
+      var key = _(order).keys()[0];
+
+      var keyInput = $("<input type='text'>").typeahead({
+        source: global.caribou.models.unrollFieldSlugs(self.spec().model, 2)
+      });
+      keyInput.val(key);
+
+      keyInput.on("keyup change", function(e) {
+        e.stopPropagation();
+        var k = keyInput.val();
+        var ck = _(order).keys()[0];
+        order[k] = order[ck] || "asc";
+        if (k !== ck) {delete order[ck]}
+      });
+
+
+      var val = order[key];
+      var directionSelection = $('<select>');
+      directionSelection.append("<option value='desc'>Descending</option>");
+      directionSelection.append("<option value='asc'>Ascending</option>");
+      directionSelection.val(val);
+
+      directionSelection.on("change", function(e) {
+        e.stopPropagation();
+        var v = directionSelection.val();
+        var k = _(order).keys()[0];
+        order[k] = v;
+      });
+
+      return editor.append(keyInput).append(directionSelection);
+    },
     makeIncludeEditor: function() {
+      var self = this;
 
+      // This is bad, don't do this - we need to do it because
+      // we're using a list metaphor to edit the includes but
+      // they need to be ultimately handled as a map.
+      var includeMap = self.spec().include;
+      var includeArray = self.unrollInclude(includeMap);
+      if (includeArray.length === 0) {
+        includeArray.push({key:""});
+      }
+      self.spec()._include = includeArray;
+
+      var editor = $("<div>");
+
+      var editors = $("<ul>");
+      $(includeArray).each(function(index, include) {
+        editors.append(self.makeIncludeEditorRow(include));
+      });
+
+      var removeLink = self.newControl("Remove", function(e) {
+        e.stopPropagation();
+        includeArray.pop();
+        editors.find("li:last").remove();
+        if (includeArray.length <= 1) {
+          removeLink.hide();
+        }
+      });
+
+      if (includeArray.length <= 1) {
+        removeLink.hide();
+      }
+
+      var addLink = self.newControl("Add", function(e) {
+        e.stopPropagation();
+        var newOrder = {};
+        includeArray.push(newOrder);
+        editors.append(self.makeIncludeEditorRow(newOrder));
+        removeLink.show();
+      });
+
+      var controls = $("<div class='spec-include-controls'>");
+      controls.append(addLink).append("&nbsp;").append(removeLink);
+      return editor.append(editors).append(controls);
     },
-    */
+    makeIncludeEditorRow: function(include) {
+      var self = this;
+      var editor = $("<li class='spec-include-editor'>");
+
+      var slugs = global.caribou.models.unrollFieldSlugs(self.spec().model, 2, function(f) {
+        return (f.type === "link" || f.type === "collection" || f.type === "part" || f.type === "asset" || f.type === "address");
+      });
+      var keySelection = $("<select>");
+      keySelection.append("<option value=''></option>");
+
+      _(slugs).each(function(s) {
+        keySelection.append("<option>" + s + "</option>");
+      });
+
+      keySelection.on("change", function(e) {
+        e.stopPropagation();
+        var v = keySelection.val();
+        include.key = v;
+      });
+      keySelection.val(include.key);
+
+      return editor.append(keySelection);
+    },
     syncToDOM: function() {
     },
     syncFromDOM: function() {
       var self = this;
       console.log("syncing from DOM");
 
-      var value = self.rollUpWhere(self.pruneWhere(self._whereTree.value));
-      self.value.where = value;
+      self.value.where = self.rollUpWhere(self.pruneWhere(self._whereTree.value));
+      self.value.order = self.rollUpOrder(self.value.order);
+      self.value.include = self.rollUpInclude(self.value._include);
     },
 
     // returns an unrolled tree built from a where clause
@@ -495,6 +624,8 @@
       // build pure structure from nodes
       var root = {};
 
+      if (!w) { return root }
+
       // node is a not
       if (w.negate) {
         var negate = {
@@ -527,6 +658,51 @@
       root[w.key] = {};
       root[w.key][w.operand] = w.value;
       return root;
+    },
+    rollUpOrder: function(o) {
+      var self = this;
+      var newOrder = [];
+      if (!_.isArray(o)) { o = [o] }
+      _(o).each(function(ordering) {
+        var keys = _(ordering).keys();
+
+        if (keys.length === 1 && keys[0]) {
+          newOrder.push(ordering);
+        }
+      })
+      return newOrder;
+    },
+    rollUpInclude: function(i) {
+      var self = this;
+      var includes = {};
+      _(i).each(function(include) {
+        var key = include.key;
+        var bits = key.split(/\./);
+        var c = includes;
+        while(bits.length) {
+          var k = bits.shift();
+          c[k] = c[k] || {};
+          c = c[k];
+        }
+      });
+      return includes;
+    },
+    unrollInclude: function(i) {
+      var self = this;
+      var includes = [];
+
+      _(i).each(function(v, k) {
+        if (_(v).keys().length === 0) {
+          includes.push({ key: k });
+        } else {
+          var keys = self.unrollInclude(v);
+          _(keys).each(function(key) {
+            includes.push({ key: k + "." + key });
+          });
+        }
+      });
+
+      return includes;
     },
     pruneWhere: function(w) {
       var self = this;
