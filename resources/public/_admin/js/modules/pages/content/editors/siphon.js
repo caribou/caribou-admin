@@ -374,8 +374,13 @@
           order.show();
 
           var includeEditor = self.makeIncludeEditor();
-          self._element.find(".spec-include").empty().append(includeEditor);
-          include.show();
+          var includeDom = self._element.find(".spec-include").empty();
+          if (includeEditor) {
+            includeDom.append(includeEditor);
+            include.show();
+          } else {
+            include.hide();
+          }
         } else {
           where.hide();
           order.hide();
@@ -477,6 +482,14 @@
     makeIncludeEditor: function() {
       var self = this;
 
+      var slugs = global.caribou.models.unrollFieldSlugs(self.spec().model, 2, function(f) {
+        return (f.type === "link" || f.type === "collection" || f.type === "part" );
+      });
+
+      if (slugs.length === 0) {
+        return null;
+      }
+
       // This is bad, don't do this - we need to do it because
       // we're using a list metaphor to edit the includes but
       // they need to be ultimately handled as a map.
@@ -485,13 +498,13 @@
       if (includeArray.length === 0) {
         includeArray.push({key:""});
       }
-      self.spec()._include = includeArray;
+      self._include = includeArray;
 
       var editor = $("<div>");
 
       var editors = $("<ul>");
       $(includeArray).each(function(index, include) {
-        editors.append(self.makeIncludeEditorRow(include));
+        editors.append(self.makeIncludeEditorRow(include, slugs));
       });
 
       var removeLink = self.newControl("Remove", function(e) {
@@ -519,13 +532,10 @@
       controls.append(addLink).append("&nbsp;").append(removeLink);
       return editor.append(editors).append(controls);
     },
-    makeIncludeEditorRow: function(include) {
+    makeIncludeEditorRow: function(include, slugs) {
       var self = this;
       var editor = $("<li class='spec-include-editor'>");
 
-      var slugs = global.caribou.models.unrollFieldSlugs(self.spec().model, 2, function(f) {
-        return (f.type === "link" || f.type === "collection" || f.type === "part" || f.type === "asset" || f.type === "address");
-      });
       var keySelection = $("<select>");
       keySelection.append("<option value=''></option>");
 
@@ -550,7 +560,7 @@
 
       self.value.where = self.rollUpWhere(self.pruneWhere(self._whereTree.value));
       self.value.order = self.rollUpOrder(self.value.order);
-      self.value.include = self.rollUpInclude(self.value._include);
+      self.value.include = self.rollUpInclude(self._include);
     },
 
     // returns an unrolled tree built from a where clause
@@ -677,6 +687,7 @@
       var includes = {};
       _(i).each(function(include) {
         var key = include.key;
+        if (!key) { return }
         var bits = key.split(/\./);
         var c = includes;
         while(bits.length) {

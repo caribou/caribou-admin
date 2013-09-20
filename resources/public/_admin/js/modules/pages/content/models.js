@@ -129,16 +129,22 @@
       });
     };
 
-    var unrollFieldSlugs = function(modelName, depth, test) {
+    var unrollFieldSlugs = function(modelName, depth, test, visited) {
+      var visited = visited || {};
       var model = global.caribou.api.model(modelName);
       if (!model) return [];
+      if (visited[model.slug]) { return }
 
       var slugs = [];
       _(model.fields).each(function(f) {
+        if (visited[model.slug + ":" + f.slug]) {
+          return;
+        }
+        visited[model.slug + ":" + f.slug] = true;
         if (depth > 0 && (f.type === "link" || f.type === "part" || f.type === "collection")) {
           var targetModel = global.caribou.api.model(f['target-id']);
           if (targetModel) {
-            var associationNames = unrollFieldSlugs(targetModel.slug, depth - 1, test);
+            var associationNames = unrollFieldSlugs(targetModel.slug, depth - 1, test, visited);
             _(associationNames).each(function(a) {
               slugs.push(f.slug + "." + a);
             });
@@ -148,6 +154,7 @@
           slugs.push(f.slug);
         }
       });
+      visited[model.slug] = true;
       return slugs;
     };
 
