@@ -8,7 +8,7 @@
               {{#fields:field}}
                 {{^system-field? field}}
                   {{#allows-sorting}}
-                    <th><a href="{{safe-route-for :admin.results params}}?order={{field.friendly-path}}{{#equals field.friendly-path params.order}}%20desc{{/equals field.friendly-path params.order}}">{{field.name}}</a>
+                    <th class="caribou-{{field.type}} caribou-{{field.slug}} caribou-{{model.slug}}-{{field.slug}}"><a href="{{safe-route-for :admin.results params}}?order={{field.friendly-path}}{{#equals field.friendly-path params.order}}%20desc{{/equals field.friendly-path params.order}}">{{field.name}}</a>
                     {{#equals field.friendly-path order.slug}}
                       {{#equals "asc" order.direction}}
                       <i class="icon-up-arrow"></i>^
@@ -19,7 +19,7 @@
                     {{/equals field.friendly-path order.slug}}</th>
                   {{/allows-sorting}}
                   {{^allows-sorting}}
-                    <th>{{field.name}}</th>
+                    <th class="caribou-{{field.type}} caribou-{{field.slug}} caribou-{{model.slug}}-{{field.slug}}">{{field.name}}</th>
                   {{/allows-sorting}}
                 {{/system-field? field}}
               {{/fields:field}}
