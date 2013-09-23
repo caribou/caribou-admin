@@ -1,0 +1,188 @@
+$indentSize: 2%;
+$nodeName: 80%;
+
+.siphon-spec {
+    h4 {
+        text-transform: capitalize;
+    }
+    select {
+        @include inline-block(top);
+    }
+    .spec-limit {
+        margin-right: 5px;
+    }
+    .spec-model {
+        margin-left: 5px;
+    }
+}
+
+.comparison-container select {
+    width: 50px;
+}
+
+.spec-order,
+.spec-include {
+    ul {
+        padding: 0;
+        margin: 0;
+        list-style-type: none;
+        @include inline-block;
+    }
+    div {
+        @include inline-block(top);
+    }
+    input[type="text"] {
+        @include inline-block(top);
+        padding: 14px 5px;
+        margin-right: 5px;
+        @include box-sizing(border-box);
+    }
+}
+
+.spec-include-editor {
+    margin-bottom: 5px;
+}
+
+ul.tree {
+    padding: 0;
+    margin: 0;
+    list-style-type: none;
+    ul {
+        padding: 0;
+        margin: 0;
+        list-style-type: none;
+    }
+    input[type="text"] {
+        padding: 14px 5px;
+        margin-right: 5px;
+        vertical-align: top;
+    }
+    li {
+        background-color: $grayLightest;
+        position: relative;
+        &:last-child {
+            border-bottom: none;
+        }
+        > div {
+            @include inline-block(top);
+            padding: 5px 0;
+        }
+        .icon-container {
+            width: 3%;
+            margin-left: $indentSize;
+        }
+        .sort-container {
+            position: absolute;
+            left: -40px;
+            top: 20px;
+            margin-top: -20px;
+            width: 40px;
+            padding: 10px 0;
+            display: none;
+        }
+        .icon-up,
+        .icon-down {
+            font-size: 15px;
+        }
+        .icon-down {
+            left: 5px;
+        }
+        &:hover > .icon-container > .sort-container {
+            display: block;
+        }
+        .controls-container {
+            width: 10%;
+        }
+        .node-name {
+            width: $nodeName;
+            height: 40px;
+        }
+        > ul {
+            > li {
+            background-color: darken($grayLightest, 10);
+                &.node {
+                    .icon-container {
+                        margin-left: $indentSize * 2;
+                    }
+                    .node-name {
+                        width: $nodeName - $indentSize;
+                    }
+                }
+                ul {
+                    > li {
+                    background-color: darken($grayLightest, 15);
+                        &.node {
+                            .icon-container {
+                                margin-left: $indentSize * 3;
+                            }
+                            .node-name {
+                                width: $nodeName - ($indentSize * 2);
+                            }
+                        }
+                        ul {
+                            > li {
+                              background-color: darken($grayLightest, 30);
+                                &.node {
+                                    .icon-container {
+                                        margin-left: $indentSize * 4;
+                                    }
+                                    .node-name {
+                                        width: $nodeName - ($indentSize * 3);
+                                    }
+                                }
+                                ul {
+                                    > li {
+                                    background-color: darken($grayLightest, 40);
+                                        &.node {
+                                            .icon-container {
+                                                margin-left: $indentSize * 5;
+                                            }
+                                            .node-name {
+                                                width: $nodeName - ($indentSize * 4);
+                                            }
+                                        }
+                                        ul {
+                                            > li {
+                                            background-color: darken($grayLightest, 50);
+                                                &.node {
+                                                    .icon-container {
+                                                        margin-left: $indentSize * 6;
+                                                    }
+                                                    .node-name {
+                                                        width: $nodeName - ($indentSize * 5);
+                                                    }
+                                                }
+                                                ul {
+                                                    > li {
+                                                    background-color: darken($grayLightest, 60);
+                                                        &.node {
+                                                            .icon-container {
+                                                                margin-left: $indentSize * 7;
+                                                            }
+                                                            .node-name {
+                                                                width: $nodeName - ($indentSize * 6);
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    img {
+        width: 140px;
+    }
+    .ui-draggable-dragging {
+        width: 960px;
+    }
+    * {
+        @include box-sizing(border-box);
+    }
+}
