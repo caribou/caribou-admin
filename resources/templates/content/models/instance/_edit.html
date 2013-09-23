@@ -22,7 +22,7 @@
     {{! Only showing editable fields for now}}
     {{#or field.editable params.show-hidden}}
       {{^join-model? field}}
-      <tr data-position='{ "position": {{model-position}}, "id": "{{id}}" }' {{#locked}}class="disabled_bg"{{/locked}}>
+        <tr class="caribou-{{model.slug}}-{{field.slug}}" data-position='{ "position": {{model-position}}, "id": "{{id}}" }' {{#locked}}class="disabled_bg"{{/locked}}>
         <td>
           {{#field.description}}
             <span title="{{description}}">{{name}}</span>
@@ -35,7 +35,7 @@
         {{#bulk?}}<td><input type="checkbox" value="{{field.slug}}" name="caribou-update" /></td>{{/bulk?}}
         {{#model.localized}}
           {{^global?}}
-            <td><input type="checkbox" value="{{field.slug}}" name="caribou-use-global" 
+            <td><input type="checkbox" value="{{field.slug}}" name="caribou-use-global"
               {{^get-in instance field.slug}}checked="checked"{{/get-in instance field.slug}} /></td>
           {{/global?}}
         {{/model.localized}}
@@ -65,7 +65,7 @@
             {{#locales:item}}
             <option value="{{item.code}}" {{#equals item.code locale.code}}selected{{/equals item.code locale.code}}>{{item.code}}{{#item.language}} ({{item.language}}){{/item.language}} {{#item.region}} ({{item.region}}){{/item.region}}</option>
             {{/locales:item}}
-          </select> 
+          </select>
         {{/instance.id}}
       </td>
     </tr>
