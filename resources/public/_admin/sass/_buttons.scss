@@ -10,14 +10,14 @@
 a.btn {
     text-decoration: none;
 }
-.btn, .btn-primary, .btn-secondary, .btn-success, .btn-warning, .btn-error {
+.btn, .btn-primary, .btn-secondary, .btn-success, .btn-warning, .btn-error, .table-link {
     @include box-shadow($innerShadow);
     background-image: none;
 }
 .btn {
     @include gradient-bg-color(lighten($secondary,82));
 }
-.btn-primary {
+.btn-primary, .table-link {
     @include gradient-bg-color($primary);
 }
 
@@ -30,4 +30,21 @@ a.btn {
 }
 .btn-danger {
     @include gradient-bg-color($error);
+}
+
+.table-link {
+    color: #FFF;
+    @include text-shadow(0 -1px 0 rgba(0, 0, 0, 0.25));
+    border-width: 1px;
+    border-style: solid;
+    border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+    @include inline-block;
+    padding: 1px 6px;
+    margin-top: 4px;
+    font-size: $basefont - 3;
+    text-decoration: none !important;
+    @include border-radius(3px);
+    &:hover {
+        color: white;
+    }
 }
