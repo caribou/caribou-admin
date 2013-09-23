@@ -120,6 +120,10 @@
     },
     render: function() {
       var active = this.activeEditor();
+      var element = $( this.options.selector );
+
+      element.trigger("willRender", this.activeEditor());
+
       if ( this.editors.length > 1 ) {
         this.saveChangesButton().hide();
         this.saveAndNew().hide();
@@ -137,7 +141,7 @@
         this.cancelButton().hide();
       }
       active.render( this.options.selector );
-      $( this.options.selector ).show();
+      element.show();
 
       active.attach();
       if ( _.contains( _( active ).functions(), "addNew") ) {
@@ -156,6 +160,7 @@
         this.commandMenu().hide();
       }
       //global.caribou.status.render().clearMessages();
+      element.trigger("didRender", this.activeEditor(), this);
       return this;
     },
     addNew: function() {

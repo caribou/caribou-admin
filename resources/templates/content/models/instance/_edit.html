@@ -23,7 +23,7 @@
     {{!!!!#or field.editable params.show-hidden}}
     {{#editable? field params}}
       {{^join-model? field}}
-      <tr data-position='{ "position": {{model-position}}, "id": "{{id}}" }' {{#locked}}class="disabled_bg"{{/locked}}>
+        <tr class="caribou-{{model.slug}}-{{field.slug}}" data-position='{ "position": {{model-position}}, "id": "{{id}}" }' {{#locked}}class="disabled_bg"{{/locked}}>
         <td>
           {{#field.description}}
             <span title="{{description}}">{{name}}</span>
