@@ -166,11 +166,12 @@
                           nil)
      :results           (take size (drop (* current size) results))
      :start-index       (* current size)
+     :count             (count results)
      :opts              opts
      }))
 
 (defn system-field? [field]
-  (or (#{"position" "created-at" "updated-at" "locked" "searchable" "distinct"} (:slug field))
+  (or (#{"position" "created-at" "updated-at" "locked" "searchable" "distinct" "uuid"} (:slug field))
       (.endsWith (:slug field) "-id")
       (.endsWith (:slug field) "-position")))
 

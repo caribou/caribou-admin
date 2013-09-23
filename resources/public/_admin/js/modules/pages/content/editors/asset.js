@@ -16,7 +16,7 @@
             img = $("<img class='thumbnail image-" + this.field.slug + "' style='max-width:150px' />");
             $("#" + this.model.slug + "-" + this.field.slug).prepend(img);
           }
-          img.attr({ src: "/" + asset.path }).show();
+          img.attr({ src: asset.path }).show();
           console.log("using " + asset.path + " for image");
         } else {
           $(".image-" + this.field.slug).attr({ src: "/img/file-icon.png" }).show();
@@ -87,7 +87,7 @@
           try {
             self.value = response.state;
             if ( self.value['content-type'].indexOf("image") === 0 ) {
-              $("#current-image").show().attr("src", "/" + self.value.path);
+              $("#current-image").show().attr("src", self.value.path);
             } else {
               $("#current-image").hide().after("<b>" + self.value.path + "</b>" );
             }
