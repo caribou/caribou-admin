@@ -252,7 +252,7 @@
         dom.replaceWith(newDom);
       } else {
         node.children.push(newNode);
-        var newDom = self.makeNode(tree, newNode);
+        var newDom = self.makeNode(tree, newNode).addClass("node");
         self.addNodeControls(tree, newDom, newNode);
         dom.find("ul:first").append(newDom);
       }
@@ -342,6 +342,7 @@
       var where   = $("<h4>where</h4><div class='spec-where'></div>").hide();
       var order   = $("<h4>ordered by</h4><div class='spec-order'></div>").hide();
       var include = $("<h4>including</h4><div class='spec-include'></div>").hide();
+      var preview = $("<h4>Preview</h4><div class='spec-preview'></div>").hide();
 
       // Which model to fetch
       var modelSelection = $("<select class='spec-model'>");
@@ -395,7 +396,8 @@
                      append(modelSelection).
                      append(where).
                      append(order).
-                     append(include);
+                     append(include).
+                     append(preview);
 
       modelSelection.val(self.spec().model);
       modelSelection.trigger("change");
