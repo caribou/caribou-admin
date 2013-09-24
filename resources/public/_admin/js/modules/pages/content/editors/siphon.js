@@ -49,6 +49,9 @@
     nodeId: function(tree, node) {
       return node.id;
     },
+    editor: function() {
+      return this.options.editor;
+    },
     makeNode: function(tree, node) {
       var self = this;
       //if (!node.parent) {
@@ -56,14 +59,15 @@
       //}
       var dom = $("<li>");
 
+      var slugs = global.caribou.models.unrollFieldSlugs(self.options.editor.spec().model, 2);
+
       // build the icon container
       var iconContainer = $("<div class='icon-container'>");
       var icon = $("<span class='icon-collapsed'></span>");
       iconContainer.append(icon);
 
       var content = $("<div class='node-name'>");
-      content.append(self.makeNodeEditor(tree, dom, node));
-      //content.append((node.key || "") + node.operand + (node.value || ""));
+      content.append(self.makeNodeEditor(tree, dom, node, slugs));
 
       var controlsContainer = $("<div class='controls-container'>");
       var controls = $("<span class='controls'>");
@@ -71,7 +75,7 @@
 
       return dom.append(iconContainer).append(content).append(controlsContainer);
     },
-    makeNodeEditor: function(tree, dom, node) {
+    makeNodeEditor: function(tree, dom, node, slugs) {
       var self = this;
       var nodeEditor = $("<span>");
 
@@ -80,6 +84,7 @@
         comparisonContainer.hide();
       }
 
+      /*
       var keyInput = $("<input type='text'>").typeahead({
         source: global.caribou.models.unrollFieldSlugs(tree.model.slug, 1)
       });
@@ -89,27 +94,43 @@
         e.stopPropagation();
         node.key = keyInput.val();
       });
+      */
+      var keySelection = $("<select class='spec-comparison-key'>");
+      keySelection.append("<option value=''></option>");
 
-      var comparatorSelection = $("<select>");
+      _(slugs).each(function(s) {
+        keySelection.append("<option>" + s + "</option>");
+      });
+
+      keySelection.on("change", function(e) {
+        e.stopPropagation();
+        node.key = keySelection.val();
+        self.editor().refreshResults();
+      });
+      keySelection.val(node.key);
+
+      var comparatorSelection = $("<select class='spec-comparison-comparator'>");
       _(SPEC_FIELD_COMPARATORS).each(function(c) {
         comparatorSelection.append("<option value='" + c + "'>" + c + "</option>");
       });
       comparatorSelection.val(node.operand);
-      comparatorSelection.on("change", function(e) {
-        e.stopPropagation();
-        node.operand = comparatorSelection.val();
-      });
+      //comparatorSelection.on("change", function(e) {
+      //  e.stopPropagation();
+      //  node.operand = comparatorSelection.val();
+      //  self.editor().refreshResults();
+      //});
 
-      var valueInput = $("<input type='text'>");
+      var valueInput = $("<input type='text' class='spec-comparison-value'>");
       valueInput.val(node.value);
       valueInput.on("keyup change", function(e) {
         e.stopPropagation();
         node.value = valueInput.val();
+        self.editor().refreshResults();
       });
 
-      comparisonContainer.append(keyInput).append(comparatorSelection).append(valueInput);
+      comparisonContainer.append(keySelection).append(comparatorSelection).append(valueInput);
 
-      var nodeTypeSelection = $("<select>").
+      var nodeTypeSelection = $("<select class='spec-operand'>").
             append("<option value=\"&&\">AND</option>").
             append("<option value=\"||\">OR</option>").
             val(node.operand);
@@ -127,21 +148,24 @@
           delete node.value;
         }
         node.operand = v;
+        self.editor().refreshResults();
       });
 
       comparatorSelection.on("change", function(e) {
         e.stopPropagation();
         var v = comparatorSelection.val();
         node.operand = v;
-        node.key = keyInput.val();
+        node.key = keySelection.val();
         node.value = valueInput.val();
+        self.editor().refreshResults();
       });
 
-      var negateCheckbox = $("<input type='checkbox'>");
+      var negateCheckbox = $("<input type='checkbox' class='spec-negate'>");
       negateCheckbox.prop("checked", node.negate);
       negateCheckbox.on("change", function(e) {
         e.stopPropagation();
         node.negate = negateCheckbox.prop("checked");
+        self.editor().refreshResults();
       });
 
       if (self.hasChildren(tree, dom, node)) {
@@ -279,6 +303,9 @@
     editors.StructureFieldEditor.call(this, options);
 
     self._showPreview = true;
+    self._include = null;
+    self._parameters = {};
+    self._requiredParameters = [];
   }
 
   $.extend( SpecFieldEditor.prototype, editors.StructureFieldEditor.prototype, {
@@ -297,6 +324,7 @@
       }
       return self.value;
     },
+
     selector: function() { return "." + this.model.slug + "-" + this.field.slug },
 
     // Attach builds the editor, attaches the handlers.
@@ -314,7 +342,7 @@
         } else {
           limit.show();
         }
-        self.refresh();
+        self.refreshResults();
       });
       operation.append("<option value='gather'>Gather (find all)</option");
       operation.append("<option value='pick'>Pick (find one)</option");
@@ -324,14 +352,17 @@
       var limit = $("<input type='text' placeholder='this many items' class='spec-limit' />").on("keyup change", function(e) {
         e.stopPropagation();
         self.spec().limit = $(this).val();
-        self.refresh();
+        self.refreshResults();
       });
       limit.val(self.spec().limit);
+      if (self.spec().op === "pick") {
+        limit.hide();
+      }
 
       var where   = $("<h4>where</h4><div class='spec-where'></div>").hide();
       var order   = $("<h4>ordered by</h4><div class='spec-order'></div>").hide();
       var include = $("<h4>including</h4><div class='spec-include'></div>").hide();
-      var preview = $("<h4>Preview</h4><div class='spec-preview'></div>").hide();
+      var preview = $("<h4>Preview</h4><div class='spec-preview-parameters'></div><div class='spec-preview'></div>");
 
       // Which model to fetch
       var modelSelection = $("<select class='spec-model'>");
@@ -372,18 +403,20 @@
             include.hide();
           }
 
+          /*
           if (self.spec().limit && (self.spec().op === "gather" || self.spec().op === "pick")) {
             preview.show();
           } else {
             preview.hide();
           }
+          */
 
-          self.refresh();
+          self.refreshResults();
         } else {
           where.hide();
           order.hide();
           include.hide();
-          preview.hide();
+          //preview.hide();
         }
       });
 
@@ -400,22 +433,71 @@
       modelSelection.val(self.spec().model);
       modelSelection.trigger("change");
     },
-    refresh: function() {
-      var self = this;
-      self.updatePreview(function(data) {
-        self._element.find('.spec-preview').empty().append(data.template);
-      });
-    },
-    updatePreview: function(f) {
-      var self = this;
-      // post an update to the server
-      var spec = _(self.spec()).clone();
 
-      spec.where = self.rollUpWhere(self.pruneWhere(self._whereTree.value));
+    refreshParameterEditor: function(spec) {
+      var self = this;
+
+      self._element.find('.spec-preview-parameters').empty().
+                    append(self.makeParameterEditor(spec));
+    },
+
+    refreshResults: function() {
+      var self = this;
+
+      var spec = self.generatePreviewSpec();
+
+      var common = _.intersection(spec.parameters, self._requiredParameters);
+
+      if (spec.parameters.length != self._requiredParameters.length ||
+          common.length != spec.parameters.length ||
+          common.length != self._requiredParameters.length) {
+        self._requiredParameters = spec.parameters;
+        self.refreshParameterEditor(spec);
+      }
+
+      if (spec.valid) {
+        self.updatePreview(spec, function(data) {
+          self._element.find('.spec-preview').empty().append(data.template);
+        });
+      } else {
+        self._element.find('.spec-preview').empty();
+      }
+    },
+
+    generatePreviewSpec: function() {
+      var self = this;
+
+      var spec = _(self.spec()).clone();
+      spec.valid = true; // bad code smell here
+
+      if (self._whereTree) {
+        spec.where = self.rollUpWhere(self.pruneWhere(self._whereTree.value));
+      } else {
+        spec.valid = false;
+      }
       spec.order = self.rollUpOrder(spec.order);
       spec.include = self.rollUpInclude(self._include);
       spec.limit = spec.limit || null;
 
+      spec.parameters = self.extractParameters(spec);
+      if (spec.parameters.length) {
+        if (_(self._parameters).keys().length === spec.parameters.length) {
+          var parameters = spec.parameters;
+          delete spec.parameters;
+          spec = self.applyParameters(spec);
+          spec.parameters = parameters;
+        } else {
+          console.log("not enough parameters specified yet");
+          spec.valid = false;
+        }
+      }
+      return spec;
+    },
+
+    updatePreview: function(spec, f) {
+      var self = this;
+      delete spec.parameters;
+      delete spec.valid;
       $.ajax({
         type: "POST",
         url: global.caribou.api.routeFor("find-with-siphon", {}),
@@ -424,6 +506,65 @@
         success: f
       });
     },
+
+    extractParameters: function(spec) {
+      var self = this;
+      var parameters = [];
+
+      _(spec).chain().keys().each(function(k) {
+        var v = spec[k];
+
+        if (k.match(/^:/)) {
+          parameters.push(k);
+        }
+
+        if (_.isString(v) && v.match(/^:/)) {
+          parameters.push(v);
+        }
+
+        if (v && typeof v === "object") {
+          parameters = _.union(parameters, self.extractParameters(v));
+        }
+      });
+      return parameters;
+    },
+
+    makeParameterEditor: function(spec) {
+      var self = this;
+      var editors = $("<ul class='spec-parameters'>");
+
+      _(spec.parameters).each(function(p) {
+        var editor = $("<input type='text'>").on("change keyup", function(e) {
+          e.stopPropagation();
+          self._parameters[p] = editor.val();
+          self.refreshResults();
+        });
+        var item = $("<li>");
+        item.append(p.replace(/^:/, "") + ":").append(editor);
+        editors.append(item);
+      });
+      return editors;
+    },
+
+    applyParameters: function(spec) {
+      var self = this;
+      var newSpec = _.clone(spec);
+      console.log(newSpec);
+      var keys = _(newSpec).keys();
+      _(keys).each(function (k) {
+        if (k.match(/^:/)) {
+          var v = self._parameters[k];
+          newSpec[v] = newSpec[k];
+          delete newSpec[k];
+        } else if (newSpec[k] && typeof newSpec[k] === "object") {
+          newSpec[k] = self.applyParameters(newSpec[k]);
+        } else if (newSpec[k] && _.isString(newSpec[k]) && newSpec[k].match(/^:/)) {
+          newSpec[k] = self._parameters[newSpec[k]];
+        }
+      });
+      return newSpec;
+    },
+
     newControl: function(text, f) {
       var control = $("<a href='#' class='table-link'>" + text + "</a>");
       if (f) {
@@ -431,6 +572,7 @@
       }
       return control;
     },
+
     makeOrderEditor: function() {
       var self = this;
 
@@ -449,6 +591,7 @@
         editors.find("li:last").remove();
         if (self.spec().order.length <= 1) {
           removeLink.hide();
+          self.refreshResults();
         }
       });
 
@@ -462,6 +605,7 @@
         self.spec().order.push(newOrder);
         editors.append(self.makeOrderEditorRow(newOrder, slugs));
         removeLink.show();
+        self.refreshResults();
       });
 
 
@@ -470,6 +614,7 @@
 
       return editor.append(editors).append(controls);
     },
+
     makeOrderEditorRow: function(order, slugs) {
       var self = this;
       var editor = $("<li class='spec-order-editor'>");
@@ -489,6 +634,7 @@
         var ck = _(order).keys()[0];
         order[k] = order[ck] || "asc";
         if (k !== ck) {delete order[ck]}
+        self.refreshResults();
       });
       keySelection.val(key);
 
@@ -503,10 +649,12 @@
         var v = directionSelection.val();
         var k = _(order).keys()[0];
         order[k] = v;
+        self.refreshResults();
       });
 
       return editor.append(keySelection).append(directionSelection);
     },
+
     makeIncludeEditor: function() {
       var self = this;
 
@@ -541,6 +689,7 @@
         editors.find("li:last").remove();
         if (includeArray.length <= 1) {
           removeLink.hide();
+          self.refreshResults();
         }
       });
 
@@ -554,12 +703,14 @@
         includeArray.push(newOrder);
         editors.append(self.makeIncludeEditorRow(newOrder));
         removeLink.show();
+        self.refreshResults();
       });
 
       var controls = $("<div class='spec-include-controls'>");
       controls.append(addLink).append("&nbsp;").append(removeLink);
       return editor.append(editors).append(controls);
     },
+
     makeIncludeEditorRow: function(include, slugs) {
       var self = this;
       var editor = $("<li class='spec-include-editor'>");
@@ -575,13 +726,13 @@
         e.stopPropagation();
         var v = keySelection.val();
         include.key = v;
+        self.refreshResults();
       });
       keySelection.val(include.key);
 
       return editor.append(keySelection);
     },
-    syncToDOM: function() {
-    },
+
     syncFromDOM: function() {
       var self = this;
       console.log("syncing from DOM");
@@ -657,6 +808,7 @@
       });
       return node;
     },
+
     rollUpWhere: function(w) {
       var self = this;
       // build pure structure from nodes
@@ -697,6 +849,8 @@
       root[w.key][w.operand] = w.value;
       return root;
     },
+
+
     rollUpOrder: function(o) {
       var self = this;
       var newOrder = [];
@@ -710,6 +864,8 @@
       })
       return newOrder;
     },
+
+
     rollUpInclude: function(i) {
       var self = this;
       var includes = {};
@@ -726,6 +882,8 @@
       });
       return includes;
     },
+
+
     unrollInclude: function(i) {
       var self = this;
       var includes = [];
@@ -743,6 +901,8 @@
 
       return includes;
     },
+
+
     pruneWhere: function(w) {
       var self = this;
 

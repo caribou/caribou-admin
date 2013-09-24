@@ -16,10 +16,13 @@ $nodeName: 85%;
     }
 }
 
-.comparison-container select {
-    width: 50px;
+.comparison-container select.spec-comparison-key {
+    width: 150px;
 }
 
+.comparison-container select.spec-comparison-comparator {
+    width: 90px;
+}
 .spec-order,
 .spec-include {
     ul {
