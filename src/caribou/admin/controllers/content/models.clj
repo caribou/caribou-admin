@@ -571,6 +571,32 @@
         ]
     (json-response actioned)))
 
+(defn find-with-siphon
+  [request]
+  (let [payload (json-payload request)
+        _ (println payload)
+        spec (:spec payload)
+        m (model/pick :model {:where {:slug (:model spec)} :include {:fields {}}})
+        gather-map (select-keys spec [:limit :offset :where :include :order])
+        _ (println gather-map)
+        op      (:op spec)
+        limited (if (= op "pick")
+                  (assoc gather-map :limit 1)
+                  gather-map)
+        results (model/gather (:model spec) limited)
+        template (template/find-template
+                  (util/pathify ["content" "models" "instance" "_collection.html"]))
+        pager (helpers/add-pagination results
+                                      {:page-size (:limit spec)
+                                       :current-page 0})]
+    (json-response
+     {:template (:body (render (merge request {:template template
+                                               :model m
+                                               :fields (:fields m)
+                                               :hide-controls true
+                                               :pager pager})))
+      :state {:results results}})))
+
 (defn api
   ;; Cheesy way to create only one route for many functions.
   ;; This will go away, don't worry.  Just doing this to get up and running quickly.
@@ -589,6 +615,7 @@
       "upload-asset" (upload-asset request)
       "remove-link" (remove-link request)
       "reindex" (reindex request)
+      "find-with-siphon" (find-with-siphon request)
       "list-controllers-and-actions" (list-controllers-and-actions request)
       "bulk-editor-content" (bulk-editor-content request)
       {:status 404 :body "Awwwwww snap!"})))

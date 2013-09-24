@@ -110,8 +110,8 @@
       comparisonContainer.append(keyInput).append(comparatorSelection).append(valueInput);
 
       var nodeTypeSelection = $("<select>").
-            append("<option value=\"&&\">all of these are true</option>").
-            append("<option value=\"||\">any of these are true</option>").
+            append("<option value=\"&&\">AND</option>").
+            append("<option value=\"||\">OR</option>").
             val(node.operand);
 
       nodeTypeSelection.on("change", function(e) {
@@ -157,21 +157,6 @@
       nodeEditor.append(nodeTypeSelection).append(comparisonContainer).append("&nbsp;").append(negateCheckbox).append(" negate?");
       return nodeEditor;
     },
-    /*
-    makeLeaf: function(tree, node) {
-      var dom = $("<li>");
-      dom.append("<div class='icon-container'></div><div class='node-name'>" +
-                 node.key + " " + node.comparator + " " + node.value +
-                 "</div><div class='controls-container'><span class='controls'></span></div></div>");
-      return dom;
-    },
-    makeHeader: function(tree, node) {
-      var dom = $("<li>");
-      dom.append("<div class='tree-header'><div class='icon-container'>&nbsp;</div><div class='node-name'>Op</div>" +
-                 "<div class='controls-container'>Controls</div></div>");
-      return dom;
-    },
-    */
     makePlaceholder: function(tree, droppedEl, onEl) {
       var dom = $("<li class='tree-placeholder'></li>");
       return dom;
@@ -292,6 +277,8 @@
     var self = this;
     global.caribou.api.invokeModels(); // load all the models
     editors.StructureFieldEditor.call(this, options);
+
+    self._showPreview = true;
   }
 
   $.extend( SpecFieldEditor.prototype, editors.StructureFieldEditor.prototype, {
@@ -327,6 +314,7 @@
         } else {
           limit.show();
         }
+        self.refresh();
       });
       operation.append("<option value='gather'>Gather (find all)</option");
       operation.append("<option value='pick'>Pick (find one)</option");
@@ -336,6 +324,7 @@
       var limit = $("<input type='text' placeholder='this many items' class='spec-limit' />").on("keyup change", function(e) {
         e.stopPropagation();
         self.spec().limit = $(this).val();
+        self.refresh();
       });
       limit.val(self.spec().limit);
 
@@ -364,7 +353,7 @@
             leafRelationship: "kvps",
             parentRelationship: "parent",
             leafParentRelationship: "parent",
-            delegate: new SpecFieldWhereDelegate()
+            delegate: new SpecFieldWhereDelegate({ editor: self })
           });
           whereTree.render(".spec-where").attach();
           self._whereTree = whereTree;
@@ -382,10 +371,19 @@
           } else {
             include.hide();
           }
+
+          if (self.spec().limit && (self.spec().op === "gather" || self.spec().op === "pick")) {
+            preview.show();
+          } else {
+            preview.hide();
+          }
+
+          self.refresh();
         } else {
           where.hide();
           order.hide();
           include.hide();
+          preview.hide();
         }
       });
 
@@ -402,6 +400,30 @@
       modelSelection.val(self.spec().model);
       modelSelection.trigger("change");
     },
+    refresh: function() {
+      var self = this;
+      self.updatePreview(function(data) {
+        self._element.find('.spec-preview').empty().append(data.template);
+      });
+    },
+    updatePreview: function(f) {
+      var self = this;
+      // post an update to the server
+      var spec = _(self.spec()).clone();
+
+      spec.where = self.rollUpWhere(self.pruneWhere(self._whereTree.value));
+      spec.order = self.rollUpOrder(spec.order);
+      spec.include = self.rollUpInclude(self._include);
+      spec.limit = spec.limit || null;
+
+      $.ajax({
+        type: "POST",
+        url: global.caribou.api.routeFor("find-with-siphon", {}),
+        data: JSON.stringify({data: {spec: spec}}),
+        contentType: "application/json; charset=utf-8",
+        success: f
+      });
+    },
     newControl: function(text, f) {
       var control = $("<a href='#' class='table-link'>" + text + "</a>");
       if (f) {
@@ -412,11 +434,13 @@
     makeOrderEditor: function() {
       var self = this;
 
+      var slugs = global.caribou.models.unrollFieldSlugs(self.spec().model, 2);
+
       var editor = $("<div>");
 
       var editors = $("<ul>");
       $(self.spec().order).each(function(index, order) {
-        editors.append(self.makeOrderEditorRow(order));
+        editors.append(self.makeOrderEditorRow(order, slugs));
       });
 
       var removeLink = self.newControl("Remove", function(e) {
@@ -436,7 +460,7 @@
         e.stopPropagation();
         var newOrder = {};
         self.spec().order.push(newOrder);
-        editors.append(self.makeOrderEditorRow(newOrder));
+        editors.append(self.makeOrderEditorRow(newOrder, slugs));
         removeLink.show();
       });
 
@@ -446,25 +470,27 @@
 
       return editor.append(editors).append(controls);
     },
-    makeOrderEditorRow: function(order) {
+    makeOrderEditorRow: function(order, slugs) {
       var self = this;
       var editor = $("<li class='spec-order-editor'>");
 
       var key = _(order).keys()[0];
 
-      var keyInput = $("<input type='text'>").typeahead({
-        source: global.caribou.models.unrollFieldSlugs(self.spec().model, 2)
-      });
-      keyInput.val(key);
+      var keySelection = $("<select>");
+      keySelection.append("<option value=''></option>");
 
-      keyInput.on("keyup change", function(e) {
+      _(slugs).each(function(s) {
+        keySelection.append("<option>" + s + "</option>");
+      });
+
+      keySelection.on("change", function(e) {
         e.stopPropagation();
-        var k = keyInput.val();
+        var k = keySelection.val();
         var ck = _(order).keys()[0];
         order[k] = order[ck] || "asc";
         if (k !== ck) {delete order[ck]}
       });
-
+      keySelection.val(key);
 
       var val = order[key];
       var directionSelection = $('<select>');
@@ -479,7 +505,7 @@
         order[k] = v;
       });
 
-      return editor.append(keyInput).append(directionSelection);
+      return editor.append(keySelection).append(directionSelection);
     },
     makeIncludeEditor: function() {
       var self = this;

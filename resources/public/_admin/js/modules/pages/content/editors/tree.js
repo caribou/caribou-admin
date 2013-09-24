@@ -5,7 +5,9 @@
         throw "editors.js has not been included";
     }
 
-    var TreeEditorDelegate = function() {};
+    var TreeEditorDelegate = function(options) {
+      this.options = options;
+    };
     $.extend(TreeEditorDelegate.prototype, {
         makeNode: function(self, node, root) {
             return $("<li data-id='" + node.id + "'><span class='icon-collapsed'></span>" + node.id + "</li>");
