@@ -133,17 +133,18 @@
       var visited = visited || {};
       var model = global.caribou.api.model(modelName);
       if (!model) return [];
-      if (visited[model.slug]) { return }
+      if (visited["model-" + model.id]) { return }
 
+      visited["model-" + model.id] = true;
       var slugs = [];
       _(model.fields).each(function(f) {
-        if (visited[model.slug + ":" + f.slug]) {
+        if (visited["field-" + f.id]) {
           return;
         }
-        visited[model.slug + ":" + f.slug] = true;
+        visited["field-" + f.id] = true;
         if (depth > 0 && (f.type === "link" || f.type === "part" || f.type === "collection")) {
           var targetModel = global.caribou.api.model(f['target-id']);
-          if (targetModel) {
+          if (targetModel && !visited["model-" + targetModel.id]) {
             var associationNames = unrollFieldSlugs(targetModel.slug, depth - 1, test, visited);
             _(associationNames).each(function(a) {
               slugs.push(f.slug + "." + a);

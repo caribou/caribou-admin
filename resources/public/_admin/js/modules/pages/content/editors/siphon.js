@@ -107,6 +107,7 @@
         node.key = keySelection.val();
         self.editor().refreshResults();
       });
+      keySelection.sortOptionList();
       keySelection.val(node.key);
 
       var comparatorSelection = $("<select class='spec-comparison-comparator'>");
@@ -636,6 +637,7 @@
         if (k !== ck) {delete order[ck]}
         self.refreshResults();
       });
+      keySelection.sortOptionList();
       keySelection.val(key);
 
       var val = order[key];
@@ -728,6 +730,7 @@
         include.key = v;
         self.refreshResults();
       });
+      keySelection.sortOptionList();
       keySelection.val(include.key);
 
       return editor.append(keySelection);
