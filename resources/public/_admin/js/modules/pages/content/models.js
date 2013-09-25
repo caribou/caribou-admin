@@ -212,9 +212,9 @@
             self.associationControls.show();
             self.associationSelection.prop("disabled", false);
             if (v === "part") {
-              self.reciprocalNameField.val(owl.pluralize(self.data.model));
+              self.reciprocalNameField.val(owl.pluralize(self._data.model));
             } else {
-              self.reciprocalNameField.val(self.data.model);
+              self.reciprocalNameField.val(self._data.model);
             }
             break;
           case "slug":
