@@ -15,4 +15,6 @@ $(function() {
       default:
     };
   }).show();
+
+  $("table.caribou-results").trigger("didRender");
 });
