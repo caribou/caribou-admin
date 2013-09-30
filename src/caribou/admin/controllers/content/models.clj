@@ -115,7 +115,7 @@
 (defn json-response
   [data]
   {:status 200
-   :body (generate-string data)
+   :body (generate-string data {:escape-non-ascii true})
    :headers {"Content-Type" "application/json"}})
 
 (defn part
@@ -399,7 +399,8 @@
         localized? (some :localized (:fields model))
         pager (helpers/add-pagination results
                                       {:page-size (or (:size params) 20)  ; TODO:kd - put default page size into config
-                                       :current-page (:page params)})]
+                                       :current-page (:page params)})
+        _ (println (:results pager))]
     (json-response
      {:template (:body (render (merge request {:template template
                                                :model model
