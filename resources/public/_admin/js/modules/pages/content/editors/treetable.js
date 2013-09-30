@@ -196,7 +196,7 @@
     }
   });
 
-  editors.TreeEditor = TreeEditor;
-  editors.TreeEditorDelegate = TreeEditorDelegate;
+  editors.TreeTableEditor = TreeEditor;
+  editors.TreeTableEditorDelegate = TreeEditorDelegate;
 })(window);
 

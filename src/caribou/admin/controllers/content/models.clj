@@ -399,8 +399,7 @@
         localized? (some :localized (:fields model))
         pager (helpers/add-pagination results
                                       {:page-size (or (:size params) 20)  ; TODO:kd - put default page size into config
-                                       :current-page (:page params)})
-        _ (println (:results pager))]
+                                       :current-page (:page params)})]
     (json-response
      {:template (:body (render (merge request {:template template
                                                :model model
@@ -568,8 +567,7 @@
         ;;                 :actions (-> % :namespace symbol arg-check sort)) mapped)
         arg-check (fn [n] (for [kv (ns-publics n)]
                             (first kv)))
-        actioned (map #(assoc % :actions (-> % :namespace symbol arg-check sort)) mapped)
-        ]
+        actioned (map #(assoc % :actions (-> % :namespace symbol arg-check sort)) mapped)]
     (json-response actioned)))
 
 (defn find-with-siphon

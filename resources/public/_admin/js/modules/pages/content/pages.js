@@ -3,7 +3,7 @@
   var api     = global.caribou.api;
   var models  = global.caribou.models;
 
-  if (!editors || !editors.TreeEditor) {
+  if (!editors || !editors.TreeTableEditor) {
     throw "editors.js and tree.js have not been included";
   }
 
@@ -184,15 +184,15 @@
   //=================================================
 
   var PageTreeDelegate = function() {
-    editors.TreeEditorDelegate.call();
+    editors.TreeTableEditorDelegate.call();
   };
 
-  $.extend( PageTreeDelegate.prototype, editors.TreeEditorDelegate.prototype, {
+  $.extend( PageTreeDelegate.prototype, editors.TreeTableEditorDelegate.prototype, {
     // ack!
     makeHeader: function() {
       return $('<tr><th>Route</th><th>Path</th><th>Method</th><th>Controller</th><th>Action</th><th>Template</th><th>Controls</th></tr>');
     },
-    makeNode: function( node ) {
+    makeNode: function(node) {
       var self = this;
       return $('<tr data-id="' + (node.id) +
         '" data-parent-id="' + (node.id? (node.parentId || "0") : "") + '" >' +
@@ -311,7 +311,7 @@
   };
 
   $.ajax({ url: global.caribou.api.routeFor("find-all", { model: "page" }), success: function( data ) {
-    var editor = new global.caribou.editors.TreeEditor({
+    var editor = new global.caribou.editors.TreeTableEditor({
       model: global.caribou.api.model("page"),
       value: data,
       expands: true,
