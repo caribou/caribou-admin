@@ -475,7 +475,7 @@
       (query/clear-queries)
       (model/init))
     (when-not (or (:test request) ; because of a reset handler npe
-                  (empty? (set/intersection #{"page"}
+                  (empty? (set/intersection #{"page" "siphon"}
                                             (set (map :model payload)))))
       (handler/reset-handler))
     (json-response results)))

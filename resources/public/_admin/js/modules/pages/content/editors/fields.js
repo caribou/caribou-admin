@@ -92,8 +92,11 @@
   $.extend( EnumFieldEditor.prototype, editors.FieldEditor.prototype, {
     selector: function() { return "select[name=" + this.field.slug + "]" },
     syncToDOM: function() {
-      var id = this.get("id") || this.get("value.id") || null;
-      $( this.selector() ).val( id );
+      var current = $( this.selector() ).val();
+      if (!current) {
+        var id = this.get("id") || this.get("value.id") || null;
+        $( this.selector() ).val( id );
+      }
     },
     syncFromDOM: function() {
       var previous = this.get("id");

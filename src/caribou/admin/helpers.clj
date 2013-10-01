@@ -3,7 +3,8 @@
             [caribou.app.pages :as pages]
             [caribou.app.helpers :as app-helpers]
             [caribou.model :as model]
-            [caribou.admin.rights :as rights]))
+            [caribou.admin.rights :as rights]
+            [caribou.admin.util :as util]))
 
 (import java.util.Date)
 (import java.text.SimpleDateFormat)
@@ -75,21 +76,28 @@
 ;; do this than to try to do it all in the controller. IMHO.
 (defn part-values
   [field instance permissions]
-  (let [model (rights/pick permissions :model {:where {:id (:target-id field)}
+  (let [source-model (model/models (:model-id field))
+        id-field-slug (keyword (str (:slug field) "-id"))
+        id-field (-> source-model :fields id-field-slug :row)
+        default-value (:default-value id-field)
+        target-model (rights/pick permissions :model {:where {:id (:target-id field)}
                                   :include {:fields {}}})
-        results (rights/gather permissions (:slug model))
-        name-field (keyword (:slug (first (:fields model))))
+        results (rights/gather permissions (:slug target-model))
+        ;;name-field (keyword (:slug (first (:fields target-model))))
+        name-field (-> (util/best-title-field target-model) :slug keyword)
         value-field :id
-        default-value (:default-value field)
         is-selected? (fn [v] (if (nil? instance)
-                               (= v default-value)
-                               (= v (get instance value-field))))]
-    (conj (map (fn [datum]
-                 {:name (name-field datum)
-                  :value (value-field datum)
-                  :selected (is-selected? (value-field datum))})
-               results)
-          {:name "" :value "" :selected (is-selected? "")})))
+                               (= (str v) (str default-value))
+                               (= (str v) (str (get instance value-field)))))
+        part-values (conj
+                     (map
+                      (fn [datum]
+                       {:name (name-field datum)
+                        :value (value-field datum)
+                        :selected (is-selected? (value-field datum))})
+                       results)
+                      {:name "" :value "" :selected (is-selected? "")})]
+    part-values))
 
 (defn enum-values [field instance]
   (let [model (get (model/models) (:model-id field))
