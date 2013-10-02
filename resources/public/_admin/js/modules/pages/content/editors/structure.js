@@ -9,11 +9,11 @@
   function StructureFieldEditor(options) {
     var self = this;
 
-    editors.FieldEditor.call(self, options);
+    editors.TextEditor.call(self, options);
     self._schema = options.schema;
   }
 
-  $.extend( StructureFieldEditor.prototype, editors.FieldEditor.prototype, {
+  $.extend( StructureFieldEditor.prototype, editors.TextEditor.prototype, {
   });
 
   global.caribou.editors.StructureFieldEditor = StructureFieldEditor;

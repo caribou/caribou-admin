@@ -84,17 +84,6 @@
         comparisonContainer.hide();
       }
 
-      /*
-      var keyInput = $("<input type='text'>").typeahead({
-        source: global.caribou.models.unrollFieldSlugs(tree.model.slug, 1)
-      });
-
-      keyInput.val(node.key);
-      keyInput.on("keyup change", function(e) {
-        e.stopPropagation();
-        node.key = keyInput.val();
-      });
-      */
       var keySelection = $("<select class='spec-comparison-key'>");
       keySelection.append("<option value=''></option>");
 
@@ -115,11 +104,11 @@
         comparatorSelection.append("<option value='" + c + "'>" + c + "</option>");
       });
       comparatorSelection.val(node.operand);
-      //comparatorSelection.on("change", function(e) {
-      //  e.stopPropagation();
-      //  node.operand = comparatorSelection.val();
-      //  self.editor().refreshResults();
-      //});
+      comparatorSelection.on("change", function(e) {
+        e.stopPropagation();
+        node.operand = comparatorSelection.val();
+        self.editor().refreshResults();
+      });
 
       var valueInput = $("<input type='text' class='spec-comparison-value'>");
       valueInput.val(node.value);
@@ -179,7 +168,11 @@
         tree.forceClosed(dom, node);
       }
 
-      nodeEditor.append(nodeTypeSelection).append(comparisonContainer).append("&nbsp;").append(negateCheckbox).append(" negate?");
+      nodeEditor.append(nodeTypeSelection).
+                 append(comparisonContainer).
+                 append("&nbsp;").
+                 append(negateCheckbox).
+                 append(" negate?");
       return nodeEditor;
     },
     makePlaceholder: function(tree, droppedEl, onEl) {
@@ -301,7 +294,7 @@
   function SpecFieldEditor(options) {
     var self = this;
     global.caribou.api.invokeModels(); // load all the models
-    editors.StructureFieldEditor.call(this, options);
+    editors.FieldEditor.call(this, options);
 
     self._showPreview = true;
     self._include = null;
@@ -309,7 +302,7 @@
     self._requiredParameters = [];
   }
 
-  $.extend( SpecFieldEditor.prototype, editors.StructureFieldEditor.prototype, {
+  $.extend( SpecFieldEditor.prototype, editors.FieldEditor.prototype, {
     spec: function() {
       var self = this;
       if (!self.value) {
@@ -422,7 +415,7 @@
       });
 
       // build editor HTML
-      self.element().append(operation).
+      self.element().empty().append(operation).
       append(limit).
                      append("of type").
                      append(modelSelection).
