@@ -12,6 +12,7 @@
             [clojure.pprint :as pprint]
             [slingshot.slingshot :as slingshot :refer [throw+]]
             [clojure.walk :as walk]
+            [clojure.pprint :as pprint]
             [caribou.util :as util]
             [caribou.permissions :as permissions]
             [caribou.logger :as log]
@@ -177,7 +178,11 @@
               :locale (-> locale :code)
               :order (model/process-order order-default)}
         _ (log/debug spec)
-        results (or kw-results (rights/gather permissions (-> request :params :slug) spec))
+
+        results (or kw-results
+                    (rights/gather permissions
+                                   (-> request :params :slug)
+                                   (assoc spec :display request)))
         friendly-fields (human-friendly-fields model)
         order-info (order-info model)]
     (if-let [locale (-> request :locale)]
@@ -582,7 +587,9 @@
         limited (if (= op "pick")
                   (assoc gather-map :limit 1)
                   gather-map)
-        results (model/gather (:model spec) limited)
+        displayed (assoc limited :display request)
+        results (model/gather (:model spec) displayed)
+        _ (pprint/print-table results)
         template (template/find-template
                   (util/pathify ["content" "models" "instance" "_collection.html"]))
         pager (helpers/add-pagination results

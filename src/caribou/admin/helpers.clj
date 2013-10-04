@@ -114,9 +114,13 @@
           mapped
           (conj mapped {:name "" :value "" :selected (is-selected? nil)}))))
 
+;;(defn get-title [thing model]
+;;  (let [best-field (first (:fields model))]
+;;    (get thing (keyword (:slug best-field)))))
+
 (defn get-title [thing model]
-  (let [best-field (first (:fields model))]
-    (get thing (keyword (:slug best-field)))))
+  (let [title-field (util/best-title-field model)]
+    (get thing (keyword (:slug title-field)))))
 
 (defn get-index [collection index]
   (get collection index))

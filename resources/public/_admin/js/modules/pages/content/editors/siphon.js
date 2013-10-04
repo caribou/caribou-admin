@@ -54,9 +54,6 @@
     },
     makeNode: function(tree, node) {
       var self = this;
-      //if (!node.parent) {
-      //  return this.makeHeader(tree, node);
-      //}
       var dom = $("<li>");
 
       var slugs = global.caribou.models.unrollFieldSlugs(self.options.editor.spec().model, 2);
@@ -158,6 +155,14 @@
         self.editor().refreshResults();
       });
 
+      var negateSelection = $("<select class='spec-negate'>").append("<option value=''>").
+                                          append("<option value='1'>NOT</option>");
+      negateSelection.on("change", function(e) {
+        e.stopPropagation();
+        node.negate = (negateSelection.val() == 1);
+        self.editor().refreshResults();
+      });
+
       if (self.hasChildren(tree, dom, node)) {
         nodeTypeSelection.show();
         comparatorSelection.hide();
@@ -168,11 +173,12 @@
         tree.forceClosed(dom, node);
       }
 
-      nodeEditor.append(nodeTypeSelection).
-                 append(comparisonContainer).
-                 append("&nbsp;").
-                 append(negateCheckbox).
-                 append(" negate?");
+      nodeEditor.append(negateSelection).
+                 append(nodeTypeSelection).
+                 append(comparisonContainer);
+                 //append("&nbsp;").
+                 //append(negateCheckbox).
+                 //append(" negate?");
       return nodeEditor;
     },
     makePlaceholder: function(tree, droppedEl, onEl) {
@@ -397,20 +403,11 @@
             include.hide();
           }
 
-          /*
-          if (self.spec().limit && (self.spec().op === "gather" || self.spec().op === "pick")) {
-            preview.show();
-          } else {
-            preview.hide();
-          }
-          */
-
           self.refreshResults();
         } else {
           where.hide();
           order.hide();
           include.hide();
-          //preview.hide();
         }
       });
 
