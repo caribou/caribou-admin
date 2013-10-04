@@ -7,9 +7,9 @@
     {{/pager.pages}}
     {{#pager.next-page?}}<li><a data-page="{{pager.next-page}}" href="{{#pager.pagination-target}}{{route-for pager.pagination-target params {:page pager.next-page} }}{{/pager.pagination-target}}">Next</a></li>{{/pager.next-page?}}
 
-    {{#pager.pagination-target}}
-      <li><a href="{{route-for pager.pagination-target params {:size pager.count :page 0} }}">All</a></li>
-    {{/pager.pagination-target}}
+
+      <li><a data-size="{{pager.count}}" href="{{#pager.pagination-target}}{{route-for pager.pagination-target params {:size pager.count :page 0} }}{{/pager.pagination-target}}">All</a></li>
+
   </ul>
 </div>
 {{/pager.pagination?}}

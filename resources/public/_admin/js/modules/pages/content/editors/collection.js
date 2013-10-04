@@ -63,6 +63,8 @@
     this.instance = options.instance;
     this.instanceModel = options.instanceModel;
     this.page = 0;
+    this.defaultPageSize = global.caribou.config.pages.results['page-size'] || 20;
+    this.pageSize = this.defaultPageSize;
   }
   $.extend( CollectionEditor.prototype, editors.Editor.prototype, {
     reciprocalField: function() {
@@ -80,6 +82,7 @@
         id: self.instance.id,
         template: "_paged_collection.html",
         page: self.page,
+        size: self.pageSize,
         field: self.field.slug
       });
       var method = "GET";
@@ -93,9 +96,10 @@
           if ( f.type === "id" ) { return false }
           if ( f.slug === "type" ) { return false }
           if ( f.type === "integer" && f.slug.match(/(^|_|-)id$/) ) { return false }
-          if ( f.type === "part" ) { return true } // because the part_id is ok
+          if ( f.type === "part" || f.type == "enum" || f.type == "asset" ) { return true } // because the id field is present
           if ( f.type === "password" && data[f.slug] === null ) { return true }
           //if ( f.type === "link" || f.type === "collection" ) { return true }
+          if ( f.type === "string" && f.slug.match(/-key$/) ) { return false }
           return !f.editable;
         }).map( function(f) { return f.slug }).value();
       return _( data ).omit( blacklist );
@@ -115,7 +119,6 @@
     command: function( command ) {
       var self = this;
       var selected = self.selected();
-      console.log("Applying command "+command, selected);
       // just do edit for now
       if (command === "edit") {
         if (selected.length === 0) {
@@ -290,9 +293,10 @@
       }
       $(".pagination a").off("click").on("click", function(e) {
         e.preventDefault();
-        self.page = $(this).data().page;
+        self.page = $(this).data().page || 0;
+        self.pageSize = $(this).data().size || self.defaultPageSize;
         self.refresh( function( data, error, jqxhr ) {
-          console.log("refreshed to page " + self.page);
+          console.log("refreshed to page " + self.page + " size " + self.pageSize);
         });
       });
     }
@@ -302,6 +306,9 @@
     editors.Editor.call( this, options );
     // used for pagination
     this.page = 0;
+    this.defaultPageSize = global.caribou.config.pages.results['page-size'] || 20;
+    this.pageSize = this.defaultPageSize;
+
     // the current state of this collection,
     // so we can highlight/identify which are already
     // present and which can be added
@@ -322,7 +329,8 @@
       var route = self.api().routeFor( "editor-content", {
         model: self.model.slug,
         template: "_paged_collection.html",
-        page: self.page
+        page: self.page,
+        size: self.pageSize
       });
       $.ajax({ url: route, success: function( data, error, jqxhr ) {
         self.loadContent( data.state );
@@ -441,9 +449,10 @@
       }
       $(".pagination a").off("click").on("click", function(e) {
         e.preventDefault();
-        self.page = $(this).data().page;
+        self.page = $(this).data().page || 0;
+        self.pageSize = $(this).data().size || self.defaultPageSize;
         self.refresh( function( data, error, jqxhr ) {
-          console.log("refreshed to page " + self.page);
+          console.log("refreshed to page " + self.page + " with size " + self.pageSize);
         });
       });
     },
