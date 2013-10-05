@@ -209,12 +209,12 @@
 
       var controls = dom.find(".controls");
 
-      var addClauseLink = self.newControl("Add", function(e) {
+      var addClauseLink = self.newControl("+", function(e) {
         e.stopPropagation();
         self.addClause(tree, dom, node);
       });
 
-      var removeClauseLink = self.newControl("Delete", function(e) {
+      var removeClauseLink = self.newControl("-", function(e) {
         e.stopPropagation();
         self.removeClause(tree, dom, node);
       });
@@ -333,32 +333,35 @@
     attach: function() {
       var self = this;
 
-      // Which operation
-      var operation = $("<select class='spec-op'>").on("change", function(e) {
+      // how many
+      var useLimit = $("<input type='checkbox'>");
+      useLimit.on("change", function(e) {
+        e.stopPropagation();
+        var specLimit = useLimit.parent().find(".spec-limit");
+        if (!useLimit.prop("checked")) {
+          specLimit.val("").trigger("change");
+        }
+      });
+
+      var limitInput = $("<input type='text' placeholder='this many items' class='spec-limit' />").on("keyup change", function(e) {
+        e.stopPropagation();
         var v = $(this).val();
-        self.spec().op = v;
-        if (v === "pick") {
-          limit.hide();
+        if (v > 0) {
+          useLimit.prop("checked", true);
+          if (self.spec().limit == 1) {
+            self.spec().op = "pick";
+          } else {
+            self.spec().op = "gather";
+          }
+          self.spec().limit = v;
         } else {
-          limit.show();
+          self.spec().limit = null;
         }
         self.refreshResults();
       });
-      operation.append("<option value='gather'>Gather (find all)</option");
-      operation.append("<option value='pick'>Pick (find one)</option");
-      operation.val(self.spec().op);
 
-      // how many
-      var limit = $("<input type='text' placeholder='this many items' class='spec-limit' />").on("keyup change", function(e) {
-        e.stopPropagation();
-        self.spec().limit = $(this).val();
-        self.refreshResults();
-      });
-      limit.val(self.spec().limit);
-      if (self.spec().op === "pick") {
-        limit.hide();
-      }
-
+      limitInput.val(self.spec().limit);
+      var limit = [useLimit, " Limit search to ", limitInput];
       var where   = $("<h4>where</h4><div class='spec-where'></div>").hide();
       var order   = $("<h4>ordered by</h4><div class='spec-order'></div>").hide();
       var include = $("<h4>including</h4><div class='spec-include'></div>").hide();
@@ -412,11 +415,12 @@
       });
 
       // build editor HTML
-      self.element().empty().append(operation).
-      append(limit).
-                     append("of type").
+      self.element().empty().
+                     append("<h4>What</h4>").
                      append(modelSelection).
                      append(where).
+                     append("<hr>").
+                     append(limit).
                      append(order).
                      append(include).
                      append(preview);
@@ -576,7 +580,7 @@
         editors.append(self.makeOrderEditorRow(order, slugs));
       });
 
-      var removeLink = self.newControl("Remove", function(e) {
+      var removeLink = self.newControl("-", function(e) {
         e.stopPropagation();
         self.spec().order.pop();
         editors.find("li:last").remove();
@@ -590,7 +594,7 @@
         removeLink.hide();
       }
 
-      var addLink = self.newControl("Add", function(e) {
+      var addLink = self.newControl("+", function(e) {
         e.stopPropagation();
         var newOrder = {};
         self.spec().order.push(newOrder);
@@ -675,7 +679,7 @@
         editors.append(self.makeIncludeEditorRow(include, slugs));
       });
 
-      var removeLink = self.newControl("Remove", function(e) {
+      var removeLink = self.newControl("-", function(e) {
         e.stopPropagation();
         includeArray.pop();
         editors.find("li:last").remove();
@@ -689,7 +693,7 @@
         removeLink.hide();
       }
 
-      var addLink = self.newControl("Add", function(e) {
+      var addLink = self.newControl("+", function(e) {
         e.stopPropagation();
         var newOrder = {};
         includeArray.push(newOrder);
