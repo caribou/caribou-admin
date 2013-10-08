@@ -167,11 +167,41 @@
     submit: function( next ) {
       var self = this;
       self.syncFromDOM();
+
+      // validate the data in this editor and reject the
+      // submit if it contains invalid data
+      var failures = self.validate();
+      if (failures.length) {
+        return;
+      }
+
       $( self.children ).each( function(index, child) {
         child.submit();
       });
       editors.Editor.prototype.submit.call( self, next );
-    }
+    },
+    validationFailures: function() {
+      var self = this;
+      var failures = [];
+      $( self.children ).each( function(index, child) {
+        var childFailures = child.validationFailures();
+        if (childFailures.length) {
+          child.indicateValidationFailure(childFailures);
+          failures = failures.concat(childFailures);
+        }
+      });
+      return failures;
+    },
+    validate: function() {
+      var self = this;
+      var failures = self.validationFailures();
+      if (failures.length) {
+        console.log("Validation errors:");
+        console.log(failures);
+        global.caribou.status.render().clearMessages();
+      }
+      return failures;
+    },
   });
 
   // -------------------------------------------------------

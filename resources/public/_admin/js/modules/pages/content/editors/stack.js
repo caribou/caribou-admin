@@ -159,7 +159,6 @@
       } else {
         this.commandMenu().hide();
       }
-      //global.caribou.status.render().clearMessages();
       element.trigger("didRender", this.activeEditor(), this);
       return this;
     },

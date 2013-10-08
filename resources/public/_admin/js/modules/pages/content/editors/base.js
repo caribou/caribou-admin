@@ -120,7 +120,11 @@
         if (success) { success( data ) }
       });
     },
-    on: function( event, fn ) { console.error(this + " can't handle " + event); }
+    on: function( event, fn ) { console.error(this + " can't handle " + event); },
+    validationFailures: function() {
+      return [];
+    },
+    indicateValidationFailure: function() {}
   });
 
   //-------------------------------------------------------
@@ -157,6 +161,22 @@
         event = "change keyup";
       }
       $( this.selector() ).on( event, fn );
+    },
+    validationFailures: function() {
+      var self = this;
+      var failures = [];
+      if (self.field && self.field.required && !self.value) {
+        failures.push({message: self.field.name + " is required", type: "REQUIRED", field: self.field});
+      }
+      return failures;
+    },
+    indicateValidationFailure: function(failures) {
+      var self = this;
+      var row = self.element().parents("tr:first");
+      row.addClass("error");
+      _(failures).each(function(f) {
+        global.caribou.status.addErrorMessage(f.message);
+      });
     }
   });
 

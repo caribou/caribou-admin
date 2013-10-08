@@ -11,6 +11,6 @@
         fields (if (nil? (:fields model))
                  (sort-by :model-position (map :row source-fields))
                  (:fields model))]
-    (or (first (filter #(= (:type %) "string") fields))
+    (or (first (filter #(and (not (= (:slug %) "uuid")) (= (:type %) "string")) fields))
         (first (filter #(= (:type %) "text") fields))
         (first fields))))

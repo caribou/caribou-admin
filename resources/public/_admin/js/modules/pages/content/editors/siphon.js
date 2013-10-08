@@ -414,15 +414,19 @@
         }
       });
 
+      var newOrder = $("<div class='span6'>").append(order);
+      var newInclude = $("<div class='span4'>").append(include);
+      var orderAndInclude = $("<div class='well row-fluid spec-order-include'>").append(newOrder).append(newInclude);
+
       // build editor HTML
       self.element().empty().
                      append("<h4>What</h4>").
                      append(modelSelection).
                      append(where).
-                     append("<hr>").
+                     append("<hr />").
                      append(limit).
-                     append(order).
-                     append(include).
+                     append("<hr />").
+                     append(orderAndInclude).
                      append(preview);
 
       modelSelection.val(self.spec().model);
@@ -635,7 +639,7 @@
       keySelection.val(key);
 
       var val = order[key];
-      var directionSelection = $('<select>');
+      var directionSelection = $("<select class='spec-order-editor-direction'>");
       directionSelection.append("<option value='desc'>Descending</option>");
       directionSelection.append("<option value='asc'>Ascending</option>");
       directionSelection.val(val);
@@ -697,7 +701,7 @@
         e.stopPropagation();
         var newOrder = {};
         includeArray.push(newOrder);
-        editors.append(self.makeIncludeEditorRow(newOrder));
+        editors.append(self.makeIncludeEditorRow(newOrder, slugs));
         removeLink.show();
         self.refreshResults();
       });
