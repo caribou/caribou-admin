@@ -116,8 +116,10 @@
         cookieValue: function( key ) {
           return $.cookie(key);
         },
-        setCookieValue: function( key, value ) {
-          $.cookie( key, value );
+        setCookieValue: function( key, value, options ) {
+          options = options || {};
+          options.path = options.path || "/";
+          $.cookie( key, value, options );
         }
       };
 

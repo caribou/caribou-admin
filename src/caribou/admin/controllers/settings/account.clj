@@ -35,6 +35,10 @@
   [request]
   (render request))
 
+(defn user-preferences
+  [request]
+  (render request))
+
 (defn login
   [request]
   (let [locale (or (-> request :params :locale) "global")]

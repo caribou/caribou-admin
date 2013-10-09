@@ -104,6 +104,7 @@
                 <b class="caret"></b></a>
               <ul class="dropdown-menu">
                 <li><a href="{{safe-route-for :admin.edit-model-instance params {:id session.admin.user.id} }}">My account</a></li>
+                <li><a href="{{safe-route-for :admin.user-preferences params }}">Preferences</a></li>
                 <li><a href="{{safe-route-for :admin.logout params }}">Logout</a></li>
               </ul>
             </li>
@@ -140,6 +141,7 @@
   <script src="/_admin/js/modules/pages/content/util.js"></script>
   <script src="/_admin/js/modules/pages/content/config.js"></script>
   <script src="/_admin/js/modules/pages/content/backend.js"></script>
+  <script src="/_admin/js/modules/pages/settings/user_preferences.js"></script>
 
   <script src="/_admin/js/modules/pages/content/editors/base.js"></script>
   <script src="/_admin/js/modules/pages/content/editors/fields.js"></script>

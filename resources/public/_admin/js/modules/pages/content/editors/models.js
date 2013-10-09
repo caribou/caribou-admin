@@ -15,6 +15,7 @@
   if (!editors) {
     throw "editors/base.js and editors/fields.js have not been included";
   }
+  var preferences = global.caribou.preferences.preferencesManager;
 
   // code here
   //
@@ -168,11 +169,13 @@
       var self = this;
       self.syncFromDOM();
 
-      // validate the data in this editor and reject the
-      // submit if it contains invalid data
-      var failures = self.validate();
-      if (failures.length) {
-        return;
+      if (preferences.valueForKey("validationLevel") !== "none") {
+        // validate the data in this editor and reject the
+        // submit if it contains invalid data
+        var failures = self.validate();
+        if (failures.length) {
+          return;
+        }
       }
 
       $( self.children ).each( function(index, child) {

@@ -1,0 +1,30 @@
+{{< templates/layouts/app.html}}
+{{%content}}
+
+<div class="page-header">
+  <div class="container-fluid clearfix">
+      <h1>Preferences</h1>
+  </div>
+</div>
+
+<div class="container-fluid caribou-preferences">
+  <div class="well span4">
+    <fieldset>
+      <legend>Validation Level</legend>
+      <label><input type="radio" class="caribou-preferences-validation" name="preferences-validation" value="none" /> No validation</label>
+      <label><input type="radio" class="caribou-preferences-validation" name="preferences-validation" value="all" /> Validate all</label>
+
+      <span class="help-block">Using this setting you can override the validation of any content you edit.</span>
+    </fieldset>
+  </div>
+</div>
+
+{{/content}}
+
+{{%page-javascript}}
+<script type="text/javascript">
+$(function() {
+    var preferencesPage = new window.caribou.preferences.PreferencesPage();
+});
+</script>
+{{/page-javascript}}

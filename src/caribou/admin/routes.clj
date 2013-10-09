@@ -113,6 +113,9 @@
         [{:path "models", :children [], :slug "admin.model-list", :position nil,
           :template "settings/model/index.html", :method "", :action "index",
           :name "Model List", :controller "settings.model"}
+         {:path "preferences", :children [], :slug "admin.user-preferences", :position nil,
+          :template "settings/user_preferences.html", :method "", :action "user-preferences",
+          :name "User Preferences" :controller "settings.account"}
          {:path "role-editor/:title", :children [], :slug "admin.edit-role",
           :position nil, :template "settings/role/edit.html", :method "",
           :action "edit-role", :name "Edit Role", :controller "roles"}
