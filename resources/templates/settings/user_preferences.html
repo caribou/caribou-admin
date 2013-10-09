@@ -9,13 +9,21 @@
 
 <div class="container-fluid caribou-preferences">
   <div class="well span4">
-    <fieldset>
-      <legend>Validation Level</legend>
-      <label><input type="radio" class="caribou-preferences-validation" name="preferences-validation" value="none" /> No validation</label>
-      <label><input type="radio" class="caribou-preferences-validation" name="preferences-validation" value="all" /> Validate all</label>
-
-      <span class="help-block">Using this setting you can override the validation of any content you edit.</span>
-    </fieldset>
+    <form>
+      <fieldset class="control-group">
+        <legend>Validation Level</legend>
+        <label class="radio"><input type="radio" class="caribou-preferences-validation" name="preferences-validation" value="none" />
+          Don't do any validation
+        </label>
+        <label class="radio"><input type="radio" class="caribou-preferences-validation" name="preferences-validation" value="required" />
+          Only validate required fields
+        </label>
+        <label class="radio"><input type="radio" class="caribou-preferences-validation" name="preferences-validation" value="all" />
+          Validate all fields
+        </label>
+        <span class="help-block">Using this setting you can override the validation of any content you edit.</span>
+      </fieldset>
+      </form>
   </div>
 </div>
 

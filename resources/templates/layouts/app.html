@@ -104,7 +104,7 @@
                 <b class="caret"></b></a>
               <ul class="dropdown-menu">
                 <li><a href="{{safe-route-for :admin.edit-model-instance params {:id session.admin.user.id} }}">My account</a></li>
-                <li><a href="{{safe-route-for :admin.user-preferences params }}">Preferences</a></li>
+                <li><a data-toggle="modal" data-target="#preferences-modal" href="{{safe-route-for :admin.user-preferences params }}">Preferences</a></li>
                 <li><a href="{{safe-route-for :admin.logout params }}">Logout</a></li>
               </ul>
             </li>
@@ -114,15 +114,18 @@
     </div>
   </div>
 
-	{{/is-xhr}}
-	  {{%content}}{{/content}}
-	{{^is-xhr}}
 
-	<hr>
+{{/is-xhr}}
+{{%content}}{{/content}}
+{{^is-xhr}}
+
+  <hr>
 
   <footer>
 
   </footer>
+
+  {{> templates/settings/dialogs/preferences.html }}
 
   {{> templates/layouts/_pre-javascript.html}}
 
@@ -161,9 +164,10 @@
   <script src="/_admin/js/modules/pages/content/breadcrumbs.js"></script>
   <script src="/_admin/js/modules/pages/content/status.js"></script>
 
+{{/is-xhr}}
   {{> templates/layouts/_post-javascript.html}}
   {{%page-javascript}}{{/page-javascript}}
-
+{{^is-xhr}}
 </body>
 </html>
 {{/is-xhr}}

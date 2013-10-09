@@ -124,7 +124,10 @@
     validationFailures: function() {
       return [];
     },
-    indicateValidationFailure: function() {}
+    indicateValidationFailure: function() {},
+    preferences: function() {
+      return global.caribou.preferences.preferencesManager;
+    }
   });
 
   //-------------------------------------------------------
@@ -165,8 +168,41 @@
     validationFailures: function() {
       var self = this;
       var failures = [];
-      if (self.field && self.field.required && !self.value) {
-        failures.push({message: self.field.name + " is required", type: "REQUIRED", field: self.field});
+      if (!self.field) {
+        return failures;
+      }
+
+      var validationLevel = self.preferences().valueForKey("validationLevel");
+      var shouldValidate =
+        validationLevel === "all" ||
+        (validationLevel === "required" && self.field.required);
+
+      if (shouldValidate) {
+        if (self.field.required && !self.value) {
+          failures.push({message: self.field.name + " is required", type: "REQUIRED", field: self.field});
+        }
+        // validate format
+        var formatFailures = self.formatValidationFailures();
+        failures = failures.concat(formatFailures);
+      }
+      return failures;
+    },
+    formatValidationFailures: function() {
+      var self = this;
+      var failures = [];
+      switch (self.field.type) {
+        case "integer":
+          if (self.value && !self.value.match(/^(\d)+$/)) {
+            failures.push({message:"Invalid integer: " + self.value, type:"FORMAT", field: self.field});
+          }
+          break;
+        case "decimal":
+          if (self.value && !self.value.match(/^(\d)*(\.(\d)*)?$/)) {
+            failures.push({message:"Invalid decimal: " + self.value, type:"FORMAT", field: self.field});
+          }
+          break;
+        default:
+          break;
       }
       return failures;
     },
