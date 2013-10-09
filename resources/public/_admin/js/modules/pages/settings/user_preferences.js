@@ -12,11 +12,23 @@
   //===============================================
   function PreferencesManager() {}
   $.extend(PreferencesManager.prototype, {
+    _preferences: function() {
+      var prefs = {};
+      try {
+        prefs = JSON.parse(global.caribou.api.cookieValue("caribou-preferences"));
+      } catch (e) {};
+      return prefs;
+    },
+    _setPreferences: function(prefs) {
+      global.caribou.api.setCookieValue("caribou-preferences", JSON.stringify(prefs));
+    },
     valueForKey: function(k) {
-      return global.caribou.api.cookieValue(k);
+      return this._preferences()[k];
     },
     setValueForKey: function(v, k) {
-      return global.caribou.api.setCookieValue(k, v);
+      var prefs = this._preferences();
+      prefs[k] = v;
+      this._setPreferences(prefs);
     }
   });
 
@@ -47,7 +59,7 @@
     setValidation: function(v) { this.validationRadioButtons.val([v]) },
 
     render: function() {
-      var validationLevel = global.caribou.preferences.preferencesManager.valueForKey("validationLevel");
+      var validationLevel = global.caribou.preferences.preferencesManager.valueForKey("validationLevel") || "all";
       this.setValidation(validationLevel);
     }
   });
