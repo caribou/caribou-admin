@@ -242,6 +242,17 @@
   });
 
   //-------------------------------------------------------
+  // ValidationFailure just makes it a bit easier to
+  // create and return new messages
+  //-------------------------------------------------------
+
+  function ValidationFailure(options) {
+    this.message = options.message || "Validation failure";
+    this.type = options.type || "INVALID";
+    this.field = options.field;
+  }
+
+  //-------------------------------------------------------
   // Export everything through the global (usually "window")
   // Other scripts that create subclasses of these
   // components will push them into this global
@@ -249,9 +260,10 @@
   //-------------------------------------------------------
   global.caribou = global.caribou || {};
   global.caribou.editors = {
-    registry: new EditorRegistry(),
-    Editor: Editor,
-    FieldEditor: FieldEditor
+    registry:    new EditorRegistry(),
+    Editor:      Editor,
+    FieldEditor: FieldEditor,
+    ValidationFailure: ValidationFailure
   };
 })(window);
 

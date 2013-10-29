@@ -577,31 +577,37 @@
 
       var slugs = global.caribou.models.unrollFieldSlugs(self.spec().model, 2);
 
+      var orderMaps = self.spec().order;
+      var orderArray = self.unrollOrder(orderMaps);
+
+      // This is bad form; nasty mutable data hobbitses.
+      self._order = orderArray;
+
       var editor = $("<div>");
 
       var editors = $("<ul>");
-      $(self.spec().order).each(function(index, order) {
+      $(orderArray).each(function(index, order) {
         editors.append(self.makeOrderEditorRow(order, slugs));
       });
 
       var removeLink = self.newControl("-", function(e) {
         e.stopPropagation();
-        self.spec().order.pop();
+        self._order.pop();
         editors.find("li:last").remove();
-        if (self.spec().order.length <= 1) {
+        if (self._order.length <= 1) {
           removeLink.hide();
           self.refreshResults();
         }
       });
 
-      if (self.spec().order.length <= 1) {
+      if (self._order.length <= 1) {
         removeLink.hide();
       }
 
       var addLink = self.newControl("+", function(e) {
         e.stopPropagation();
         var newOrder = {};
-        self.spec().order.push(newOrder);
+        self._order.push(newOrder);
         editors.append(self.makeOrderEditorRow(newOrder, slugs));
         removeLink.show();
         self.refreshResults();
@@ -739,8 +745,53 @@
       console.log("syncing from DOM");
 
       self.value.where = self.rollUpWhere(self.pruneWhere(self._whereTree.value));
-      self.value.order = self.rollUpOrder(self.value.order);
+      self.value.order = self.rollUpOrder(self._order);
       self.value.include = self.rollUpInclude(self._include);
+    },
+
+    validationFailures: function() {
+      var self = this;
+
+      var spec = self.value;
+
+      // TODO - a rigourous check here for validity would be great;
+      // This will have to do for now.
+
+      // make sure there are no nil keys, or keys of just ":"
+
+      var nilCheck = function(tree) {
+        if (tree && _.isObject(tree)) {
+          return _(tree).chain().keys().find(function(e) {
+            if (!e || e === ":") {
+              return true;
+            }
+            return nilCheck(tree[e]);
+          }).value();
+        } else if (tree && _.isArray(tree)) {
+          return _(tree).find(function(e) {
+            if (!e) {
+              return true;
+            }
+            return nilCheck(e);
+          });
+        }
+        return false;
+      };
+
+      var nils = nilCheck(spec);
+      if (nils) {
+        return [new editors.ValidationFailure({
+          type: "INVALID",
+          message: "This siphon specification is invalid",
+          field: self.field
+        })];
+      }
+
+      // check if includes make sense - eg. if a user crossed an association in the "order"
+      // clause, they also need to include that association (should they?)
+      // TBD
+
+      return [];
     },
 
     // returns an unrolled tree built from a where clause
@@ -855,17 +906,53 @@
     rollUpOrder: function(o) {
       var self = this;
       var newOrder = [];
+      var toNestedMap = function(key, value) {
+        var bits = key.split(/\./);
+        var map = {};
+        if (bits.length > 1) {
+          var start = bits.shift();
+          map[start] = toNestedMap(bits.join("."), value);
+          return map;
+        }
+        map[key] = value;
+        return map;
+      };
+
       if (!_.isArray(o)) { o = [o] }
       _(o).each(function(ordering) {
         var keys = _(ordering).keys();
 
         if (keys.length === 1 && keys[0]) {
-          newOrder.push(ordering);
+          newOrder.push(toNestedMap(keys[0], ordering[keys[0]]));
         }
       })
       return newOrder;
     },
 
+    unrollOrder: function(o) {
+      var self = this;
+      var order = [];
+
+      _(o).each(function(ordering) {
+        var keyparts = [];
+        var map = ordering;
+        var direction = null;
+        while (!direction) {
+          var keys = _(map).keys();
+          var key = keys[0];
+          keyparts.push(key);
+          if (_.isString(map[key])) {
+            direction = map[key];
+          } else {
+            map = map[key];
+          }
+        }
+        var orderMap = {};
+        orderMap[keyparts.join(".")] = direction;
+        order.push(orderMap);
+      });
+      return order;
+    },
 
     rollUpInclude: function(i) {
       var self = this;
