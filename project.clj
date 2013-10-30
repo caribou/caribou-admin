@@ -1,7 +1,7 @@
-(defproject caribou/caribou-admin "0.12.26"
+(defproject caribou/caribou-admin "0.12.30"
   :description "Generic admin tool for Caribou projects"
   :dependencies [[org.clojure/clojure "1.5.1"]
-                 [caribou/caribou-frontend "0.12.26"]
+                 [caribou/caribou-frontend "0.12.30"]
                  [clj-time "0.4.4"]]
   :jvm-opts ["-agentlib:jdwp=transport=dt_socket,server=y,suspend=n"
              "-Djava.awt.headless=true"
