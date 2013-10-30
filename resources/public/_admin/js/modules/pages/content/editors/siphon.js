@@ -984,7 +984,7 @@
         } else {
           var keys = self.unrollInclude(v);
           _(keys).each(function(key) {
-            includes.push({ key: k + "." + key });
+            includes.push({ key: k + "." + key.key });
           });
         }
       });
