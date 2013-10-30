@@ -88,7 +88,7 @@
         value-field :id
         is-selected? (fn [v] (if (nil? instance)
                                (= (str v) (str default-value))
-                               (= (str v) (str (get instance value-field)))))
+                               (= (str v) (str (get instance (keyword id-field-slug))))))
         part-values (conj
                      (map
                       (fn [datum]

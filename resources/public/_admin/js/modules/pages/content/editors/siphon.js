@@ -575,7 +575,9 @@
     makeOrderEditor: function() {
       var self = this;
 
-      var slugs = global.caribou.models.unrollFieldSlugs(self.spec().model, 2);
+      var slugs = global.caribou.models.unrollFieldSlugs(self.spec().model, 2, function(m, f) {
+        return m.slug !== "status";
+      });
 
       var orderMaps = self.spec().order;
       var orderArray = self.unrollOrder(orderMaps);
@@ -664,8 +666,8 @@
     makeIncludeEditor: function() {
       var self = this;
 
-      var slugs = global.caribou.models.unrollFieldSlugs(self.spec().model, 2, function(f) {
-        return (f.type === "link" || f.type === "collection" || f.type === "part" );
+      var slugs = global.caribou.models.unrollFieldSlugs(self.spec().model, 2, function(m, f) {
+        return (m.slug !=="status" &&(f.type === "link" || f.type === "collection" || f.type === "part" ));
       });
 
       if (slugs.length === 0) {
@@ -937,7 +939,7 @@
         var keyparts = [];
         var map = ordering;
         var direction = null;
-        while (!direction) {
+        while (map && !direction) {
           var keys = _(map).keys();
           var key = keys[0];
           keyparts.push(key);
