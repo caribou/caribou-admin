@@ -992,7 +992,6 @@
       return includes;
     },
 
-
     pruneWhere: function(w) {
       var self = this;
 
