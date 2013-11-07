@@ -159,6 +159,29 @@
       return slugs;
     };
 
+    var dotPathToNestedMap = function(dotPath, val) {
+      var bits = dotPath.split(/\./);
+      var map = {};
+      if (bits.length === 1) {
+        map[bits[0]] = val;
+      } else {
+        map[bits[0]] = dotPathToNestedMap(bits.slice(1).join("."), val);
+      }
+      return map;
+    };
+
+    var nestedMapToDotPathAndValue = function(nestedMap) {
+      var keys = _(nestedMap).keys();
+      var val = null;
+      var dotPath = keys[0];
+      var nested = nestedMap[dotPath];
+      if (_.isObject(nested)) {
+        var deeper = nestedMapToDotPathAndValue(nested);
+        return [dotPath + "." + deeper[0], deeper[1]];
+      }
+      return [dotPath, nested];
+    };
+
     function AddFieldDialog(options) {
       var self = this;
       self.options = options;
@@ -301,7 +324,9 @@
       enableSorting: enableSorting,
       formatAddress: formatAddress,
       mapImageURL: mapImageURL,
-      unrollFieldSlugs: unrollFieldSlugs
+      unrollFieldSlugs: unrollFieldSlugs,
+      dotPathToNestedMap: dotPathToNestedMap,
+      nestedMapToDotPathAndValue: nestedMapToDotPathAndValue
     };
   }
 
