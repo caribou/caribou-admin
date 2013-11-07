@@ -870,6 +870,7 @@
 
       if (!w) { return root }
 
+
       // node is a not
       if (w.negate) {
         var negate = {
@@ -896,11 +897,17 @@
 
       // node is a comparison
       if (w.operand === "=") {
-        root[w.key] = w.value;
+        var nested = global.caribou.models.dotPathToNestedMap(w.key, w.value);
+        _.extend(root, nested);
+        //root[w.key] = w.value;
         return root;
       }
-      root[w.key] = {};
-      root[w.key][w.operand] = w.value;
+      var deepOperandValue = {};
+      deepOperandValue[w.operand] = w.value;
+      var nested = global.caribou.models.dotPathToNestedMap(w.key, deepOperandValue);
+      _.extend(root, nested);
+      //root[w.key] = {};
+      //root[w.key][w.operand] = w.value;
       return root;
     },
 
@@ -908,24 +915,11 @@
     rollUpOrder: function(o) {
       var self = this;
       var newOrder = [];
-      var toNestedMap = function(key, value) {
-        var bits = key.split(/\./);
-        var map = {};
-        if (bits.length > 1) {
-          var start = bits.shift();
-          map[start] = toNestedMap(bits.join("."), value);
-          return map;
-        }
-        map[key] = value;
-        return map;
-      };
-
       if (!_.isArray(o)) { o = [o] }
       _(o).each(function(ordering) {
         var keys = _(ordering).keys();
-
         if (keys.length === 1 && keys[0]) {
-          newOrder.push(toNestedMap(keys[0], ordering[keys[0]]));
+          newOrder.push(global.caribou.models.dotPathToNestedMap(keys[0], ordering[keys[0]]));
         }
       })
       return newOrder;
@@ -936,21 +930,9 @@
       var order = [];
 
       _(o).each(function(ordering) {
-        var keyparts = [];
-        var map = ordering;
-        var direction = null;
-        while (map && !direction) {
-          var keys = _(map).keys();
-          var key = keys[0];
-          keyparts.push(key);
-          if (_.isString(map[key])) {
-            direction = map[key];
-          } else {
-            map = map[key];
-          }
-        }
+        var unrolled = global.caribou.models.nestedMapToDotPathAndValue(ordering);
         var orderMap = {};
-        orderMap[keyparts.join(".")] = direction;
+        orderMap[unrolled[0]] = unrolled[1];
         order.push(orderMap);
       });
       return order;
@@ -962,17 +944,11 @@
       _(i).each(function(include) {
         var key = include.key;
         if (!key) { return }
-        var bits = key.split(/\./);
-        var c = includes;
-        while(bits.length) {
-          var k = bits.shift();
-          c[k] = c[k] || {};
-          c = c[k];
-        }
+        var rolledUp = global.caribou.models.dotPathToNestedMap(key, {});
+        _.extend(includes, rolledUp);
       });
       return includes;
     },
-
 
     unrollInclude: function(i) {
       var self = this;
