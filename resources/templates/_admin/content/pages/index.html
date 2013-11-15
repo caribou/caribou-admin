@@ -1,0 +1,42 @@
+{{< templates/_admin/layouts/app.html}}
+{{%content}}
+
+<div class="page-header">
+  <ul class="breadcrumb">
+    <li>{{> templates/_admin/content/models/instance/_action_menu.html }} <span class="divider">/</span></li>
+  </ul>
+  <div class="container-fluid clearfix">
+    <h1>Pages</h1>
+    <!--
+    <a class="btn" data-toggle="modal" data-target="#new-page" >New Page</a>
+    -->
+    <a href="#" role="button" data-path="" class="btn" onclick="return window.caribou.pages.showNewDialog();">New Page</a>
+  </div>
+</div>
+
+{{> templates/_admin/content/pages/dialogs/new.html }}
+{{> templates/_admin/content/pages/dialogs/delete.html }}
+{{> templates/_admin/status_messages.html }}
+
+<div class="container-fluid">
+  <section>
+    <div class="row-fluid">
+      
+      <div class="span12" style="overflow: scroll">
+          <div id="all-pages" class="hide"></div>
+      </div>
+      <div class="span12">
+        <div id="page-editor" class="hide"></div>
+      </div>
+      <button id="page-editor-save-changes" type="submit" class="btn btn-primary hide">Save changes</button>
+      <button id="page-editor-save-and-new" type="submit" class="btn btn-primary hide">Save and add another</button>
+      <button id="page-editor-save-and-continue" type="submit" class="btn btn-primary hide">Save and continue editing</button>
+      <button id="page-editor-back-button" type="submit" class="btn btn-primary hide">&lt;&lt; Save &amp; return</button>
+      <button id="page-editor-add-new" type="submit" class="btn btn-success hide">+ new</button>
+      <button id="page-editor-choose-existing" type="submit" class="btn btn-success hide">+ existing</button>
+      <button id="page-editor-cancel-button" type="submit" class="btn btn-danger hide pull-right">&lt;&lt; Don't save</button>
+    </div>
+  </section>
+</div>
+
+{{/content}}
