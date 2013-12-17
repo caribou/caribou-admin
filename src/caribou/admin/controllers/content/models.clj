@@ -4,6 +4,7 @@
             [caribou.query :as query]
             [caribou.field.link :as link]
             [caribou.app.controller :as controller]
+            [caribou.admin.controller :as admin-controller]
             [clojure.string :as string]
             [clojure.set :as set]
             [clj-time.core :as timecore]
@@ -109,9 +110,9 @@
 
 (defn render
   ([content-type params]
-     (controller/render content-type params))
+     (admin-controller/render content-type params))
   ([params]
-     (controller/render (merge all-helpers params))))
+     (admin-controller/render (merge all-helpers params))))
 
 (defn json-response
   [data]
@@ -304,7 +305,7 @@
   [{permissions :permissions :as request}]
   (let [request (inflate-request request)
         model (rights/pick permissions :model {:where {:slug (-> request :params :model)} :include {:fields {}}})
-        template (template/find-template (util/pathify ["content" "models" "instance" "_edit.html"]))]
+        template (util/pathify ["content" "models" "instance" "_edit.html"])]
     (render (merge request {:template template :model model}))))
 
 
@@ -366,8 +367,7 @@
         model (model/models (keyword (:model params)))
         association (get-in model [:fields (keyword (:field params))])
         target (rights/pick permissions :model {:where {:id (-> association :row :target-id)} :include {:fields {}}})
-        template (template/find-template
-                  (util/pathify ["content" "models" "instance" (or (:template params) "_collection.html")]))
+        template (util/pathify ["content" "models" "instance" (or (:template params) "_collection.html")])
         stuff (find-associated-content permissions params)
         content (:content stuff)
         instance (:instance stuff)
@@ -394,8 +394,7 @@
   (let [request (inflate-request request)
         params (-> request :params)
         model (rights/pick permissions :model {:where {:slug (:model params)} :include {:fields {}}})
-        template (template/find-template
-                  (util/pathify ["content" "models" "instance" (or (:template params) "_edit.html")]))
+        template (util/pathify ["content" "models" "instance" (or (:template params) "_edit.html")])
         results (find-content params permissions)
         instance (if-not (empty? (:id params))
                    (first results))
@@ -433,8 +432,7 @@
                       (if (= a b) a nil)))
         merged (apply (partial merge-with all-equal) inflated)
         global? (or (nil? (:locale request)) (and (contains? params :locale-code) (empty? (:locale-code params))))
-        template (template/find-template
-                  (util/pathify ["content" "models" "instance" (or (:template params) "_edit.html")]))]
+        template (util/pathify ["content" "models" "instance" (or (:template params) "_edit.html")])]
     (json-response
      {:template (:body (render (merge request {:template template
                                                :model model
@@ -590,8 +588,7 @@
         displayed (assoc limited :display request)
         results (model/gather (:model spec) displayed)
         _ (pprint/print-table results)
-        template (template/find-template
-                  (util/pathify ["content" "models" "instance" "_collection.html"]))
+        template (util/pathify ["content" "models" "instance" "_collection.html"])
         pager (helpers/add-pagination results
                                       {:page-size (:limit spec)
                                        :current-page 0})]

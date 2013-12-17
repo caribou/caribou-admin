@@ -1,11 +1,12 @@
 (ns caribou.admin.controllers.settings.account
-  (:use caribou.app.controller
+  (:use caribou.admin.controller
         [cheshire.core :only (generate-string)]
         [caribou.app.pages :only [route-for]])
   (:require [slingshot.slingshot :refer [throw+]]
             [caribou
              [model :as model]
              [auth :as auth]]
+            [caribou.app.controller :as controller]
             [caribou.admin.rights :as rights]
             [caribou.app.pages :as pages]))
 
@@ -43,7 +44,7 @@
   [request]
   (let [locale (or (-> request :params :locale) "global")]
     (if (-> request :session :admin)
-      (redirect (route-for :admin.models {:locale locale :site "admin"}))
+      (controller/redirect (route-for :admin.models {:locale locale :site "admin"}))
       (render request))))
 
 (defn submit-login
@@ -70,7 +71,7 @@
                     :admin
                     {:user (dissoc account :created-at :updated-at)
                      :locale locale}))]
-    (redirect target {:session session :login login})))
+    (controller/redirect target {:session session :login login})))
 
 (defn new
   [{[role-id perms :as permissions] :permissions :as request}]
@@ -97,12 +98,12 @@
         target (route-for :admin.new-account
                           (select-keys request [:site :locale]))
         user (dissoc account :created-at :updated-at)]
-    (redirect target {:session (:session request) :user user})))
+    (controller/redirect target {:session (:session request) :user user})))
 
 ;; allow target
 (defn logout
   [request]
-  (redirect (route-for :admin.login {}) {:session (dissoc (:session request) :admin)}))
+  (controller/redirect (route-for :admin.login {}) {:session (dissoc (:session request) :admin)}))
 
 (defn forgot-password
   [request]
