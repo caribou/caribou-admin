@@ -5,36 +5,13 @@
   (:require [slingshot.slingshot :refer [throw+]]
             [caribou
              [model :as model]
+             [config :as config]
              [auth :as auth]]
             [caribou.app.controller :as controller]
             [caribou.admin.rights :as rights]
             [caribou.app.pages :as pages]))
 
 (def nothing (constantly nil))
-
-(defn index
-  [request]
-  (render request))
-
-(defn view
-  [request]
-  (render request))
-
-(defn model-attribute
-  [request]
-  (render request))
-
-(defn edit
-  [request]
-  (render request))
-
-(defn update
-  [request]
-  (render request))
-
-(defn destroy
-  [request]
-  (render request))
 
 (defn user-preferences
   [request]
@@ -47,14 +24,25 @@
       (controller/redirect (route-for :admin.models {:locale locale :site "admin"}))
       (render request))))
 
+(defn config-landing-page
+  [opts]
+  (let [landing-page (config/draw :admin :landing-page)
+        _ (println landing-page)]
+    (if (keyword? landing-page)
+      (route-for landing-page opts)
+      landing-page)))
+
 (defn submit-login
   [request]
   (let [email (-> request :params :email)
         password (-> request :params :password)
         locale (or (-> request :params :locale) "global")
-        target (if (empty? (-> request :params :target))
-                 (route-for :admin.models {:locale locale :site "admin"})
-                 (-> request :params :target))
+        req-target (when-not (empty? (-> request :params :target))
+                     (-> request :params :target))
+        target (or req-target
+                   (config-landing-page {:locale locale :site "admin"})
+                   (route-for :admin.models {:locale locale :site "admin"}))
+        _ (println target)
         account (model/pick :account {:where {:email email}})
         match? (and (seq password)
                     (seq (:crypted-password account))
