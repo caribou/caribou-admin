@@ -46,11 +46,27 @@
         }
     };
 
+    var openDropdown = function() {
+       var allNavDropdowns = $('.dropdown');
+       var navDropdownAnchor = $(this).parents('.dropdown');
+           if ( $(this).hasClass('is-active') ) {
+                navDropdownAnchor.removeClass('is-active');
+                $(this).removeClass('is-active');
+           } else {
+                allNavDropdowns.removeClass('is-active');
+                $(this).addClass('is-active');
+           }
+    };
+
     global.caribou = global.caribou || {};
     global.caribou.modal = {
         open: openModal,
         close: closeModal,
         openWithClass: openModalWithClass
+    };
+
+    global.caribou.dropdown = {
+        open: openDropdown
     };
 
     var wrapCallback = function(callback) {
@@ -76,56 +92,20 @@
         timeout: 10 * 60 * 1000 // ten minutes
     });
 
-    global.caribou.admin = {
-        get: function(url, callback) {
-            $.ajax({ url: url, type: "GET", success: wrapCallback(callback), error: errorHandler });
-        },
-        post: function(url, data, callback, options) {
-            options = options || {};
-            $.ajax(_.extend({
-                url: url,
-                data: data,
-                type: "POST",
-                success: wrapCallback(callback),
-                error: errorHandler
-            }, options));
-        },
-        put: function(url, data, callback, options) {
-            options = options || {};
-            $.ajax(_.extend({
-                url: url,
-                data: data,
-                type: "PUT",
-                success: wrapCallback(callback),
-                error: errorHandler
-            }, options));
-        },
-        "delete": function(url, callback) {
-            $.ajax({
-                url: url,
-                type: "DELETE",
-                success: wrapCallback(callback),
-                error: errorHandler
-            });
-        },
-        ping: function(callback, errorCallback) {
-            $.ajax({
-                url: "/session-ping",
-                type: "GET",
-                success: function(data, error, jqxhr) {
-                    if (data && data.result === "OK") {
-                        return callback();
-                    }
-                    return errorCallback();
-                },
-                error: errorCallback
-            });
-        }
-    };
 })(window);
 
 $(document).ready(function() {
     $('.open-modal').on("click", window.caribou.modal.open);
+
+    $('.dropdown').on("click", window.caribou.dropdown.open);
+
+    $('.dropdown').on("click", function(e){
+        e.stopPropagation();
+    });
+
+    $(document).on('click', function(e){
+        $('.dropdown').removeClass('is-active');
+    });
 
     $(".modal .caribou-icon-close").on("click", function(e) {
         window.caribou.modal.close();

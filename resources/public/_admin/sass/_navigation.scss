@@ -60,7 +60,7 @@
     right: 0;
 }
 
-.dropdown:hover {
+.dropdown.is-active {
     & > .dropdown-menu {
         display: block;
     }
