@@ -24,8 +24,8 @@
     position: relative;
     margin: 3px;
     cursor: move;
-    .instrument-icon-collapse,
-    .instrument-icon-expand {
+    .caribou-icon-collapse,
+    .caribou-icon-expand {
         font-size: 18px;
         position: absolute;
         cursor: pointer;
@@ -33,7 +33,7 @@
         left: 0;
         z-index: 9999;
     }
-    .instrument-icon-pencil {
+    .caribou-icon-pencil {
         margin-top: 3px;
         cursor: pointer;
     }
@@ -51,11 +51,6 @@
         margin-left: 10px;
         color: $gray;
     }
-}
-
-.active {
-    background-color: $primary;
-    color: #fff;
 }
 
 .ui-draggable-dragging {

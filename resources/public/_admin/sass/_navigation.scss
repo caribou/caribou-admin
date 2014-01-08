@@ -1,32 +1,129 @@
 @import "compass/css3";
 @import "variables";
 
-.navbar-fixed-top .brand {
-  font-weight: bold;
-  color: #777;
-  @include text-shadow(0 1px 0 rgba(255,255,255,.1), 0 0 30px rgba(255,255,255,.125));
-  @include transition(all .2s linear);
+.nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    ul {
+        padding: 0;
+        margin: 0;
+        list-style-type: none;
+    }
+    li {
+        @include inline-block(top);
+        position: relative;
+    }
+    a {
+        color: white;
+        text-decoration: none;
+        display: block;
+        padding: 13px;
+        margin: 0 10px;
+    }
+    .divider-vertical {
+        width: 1px;
+        background-color: $black;
+        height: 100%;
+        position: absolute;
+        top: 0;
+    }
 }
 
-.navbar-fixed-top .brand:hover {
-  text-decoration: none;
+.dropdown-menu {
+    background-color: white;
+    border: 1px solid $grayLighter;
+    border-top-width: 0;
+    position: absolute;
+    top: 40px;
+    min-width: 160px;
+    z-index: 999;
+    padding: 0;
+    li {
+        display: block;
+    }
+    a {
+        color: $text-color;
+        display: block;
+        padding: 10px;
+        margin: 0;
+        &:hover {
+            background-color: $primary;
+            color: white;
+        }
+    }
 }
-.dropdown-menu li > a:hover,
-.dropdown-menu li > a:focus,
-.dropdown-submenu:hover > a {
-    background-color: $primary;
-    background-image: none;
-    @include box-shadow($innerShadow);
-    @include text-shadow(none);
+
+.sub-nav-right .dropdown-menu {
+    right: 0;
 }
-.navbar-inverse .navbar-inner {
-  background-color: $secondary;
-  @include background(linear-gradient(lighten($secondary,10),$secondary));
+
+.dropdown:hover {
+    & > .dropdown-menu {
+        display: block;
+    }
+    & > a {
+        color: $primary;
+    }
 }
-//Never show the breadcrumb divider in a nav dropdown
-.dropdown-menu .divider {
+
+.dropdown {
+    position: relative;
+    .caribou-icon-expand {
+        position: absolute;
+        right: 5px;
+        top: 50%;
+        margin-top: -7px;
+    }
+}
+
+.nav--container {
+    background-color: $grayDarker;
+}
+
+.dropdown-menu {
     display: none;
 }
+
+.nav--brand {
+    margin-right: 15px;
+}
+
+.breadcrumb {
+    padding: 0;
+    margin: -30px 0 40px 0;
+    > li {
+        @include inline-block(top);
+    }
+    a {
+        text-decoration: none;
+    }
+    .dropdown {
+        padding-bottom: 5px;
+    }
+    .dropdown-menu {
+        border-top-width: 1px;
+        top: 20px;
+    }
+    .dropdown-toggle {
+        padding-right: 20px;
+        @include inline-block;
+    }
+}
+
+.page-header,
+.container-fluid {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.container-fluid {
+    overflow: hidden;
+    overflow-x: auto;
+}
+
 
 /* Custom: Status Banner
 -------------------------------------------------- */

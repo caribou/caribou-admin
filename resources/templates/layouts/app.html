@@ -15,15 +15,13 @@
 	<meta name="viewport" content="width=device-width" />
 
   {{> templates/layouts/_pre-stylesheets.html}}
-	<link rel="stylesheet" type="text/css" href="/_admin/css/bootstrap.min.css" />
 	<style>
 	body {
 	  padding-top: 40px;
 	  padding-bottom: 40px;
 	}
 	</style>
-	<link rel="stylesheet" type="text/css" href="/_admin/css/bootstrap-responsive.min.css" />
-  <link rel="stylesheet" type="text/css" href="/_admin/css/instrument-ui.css" />
+  <link rel="stylesheet" type="text/css" href="/_admin/css/caribou.css" />
   <link rel="stylesheet" type="text/css" href="/_admin/css/datepicker.css" />
   <link rel="stylesheet" type="text/css" href="/_admin/css/image-picker.css" />
   <link rel="stylesheet" type="text/css" href="/_admin/css/jquery.treetable.css" />
@@ -38,18 +36,11 @@
 </head>
 <body id="{{page.slug}}" data-controller="{{page.slug}}" data-model="{{model.slug}}" data-api="{{safe-route-for :admin.model-api params}}" data-instance-ids="{{instance-ids}}" data-locale="{{locale-code params.locale}}">
 <!--[if lt IE 7]><p class=chromeframe>Your browser is <em>ancient!</em> <a href="http://browsehappy.com/">Upgrade to a different browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">install Google Chrome Frame</a> to experience this site.</p><![endif]-->
-  <div class="navbar navbar-inverse navbar-fixed-top">
-    <div class="navbar-inner">
-      <div class="container-fluid">
-        <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-        </a>
-        <a class="brand" href="{{safe-route-for :admin.models params}}">THIS. IS. CARIBOU.</a>
-        <div class="nav-collapse">
-          <ul class="nav">
-            <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Content <b class="caret"></b></a>
+  <div class="nav">
+    <div class="nav--container clearfix">
+        <a class="nav--brand f-left" href="{{safe-route-for :admin.models params}}">THIS. IS. CARIBOU.</a>
+          <ul class="nav--list f-left">
+            <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Content <span class="caribou-icon-expand"></span></a>
               <ul class="dropdown-menu">
                 {{#user-models}}
                 {{^locked}}
@@ -60,7 +51,7 @@
                 {{/user-models}}
               </ul>
             </li>
-            <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Structure <b class="caret"></b></a>
+            <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Structure <span class="caribou-icon-expand"></span></a>
               <ul class="dropdown-menu">
                 <!-- <li><a href="#">General</a></li>
                 <li><a href="#">Time / Geography</a></li>
@@ -76,17 +67,17 @@
             </li>
             <!-- <li><a href="{{safe-route-for :admin.pages params}}">Pages</a></li>-->
           </ul>
-          <ul class="nav pull-right">
+          <ul class="nav-list f-right sub-nav-right">
 
             <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Accounts<b class="caret"></b></a>
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Accounts<span class="caribou-icon-expand"></span></a>
               <ul class="dropdown-menu">
                 <li><a href="{{safe-route-for :admin.create-model-instance params {:slug "account"} }}">Create New Account</a></li>
               </ul>
             </li>
             <li class="divider-vertical"></li>
             <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{#locale.code}}{{locale.code}}{{/locale.code}}{{^locale.code}}Locale{{/locale.code}} <b class="caret"></b></a>
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{#locale.code}}{{locale.code}}{{/locale.code}}{{^locale.code}}Locale{{/locale.code}} <span class="caribou-icon-expand"></span></a>
               <ul class="dropdown-menu">
                 <li><a href="{{route-for page.slug params {:locale "global"} }}">Global</a></li>
                 {{#locales:locale}}
@@ -101,7 +92,8 @@
                 {{#session.user}}
                   {{session.user.first-name}} {{session.user.last-name}}
                 {{/session.user}}
-                <b class="caret"></b></a>
+                &nbsp;
+                <span class="caribou-icon-expand"></span></a>
               <ul class="dropdown-menu">
                 <li><a href="{{safe-route-for :admin.edit-model-instance params {:id session.admin.user.id} }}">My account</a></li>
                 <li><a data-toggle="modal" data-target="#preferences-modal" href="{{safe-route-for :admin.user-preferences params }}">Preferences</a></li>
@@ -109,21 +101,13 @@
               </ul>
             </li>
           </ul>
-        </div><!--/.nav-collapse -->
       </div>
     </div>
-  </div>
 
 
 {{/is-xhr}}
 {{%content}}{{/content}}
 {{^is-xhr}}
-
-  <hr>
-
-  <footer>
-
-  </footer>
 
   {{> templates/settings/dialogs/preferences.html }}
 
@@ -131,7 +115,7 @@
 
   <script src="/_admin/js/libs/jqueryui/1.10.0/jquery-ui.min.js"></script>
 
-  <script src="/_admin/js/libs/bootstrap/bootstrap.js"></script>
+  <script src="/_admin/js/caribou.js"></script>
   <script src="/_admin/js/libs/bootstrap-datepicker.js"></script>
   <script src="/_admin/js/libs/image-picker.min.js"></script>
   <script src="/_admin/js/libs/underscore-min.js"></script>

@@ -1,7 +1,7 @@
 $iconStandardSizes: 24 32 48;
 @mixin icon-size {
     @each $iconSize in $iconStandardSizes {
-        .instrument-icon-#{$iconSize} {
+        .caribou-icon-#{$iconSize} {
             font-size: 0px + $iconSize;
             line-height: $iconSize / $iconSize;
         }
@@ -25,7 +25,7 @@ $icons: (collapse,\e001),(grid,\e002),(create-user,\e003),(database,\e004),(down
 @each $icon in $icons {
     $name: nth($icon, 1);
     $character: nth($icon, 2);
-    .instrument-icon-#{$name}:before {
+    .caribou-icon-#{$name}:before {
         content: "#{$character}";
     }
 }

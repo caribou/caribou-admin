@@ -2,11 +2,15 @@
 @import "compass/css3";
 
 .table {
+      border-collapse: collapse;
+      width: 100%;
     th {
         background-color: $secondary;
-        color: white;
-        border-color: $grayLight;
+        a {
+            color: white;
+        }
     }
+
     //Add a move cursor to items that are sortable.
     tbody.sortable {
         cursor: move;
@@ -17,16 +21,21 @@
             }
         }
     }
+    tbody tr:nth-child(odd) {
+        background-color: $grayLightest;
+    }
     //Remove the icon if you can't move row up or down
-    tr:first-child .instrument-icon-up,
-    tr:last-child .instrument-icon-down {
+    tr:first-child .caribou-icon-up,
+    tr:last-child .caribou-icon-down {
         visibility: hidden;
     }
+    th,
     td {
       overflow: hidden;
       position: relative;
-      vertical-align: middle;
-      border-color: $grayLight;
+      vertical-align: top;
+      padding: 4px;
+      border: 1px solid $grayLight;
     }
 
     td.center { text-align: center; }
@@ -35,11 +44,6 @@
     tbody tr.ui-sortable-placeholder.disabled_bg td {
         border: 2px dashed $primary;
         background-color: white;
-    }
-    //Remove bootstrap bg color on tds so we can add bg color to tr instead
-    tbody tr td,
-    tbody tr.disabled_bg td {
-        background-color: transparent;
     }
     //Add color to uneditable rows.
     tbody tr.disabled_bg {
@@ -76,6 +80,48 @@
         text-decoration: underline;
     }
 }
+
+.table--controls {
+    min-width: 50px;
+}
+
 .table-bordered th {
     border-color: $gray;
 }
+
+td[class*="caribou-text"] {
+    .td-container {
+          width: 250px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          &:hover {
+              overflow: visible;
+              white-space: inherit;
+              text-overflow: inherit;
+          }
+    }
+}
+
+td[class*="caribou-asset"] {
+    .td-container {
+        min-height: 100px;
+        max-height: 100px;
+        width: 100px;
+        overflow: hidden;
+        @include longerTransition(max-height);
+        &:hover {
+            max-height: 350px;
+            overflow: visible;
+            @include longerTransition(max-height);
+        }
+    }
+    img.thumbnail {
+        max-width: inherit !Important;
+        width: 100% !Important;
+        padding: 0;
+        border: none;
+        @include border-radius(0);
+    }
+}
+

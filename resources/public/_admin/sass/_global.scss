@@ -1,0 +1,42 @@
+@import "compass/css3";
+@import "compass/utilities/";
+@import "mixins";
+@import "variables";
+
+body {
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: $basefont;
+    line-height: $baseline;
+    color: $grayDarker;
+    margin: 0;
+}
+
+.page-header {
+    padding-top: 40px;
+    padding-bottom: 40px;
+}
+
+.clearfix {
+    @include pie-clearfix;
+}
+
+.hide {
+    display: none;
+}
+
+.pull-left,
+.f-left {
+    float: left;
+}
+
+.pull-right,
+.f-right {
+    float: right;
+}
+
+a:not(.btn) {
+    color: $linkColor;
+    &:hover {
+        color: $linkColorHover;
+    }
+}

@@ -1,7 +1,7 @@
 @import "variables";
 @import "compass/css3/";
 
-@mixin gradient-bg-color($background-color) {
+@mixin btn-bg-color($background-color) {
     background-color: #{$background-color};
     &:hover {
         background: darken($background-color, 5);
@@ -10,41 +10,38 @@
 a.btn {
     text-decoration: none;
 }
-.btn, .btn-primary, .btn-secondary, .btn-success, .btn-warning, .btn-error, .table-link {
-    @include box-shadow($innerShadow);
+.btn, .btn-primary, .btn-secondary, .btn-success, .btn-warning, .btn-error, button {
     background-image: none;
+    @include inline-block;
+    padding: 7px 12px;
+    margin: 0;
+    border: none;
+    font-size: $basefont - 1;
+    line-height: $baseline;
+    text-transform: uppercase;
+    text-align: center;
+    cursor: pointer;
+    text-decoration: none;
 }
 .btn {
-    @include gradient-bg-color(lighten($secondary,82));
+    @include btn-bg-color(lighten($secondary,82));
+    color: $text-color;
 }
-.btn-primary, .table-link {
-    @include gradient-bg-color($primary);
+.btn-primary {
+    @include btn-bg-color($primary);
+    color: white;
 }
 
 .btn-success {
-    @include gradient-bg-color($success);
+    @include btn-bg-color($success);
+    color: white;
 }
 
 .btn-warning {
-    @include gradient-bg-color($warning);
+    @include btn-bg-color($warning);
+    color: white;
 }
 .btn-danger {
-    @include gradient-bg-color($error);
-}
-
-.table-link {
-    color: #FFF;
-    @include text-shadow(0 -1px 0 rgba(0, 0, 0, 0.25));
-    border-width: 1px;
-    border-style: solid;
-    border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
-    @include inline-block;
-    padding: 1px 6px;
-    margin-top: 4px;
-    font-size: $basefont - 3;
-    text-decoration: none !important;
-    @include border-radius(3px);
-    &:hover {
-        color: white;
-    }
+    @include btn-bg-color($error);
+    color: white;
 }

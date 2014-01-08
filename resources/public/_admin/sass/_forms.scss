@@ -5,6 +5,11 @@
     margin-bottom: 0;
 }
 
+button {
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: $basefont;
+}
+
 textarea,
 input[type="text"],
 input[type="password"],
@@ -19,10 +24,16 @@ input[type="email"],
 input[type="url"],
 input[type="search"],
 input[type="tel"],
-input[type="color"],
-.uneditable-input{
-    border-color: $inputBorderColor;
-    background-color: $inputBGColor;
+input[type="color"] {
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: $basefont;
+    padding: 6px;
+    border: 1px $grayLighter solid;
+    @include box-sizing(border-box);
+    display: block;
+    width: 100%;
+    outline: none;
+    margin: 5px 0;
     &:focus {
         border-color: $primary;
         background-color: white;
@@ -33,7 +44,22 @@ input[type="color"],
     }
 }
 
-//Holy crap bootstraps adds a lot of radius to search boxes
-input.search-query {
-    @include border-radius(5px);
+.form-search {
+    min-width: 300px;
+    input[type="text"] {
+        margin: 0;
+    }
+}
+
+.form-actions {
+    border-top: 1px solid $grayLighter;
+    width: 100%;
+    padding: 15px 0;
+    background-color: $grayLightest;
+    margin-top: 25px;
+}
+
+.form-action-container {
+    max-width: 1000px;
+    margin: 0 auto;
 }

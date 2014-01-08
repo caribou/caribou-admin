@@ -6,11 +6,13 @@
     <li class="active">{{> templates/content/models/instance/_action_menu.html}}</li>
   </ul>
 
-  {{> templates/content/models/collection/_search.html}}
 
   <div class="container-fluid clearfix">
-    <h1>{{model.name}}</h1>
-    <a class="btn" href="{{safe-route-for :admin.create-model-instance params {:slug model.slug} }}">Create a {{model.name}}</a>
+    <div class="pull-left">
+        <h1>{{model.name}}</h1>
+        <a class="btn" href="{{safe-route-for :admin.create-model-instance params {:slug model.slug} }}">Create a {{model.name}}</a>
+    </div>
+  {{> templates/content/models/collection/_search.html}}
   </div>
 
 </div>
@@ -21,7 +23,7 @@
       <div class="span12 column">
         <div class="clearfix">
           <h2 class="pull-left">Fields</h2>
-            <a href="#" role="button" class="btn btn-success pull-right" data-model="{{model.slug}}" onclick="return window.caribou.models.showAddFieldDialog( this );"><span class="instrument-icon-circle-plus"></span> Add new field</a>
+            <a href="#" role="button" class="btn btn-primary pull-right" data-model="{{model.slug}}" onclick="return window.caribou.models.showAddFieldDialog( this );"><span class="caribou-icon-circle-plus"></span> Add new field</a>
         </div>
         <div class="status-messages alert alert-error alert-block hide changeOrderMessage clearfix">
           You've changed the order. Be sure to save!
@@ -39,12 +41,12 @@
           <tbody class="sortable" data-position='{ "umbrella": {{model.id}}, "model":"model", "association":"fields", "offset": 0 }'>
             {{#model.fields}}
             <tr data-position='{ "position": {{model-position}}, "id": "{{id}}" }' {{#locked}}class="disabled_bg"{{/locked}}>
-              <td class="sort"><span class="instrument-icon-up"></span><span class="instrument-icon-down"></span></td>
+              <td class="sort"><span class="caribou-icon-up"></span><span class="caribou-icon-down"></span></td>
               <td>{{name}}</td>
               <td>{{type}} {{#searchable}}(searchable){{/searchable}}</td>
               <td>
                 {{^locked}}
-                  <a href="{{safe-route-for :admin.edit-model-instance params {:slug "field" :id id} }}" class="icon-container"><span class="instrument-icon-pencil" title="Edit"></span></a> &nbsp; <a href="#delete" class="icon-container" data-model="field" data-id="{{id}}" onclick="return window.caribou.models.showDeleteDialog( this );"><span class="instrument-icon-trash" title="Delete"></span></a>
+                  <a href="{{safe-route-for :admin.edit-model-instance params {:slug "field" :id id} }}" class="icon-container"><span class="caribou-icon-pencil" title="Edit"></span></a> &nbsp; <a href="#delete" class="icon-container" data-model="field" data-id="{{id}}" onclick="return window.caribou.models.showDeleteDialog( this );"><span class="caribou-icon-trash" title="Delete"></span></a>
                 {{/locked}}
               </td>
             </tr>
@@ -53,7 +55,11 @@
         </table>
       </div>
     </div>
-    <a href="#" role="button" class="btn btn-success" data-model="{{model.slug}}" onclick="return window.caribou.models.showAddFieldDialog( this );"><span class="instrument-icon-circle-plus"></span> Add new field</a>
+    <div class="form-actions">
+      <div class="form-action-container">
+          <a href="#" role="button" class="btn btn-primary" data-model="{{model.slug}}" onclick="return window.caribou.models.showAddFieldDialog( this );"><span class="caribou-icon-circle-plus"></span> Add new field</a>
+      </div>
+    </div>
   </section>
 </div>
 

@@ -22,28 +22,30 @@
                   {{/allows-sorting}}
                 {{/system-field? field}}
               {{/fields:field}}
-              {{^hide-controls}}<th></th>{{/hide-controls}}
+              {{^hide-controls}}<th class="table--controls"></th>{{/hide-controls}}
             </tr>
           </thead>
           <tbody class="sortable caribou-results" data-position='{ "model":"{{order-info.model.slug}}", "offset": {{pager.start-index}}, "association":"{{order-info.association }}", "umbrella":{{or order-info.umbrella "null"}} }'>
             {{#pager.results:instance}}
             <tr data-position='{ "position": {{order-get-in instance order-info.position-slug}}, "id": "{{get-in instance "id" }}" }' {{#locked}}class="disable_bg"{{/locked}}>
-              <!-- <td class="sort"><span class="instrument-icon-up"></span><span class="instrument-icon-down"></span></td>-->
+              <!-- <td class="sort"><span class="caribou-icon-up"></span><span class="caribou-icon-down"></span></td>-->
               {{^hide-controls}}<td><input type="checkbox" name="id" value="{{get-in instance "id" }}" /></td>{{/hide-controls}}
               {{#env.fields:field}}
                 {{^system-field? field}}
                 <td class="caribou-{{field.type}} caribou-{{field.slug}} caribou-{{model.slug}}-{{field.slug}}">
-                  {{> templates/content/models/fields/view/_[[type]].html }}
+                  <div class="td-container">
+                      {{> templates/content/models/fields/view/_[[type]].html }}
+                  </div>
                 </td>
                 {{/system-field? field}}
               {{/env.fields:field}}
               {{^hide-controls}}
               <td>
                 {{^field.locked}}
-                  <a class="choose-link hide icon-container" href="#choose" data-model="{{model.slug}}" data-id="{{id}}"><span class="instrument-icon-check"></span></a>
-                  <a class="edit-link icon-container" href="{{safe-route-for :admin.edit-model-instance params {:id id :slug model.slug} }}" data-model="{{model.slug}}" data-id="{{id}}"><span class="instrument-icon-pencil"></span></a>
-                  <a class="remove-link hide icon-container" href="#remove" data-toggle="tooltip" title="Doesn't delete the content, just removes its association." data-model="{{model.slug}}" data-id="{{id}}"><span class="instrument-icon-close"></span></a>
-                  <a class="delete-link icon-container" href="#destroy" data-model="{{model.slug}}" data-id="{{id}}"><span class="instrument-icon-trash"></span></a>
+                  <a class="choose-link hide icon-container" href="#choose" data-model="{{model.slug}}" data-id="{{id}}"><span class="caribou-icon-check"></span></a>
+                  <a class="edit-link icon-container" href="{{safe-route-for :admin.edit-model-instance params {:id id :slug model.slug} }}" data-model="{{model.slug}}" data-id="{{id}}"><span class="caribou-icon-pencil"></span></a>
+                  <a class="remove-link hide icon-container" href="#remove" data-toggle="tooltip" title="Doesn't delete the content, just removes its association." data-model="{{model.slug}}" data-id="{{id}}"><span class="caribou-icon-close"></span></a>
+                  <a class="delete-link icon-container" href="#destroy" data-model="{{model.slug}}" data-id="{{id}}"><span class="caribou-icon-trash"></span></a>
                 {{/field.locked}}
               </td>
               {{/hide-controls}}
@@ -52,7 +54,7 @@
           </tbody>
         </table>
         {{^pager.results}}
-          <div class="alert alert-error"><span class="instrument-icon-circle-exclamation"></span> &nbsp;Oh no!  Can't find a {{model.slug}}!</div>
+          <div class="alert alert-error"><span class="caribou-icon-circle-exclamation"></span> &nbsp;Oh no!  Can't find a {{model.slug}}!</div>
         {{/pager.results}}
       </div>
     </div>

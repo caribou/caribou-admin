@@ -256,20 +256,20 @@
       var controls = el.find("td.controls");
 
       if (node.id) {
-        var selectLink = $("<a href='#'><span class='instrument-icon-pencil'></span></a>").on("click", function(e) {
+        var selectLink = $("<a href='#'><span class='caribou-icon-pencil'></span></a>").on("click", function(e) {
           console.log(node);
           self.select( node );
         });
         controls.append( selectLink );
       }
 
-      var addLink = $("<a href='#'><span class='instrument-icon-circle-plus'></span></a>").on("click", function(e) {
+      var addLink = $("<a href='#'><span class='caribou-icon-circle-plus'></span></a>").on("click", function(e) {
         showNewDialog( node, self.labelFor(node) );
       });
       controls.append( addLink );
 
       if ( node.id && (!node.children || node.children.length === 0) ) {
-        var destroyLink = $("<a href='#' data-model='page' data-id='" + node.id + "'><span class='instrument-icon-circle-close'></span></a>").on("click", function(e) {
+        var destroyLink = $("<a href='#' data-model='page' data-id='" + node.id + "'><span class='caribou-icon-circle-close'></span></a>").on("click", function(e) {
           models.showDeleteDialog( this, function() {
             self.reload( tree );
           });

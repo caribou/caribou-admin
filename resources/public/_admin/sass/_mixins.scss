@@ -1,0 +1,10 @@
+@import "compass/css3";
+@import "variables";
+
+@mixin standardTransition($property: color) {
+    @include transition($property 0.3s);
+}
+
+@mixin longerTransition($property: color, $delay: 0) {
+    @include transition($property 0.5s $delay);
+}

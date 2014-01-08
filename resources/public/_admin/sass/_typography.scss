@@ -8,21 +8,14 @@ h1,h2,h3,h4,h5,h6 {
     margin-top: 0;
   }
 }
+
+h1 {
+  font-size: $basefont + 30;
+}
+
 h2 {
   color: #333;
   font-weight: 300;
   font-size: 27px;
   line-height: 34px;
-}
-
-.breadcrumb {
-    margin-top: -20px;
-    *margin-top: 0;
-}
-
-a {
-    color: $linkColor;
-    &:hover {
-        color: $linkColorHover;
-    }
 }
