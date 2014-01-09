@@ -24,7 +24,8 @@
             [caribou.index :as index]
             [caribou.admin.helpers :as helpers]
             [caribou.admin.rights :as rights]
-            [caribou.admin.core :as admin]))
+            [caribou.admin.core :as admin]
+            [lichen.image :as lichen]))
 
 
 (defn inflate-request
@@ -548,17 +549,27 @@
 
 (defn upload-asset
   [request]
-  (let [params (:params request)
-        upload (get params "upload")
-        slug (slugify-filename (:filename upload))
+  (let [{{{:keys [content-type size filename tempfile]} "upload"} :params} request
+        slug (slugify-filename filename)
         asset (model/create
                :asset
                {:filename slug
-                :content-type (:content-type upload)
-                :size (:size upload)})
-        path (asset/asset-path asset)]
-    (asset/put-asset (:tempfile upload) asset)
-    (json-response {:state (assoc asset :path path)})))
+                :content-type content-type
+                :size size})
+        path (asset/asset-path asset)
+        state (assoc asset :path path)
+        warning (and
+                 (= "image/jpeg" content-type)
+                 (not (lichen/can-read-file? tempfile))
+                 (do (log/debug "warning about incompatible image") true)
+                 "Unreadable Image\nCaribou cannot resize this image, perhaps because of the file format.\nIs the image saved for web with an RGB color space?")
+        response (if warning
+                   {:state state
+                    :warning warning}
+                   {:state state})]
+    (asset/put-asset tempfile asset)
+    (log/debug (str "content type: " content-type " response: " response))
+    (json-response response)))
 
 (defn list-controllers-and-actions
   [request]
