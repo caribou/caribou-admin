@@ -104,6 +104,7 @@
       });
       $("#upload-button").click( function(e) {
         e.preventDefault();
+        global.caribou.status.clearMessages().render();
         self.upload(e);
       });
       $("#asset-search-button").click( function(e) {
