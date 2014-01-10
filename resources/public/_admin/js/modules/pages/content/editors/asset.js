@@ -86,6 +86,9 @@
         onComplete: function(response) {
           try {
             self.value = response.state;
+            if (response.warning) {
+              global.caribou.status.addInfoMessage(response.warning).render();
+            }
             if ( self.value['content-type'].indexOf("image") === 0 ) {
               $("#current-image").show().attr("src", self.value.path);
             } else {
