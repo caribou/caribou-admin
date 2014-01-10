@@ -25,9 +25,11 @@
             });
             $( selector + ".alert-" + key ).find("ul").remove();
             if (list.length) {
-              $( selector + ".alert-" + key ).append("<ul>" + list + "</ul>").show();
+              $( selector + ".alert-" + key ).empty().append("<ul>" + list + "</ul>").show();
+            } else {
+              $( selector + ".alert-" + key ).hide();
             }
-          });
+          })
           return status;
         }
       };
