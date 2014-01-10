@@ -159,6 +159,9 @@
       } else {
         this.commandMenu().hide();
       }
+
+      global.caribou.status.clearMessages().render();
+
       element.trigger("didRender", this.activeEditor(), this);
       return this;
     },
