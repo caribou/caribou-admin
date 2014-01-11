@@ -83,6 +83,9 @@
       $("#upload-asset").ajaxfileupload({
         action: self.api().routeFor("upload-asset"),
         valid_extensions: null,
+        onStart: function() {
+          global.caribou.status.clearMessages().render();
+        },
         onComplete: function(response) {
           try {
             self.value = response.state;
