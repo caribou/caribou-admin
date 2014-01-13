@@ -40,6 +40,7 @@
       if ( !this.field.format || this.field.format === "time" || this.field.format === "datetime" ) {
         $( this.parent.selector + " input[name=" + this.field.slug + "-time]" ).show().timepicker({
           //show24Hours: false,
+          timeFormat: 'H:i',
           step: 15
         });
       }
