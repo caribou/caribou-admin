@@ -115,10 +115,12 @@
      (admin-controller/render (merge all-helpers params))))
 
 (defn json-response
-  [data]
-  {:status 200
-   :body (generate-string data {:escape-non-ascii true})
-   :headers {"Content-Type" "application/json"}})
+  ([data]
+     {:status 200
+      :body (generate-string data {:escape-non-ascii true})
+      :headers {"Content-Type" "application/json"}})
+  ([data opts]
+     (merge (json-response data) opts)))
 
 (defn part
   [f col]
@@ -477,11 +479,11 @@
       (log/debug "Reloading model, clearing query cache!")
       (query/clear-queries)
       (model/init))
-    (when-not (or (:test request) ; because of a reset handler npe
+    (if (or (:test request) ; because of a reset handler npe
                   (empty? (set/intersection #{"page" "siphon"}
                                             (set (map :model payload)))))
-      (handler/reset-handler))
-    (json-response results)))
+      (json-response results)
+      (json-response results {:reset-handler true}))))
 
 (defn reorder-all
   [{[role-id permissions] :permissions :as request}]
