@@ -561,14 +561,14 @@
         warning (and
                  (= "image/jpeg" content-type)
                  (not (lichen/can-read-file? tempfile))
-                 (do (log/debug "warning about incompatible image") true)
-                 "Unreadable Image\nCaribou cannot resize this image, perhaps because of the file format.\nIs the image saved for web with an RGB color space?")
+                 "<p><h1>Unreadable Image</h1></p><p>Caribou cannot resize this image, perhaps because of the file format.\nIs the image saved for web with an RGB color space?</p>")
         response (if warning
                    {:state state
                     :warning warning}
                    {:state state})]
+    (when warning
+      (log/debug "warning about incompatible image"))
     (asset/put-asset tempfile asset)
-    (log/debug (str "content type: " content-type " response: " response))
     (json-response response)))
 
 (defn list-controllers-and-actions
