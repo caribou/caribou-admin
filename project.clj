@@ -1,4 +1,4 @@
-(defproject caribou/caribou-admin "0.12.22"
+(defproject caribou/caribou-admin "0.12.22-IMAGE-FORMAT"
   :description "Generic admin tool for Caribou projects"
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [caribou/caribou-frontend "0.12.20"]
