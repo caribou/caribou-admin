@@ -3,7 +3,7 @@
 // Some core backend functionality such as managing the
 // access and retrieval of model information from the
 // server.  Most of these functions can be considered
-// utility functions and accessed via window.dtc.api.
+// utility functions and accessed via window.caribou.api.
 // --------------------------------------------------------
 
 (function (global) {
