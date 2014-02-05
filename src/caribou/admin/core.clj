@@ -70,7 +70,7 @@
                          (update-in model
                                     [:fields]
                                     #(sort-by :position (vals %))))
-          models (map order-fields (sort-by :id
+          models (map order-fields (sort-by :position
                                             (model/local-models)))]
       (handler (assoc request :user-models models)))))
 
