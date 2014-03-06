@@ -41,7 +41,9 @@
 
 (defn reload-pages
   []
-  (pages/add-page-routes routes/admin-routes 'caribou.admin.controllers ""))
+  (pages/convert-pages-to-routes 
+   routes/admin-routes 
+   'caribou.admin.controllers ""))
 
 (defn open-page?
   [uri]
@@ -95,6 +97,7 @@
   (let [config (app/environment-config)]
     (caribou/with-caribou config
       (reload-pages)
+      (template/init)
       (hooks/init)
       (def handler
         (-> (handler/handler #'reload-pages)

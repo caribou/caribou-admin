@@ -1,5 +1,5 @@
 (ns caribou.admin.controllers.content
-  (:use caribou.app.controller))
+  (:use caribou.admin.controller))
   
 (defn index
   [request]

@@ -1,39 +1,17 @@
 (ns caribou.admin.controllers.settings.account
-  (:use caribou.app.controller
+  (:use caribou.admin.controller
         [cheshire.core :only (generate-string)]
         [caribou.app.pages :only [route-for]])
   (:require [slingshot.slingshot :refer [throw+]]
             [caribou
              [model :as model]
+             [config :as config]
              [auth :as auth]]
+            [caribou.app.controller :as controller]
             [caribou.admin.rights :as rights]
             [caribou.app.pages :as pages]))
 
 (def nothing (constantly nil))
-
-(defn index
-  [request]
-  (render request))
-
-(defn view
-  [request]
-  (render request))
-
-(defn model-attribute
-  [request]
-  (render request))
-
-(defn edit
-  [request]
-  (render request))
-
-(defn update
-  [request]
-  (render request))
-
-(defn destroy
-  [request]
-  (render request))
 
 (defn user-preferences
   [request]
@@ -43,17 +21,28 @@
   [request]
   (let [locale (or (-> request :params :locale) "global")]
     (if (-> request :session :admin)
-      (redirect (route-for :admin.models {:locale locale :site "admin"}))
+      (controller/redirect (route-for :admin.models {:locale locale :site "admin"}))
       (render request))))
+
+(defn config-landing-page
+  [opts]
+  (let [landing-page (config/draw :admin :landing-page)
+        _ (println landing-page)]
+    (if (keyword? landing-page)
+      (route-for landing-page opts)
+      landing-page)))
 
 (defn submit-login
   [request]
   (let [email (-> request :params :email)
         password (-> request :params :password)
         locale (or (-> request :params :locale) "global")
-        target (if (empty? (-> request :params :target))
-                 (route-for :admin.models {:locale locale :site "admin"})
-                 (-> request :params :target))
+        req-target (when-not (empty? (-> request :params :target))
+                     (-> request :params :target))
+        target (or req-target
+                   (config-landing-page {:locale locale :site "admin"})
+                   (route-for :admin.models {:locale locale :site "admin"}))
+        _ (println target)
         account (model/pick :account {:where {:email email}})
         match? (and (seq password)
                     (seq (:crypted-password account))
@@ -70,7 +59,7 @@
                     :admin
                     {:user (dissoc account :created-at :updated-at)
                      :locale locale}))]
-    (redirect target {:session session :login login})))
+    (controller/redirect target {:session session :login login})))
 
 (defn new
   [{[role-id perms :as permissions] :permissions :as request}]
@@ -97,12 +86,12 @@
         target (route-for :admin.new-account
                           (select-keys request [:site :locale]))
         user (dissoc account :created-at :updated-at)]
-    (redirect target {:session (:session request) :user user})))
+    (controller/redirect target {:session (:session request) :user user})))
 
 ;; allow target
 (defn logout
   [request]
-  (redirect (route-for :admin.login {}) {:session (dissoc (:session request) :admin)}))
+  (controller/redirect (route-for :admin.login {}) {:session (dissoc (:session request) :admin)}))
 
 (defn forgot-password
   [request]

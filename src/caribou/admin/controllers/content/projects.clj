@@ -1,5 +1,5 @@
 (ns caribou.admin.controllers.content.projects
-  (:use caribou.app.controller
+  (:use caribou.admin.controller
         [clojure.string :only (join)])
   (:require [caribou.admin.rights :as rights]
             [caribou.util :as util]))

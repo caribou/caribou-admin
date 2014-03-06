@@ -1,5 +1,5 @@
 (ns caribou.admin.controllers.settings.model
-  (:use caribou.app.controller
+  (:use caribou.admin.controller
         [cheshire.core :only (generate-string)])
   (:require [caribou.permissions :as permissions]
             [caribou.admin.rights :as rights]

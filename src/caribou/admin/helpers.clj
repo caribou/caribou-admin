@@ -50,10 +50,6 @@
     (.format (java.text.SimpleDateFormat. "HH:mm") date)
     "00:00"))
 
-(defn safe-route-for
-  [slug & args]
-  (pages/route-for slug (pages/select-route slug (apply merge args))))
-
 (defn asset-is-image
   ([asset]
     (.startsWith (or (:content-type asset) "") "image"))
@@ -234,7 +230,6 @@
    :position-of position-of
    :get-in get-in-helper
    :join-model? join-model?
-   :safe-route-for safe-route-for
    :system-field? system-field?
    :locales locales
    :localized-models localized-models

@@ -1,5 +1,5 @@
 (ns caribou.admin.controllers.content.assets
-  (:use caribou.app.controller)
+  (:use caribou.admin.controller)
 (:require [caribou.model :as model]
           [caribou.admin.rights :as rights]))
   

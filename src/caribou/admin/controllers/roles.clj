@@ -1,7 +1,8 @@
 (ns caribou.admin.controllers.roles
-  (:use [caribou.app.controller]
+  (:use [caribou.admin.controller]
         [caribou.app.pages :only [route-for select-route]])
   (:require [caribou.admin.rights :as rights]
+            [caribou.app.controller :as controller]
             [caribou.model :as model]
             [caribou.logger :as log]
             [caribou.permissions :as permissions]))
@@ -105,6 +106,6 @@
                        id {:mask (second perm)})))
     (rights/update permissions :role
                    (:id role) {:default-mask default-mask})
-    (redirect (route-for :admin.edit-role
+    (controller/redirect (route-for :admin.edit-role
                          (select-route :admin.edit-role (:params request)))
               (:session request))))

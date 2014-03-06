@@ -20,7 +20,7 @@
 //
 // $("#foo").editorStack({options});
 //
-// The editor stack will be instatiated with the options,
+// The editor stack will be instantiated with the options,
 // and will be accessible via $("#foo").data().stack
 //-------------------------------------------------------
 

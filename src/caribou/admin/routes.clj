@@ -30,22 +30,7 @@
        {:path "content", :slug "admin.content", :position nil, :template "",
         :method "", :action "index", :name "Content", :controller "content"
         :children
-        [{:path "projects", :slug "admin.projects", :position nil,
-          :template "content/projects/index.html", :method "", :action "index",
-          :name "Projects", :controller "content.projects"
-          :children
-          [{:path "new", :children [], :slug "admin.new-project", :position nil,
-            :template "content/projects/new.html", :method "", :action "new",
-            :name "New Project", :controller "content.projects"}
-           {:path ":id", :slug "admin.view-project", :position nil,
-            :template "content/projects/view.html", :method "", :action "view",
-            :name "View Project", :controller "content.projects",
-            :children
-            [{:path "edit", :children [], :slug "admin.edit-project",
-              :position nil, :template "content/projects/edit.html",
-              :method "", :action "edit", :name "Edit Project",
-              :controller "content.projects"}]}]}
-         {:path "models", :slug "admin.models", :position nil,
+        [{:path "models", :slug "admin.models", :position nil,
           :template "content/models/index.html", :method "", :action "index",
           :name "Models", :controller "content.models",
           :children
