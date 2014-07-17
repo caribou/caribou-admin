@@ -12,9 +12,9 @@
             :subprotocol  "h2"
             :protocol     "file"
             :path         "./"
-            :database     "caribou_development"
+            :database     "caribou_admin"
             :host         "localhost"
-            :subname      "file:caribou_development"
+            :subname      "file:caribou_admin"
             :user         "h2"
             :password     ""}
  :controller {:namespace "skel.controllers" :reload :always}
