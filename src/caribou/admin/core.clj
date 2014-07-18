@@ -13,7 +13,7 @@
         [ring.middleware.session.cookie :only (cookie-store)]
         [ring.middleware.cookies :only (wrap-cookies)]
         [ring.middleware.content-type :only (wrap-content-type)])
-  (:require [clojure.string :as string]
+  (:require [clojure.tools.nrepl.server :as nrepl-server]
             [lichen.core :as lichen]
             [caribou
              [config :as config]
@@ -96,6 +96,8 @@
   []
   (let [config (app/environment-config)]
     (caribou/with-caribou config
+      (do (println "starting nrepl server on port 44444")
+          (nrepl-server/start-server :port 44444))
       (reload-pages)
       (template/init)
       (hooks/init)
