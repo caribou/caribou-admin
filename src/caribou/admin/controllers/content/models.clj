@@ -507,12 +507,13 @@
 ;; this is too drastic and should probably have some sanity checking.
 (defn delete-all
   [{permissions :permissions :as request}]
+  (println "deleting" (json-payload request))
   (let [payload (json-payload request)
-        results (doall (map #(rights/destroy permissions
-                              (keyword (:model %)) (:id %)) payload))]
+        results (map #(rights/destroy permissions
+                                      (keyword (:model %)) (:id %)) payload)]
     (query/clear-queries)
     (model/init)
-    (doall (json-response results))))
+    (json-response results)))
 
 (defn find-all
   [{permissions :permissions :as request}]

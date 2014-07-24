@@ -4,6 +4,7 @@
 }
 </style>
 
+{{> templates/content/models/dialogs/delete.html}}
 {{> templates/content/models/collection/_pagination.html}}
 
 <div id="asset-container" style="max-height: 700px; overflow: scroll;">
@@ -16,7 +17,6 @@
       {{^asset-is-image asset}}
     <option value="{{asset.id}}" data-img-src="/img/file-icon.png" data-img-label="{{asset.filename}}">{{asset.filename}}</option>
       {{/asset-is-image asset}}
-    THIS IS WHERE WE DELETE
     {{/pager.results:asset}}
   </select>
 </div>

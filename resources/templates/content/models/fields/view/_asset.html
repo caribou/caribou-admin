@@ -1,6 +1,7 @@
+<p>this is an asset</p>
 {{#asset-is-image instance slug}}
     <img class="thumbnail image-{{slug}}" style="max-width:150px" src="{{resize-in instance slug {:width 150} }}">
 {{/asset-is-image instance slug}}
 {{^asset-is-image instance slug}}
-    {{asset-path instance slug}}    
+    {{asset-path instance slug}}
 {{/asset-is-image instance slug}}
