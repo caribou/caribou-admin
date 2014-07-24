@@ -507,7 +507,6 @@
 ;; this is too drastic and should probably have some sanity checking.
 (defn delete-all
   [{permissions :permissions :as request}]
-  (println "deleting" (json-payload request))
   (let [payload (json-payload request)
         results (map #(rights/destroy permissions
                                       (keyword (:model %)) (:id %)) payload)]
