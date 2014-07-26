@@ -15,54 +15,80 @@
     throw "editors/base.js has not been included";
   }
 
-  function TextEditor( options ) { editors.FieldEditor.call( this, options ) }
+  function TextEditor( options ) { editors.FieldEditor.call( this, options ); }
   $.extend( TextEditor.prototype, editors.FieldEditor.prototype, {
-    selector: function() { return "textarea[name=" + this.field.slug + "]" }
+    selector: function() { return "textarea[name=" + this.field.slug + "]"; }
   });
 
-  function CheckBoxEditor( options ) { return editors.FieldEditor.call( this, options ); }
+  function CheckBoxEditor( options ) {
+    return editors.FieldEditor.call( this, options );
+  }
   $.extend( CheckBoxEditor.prototype, editors.FieldEditor.prototype, {
-    syncToDOM: function() { $( this.selector() ).prop( "checked", this.value ) },
-    syncFromDOM: function() { this.value = $( this.selector() ).prop( "checked" ) }
+    syncToDOM: function() {
+      $( this.selector() ).prop( "checked", this.value );
+    },
+    syncFromDOM: function() {
+      this.value = $( this.selector() ).prop( "checked" );
+    }
   });
 
-  function DateFieldEditor( options ) { editors.FieldEditor.call( this, options ) }
+  function DateFieldEditor( options ) {
+    editors.FieldEditor.call( this, options );
+  }
   $.extend( DateFieldEditor.prototype, editors.FieldEditor.prototype, {
     attach: function() {
       editors.FieldEditor.prototype.attach.call(this);
 
-      if ( !this.field.format || this.field.format === "date" || this.field.format === "datetime" ) {
-        $( this.parent.selector + " input[name=" + this.field.slug + "-date]" ).parent().show().datepicker({
-          format: "yyyy-mm-dd",
-          viewMode: "years"
-        });
-      }
-      if ( !this.field.format || this.field.format === "time" || this.field.format === "datetime" ) {
-        $( this.parent.selector + " input[name=" + this.field.slug + "-time]" ).show().timepicker({
-          //show24Hours: false,
-          timeFormat: 'H:i',
-          step: 15
-        });
-      }
+      if ( !this.field.format ||
+           this.field.format === "date" ||
+           this.field.format === "datetime" ) {
+             $( this.parent.selector +
+                " input[name=" +
+                this.field.slug +
+                "-date]" ).parent().show().datepicker({
+                  format: "yyyy-mm-dd",
+                  viewMode: "years"
+                });
+           }
+      if ( !this.field.format ||
+           this.field.format === "time" ||
+           this.field.format === "datetime" ) {
+             $( this.parent.selector +
+                " input[name=" +
+                this.field.slug +
+                "-time]" ).show().timepicker({
+                  //show24Hours: false,
+                  timeFormat: 'H:i',
+                  step: 15
+                });
+           }
     },
     syncToDOM: function() {
     },
     syncFromDOM: function() {
       var dateString = "1900-01-01";
       var format = this.field.format || "datetime";
+      var base_select = this.parent.selector + " input[name=" + this.field.slug;
+      var selector;
       if ( format.match(/date/) ) {
-        dateString = $( this.parent.selector + " input[name=" + this.field.slug + "-date]" ).val();
+        selector = base_select + "-date]";
+        dateString = $( selector ) .val();
       }
       var timeString = "00:00";
       if ( format.match(/time/) ) {
-        timeString = $( this.parent.selector + " input[name=" + this.field.slug + "-time]" ).val();
+        selector =  base_select + "-time]";
+        timeString = $( selector ).val();
       }
-      console.log("date string is %s and time string is %s", dateString, timeString);
+      console.log("date string is %s and time string is %s",
+                  dateString,
+                  timeString);
       this.value = dateString + "T" + timeString + ":00Z";
     }
   });
 
-  function PasswordFieldEditor( options ) { editors.FieldEditor.call( this, options ) }
+  function PasswordFieldEditor( options ) {
+    editors.FieldEditor.call( this, options );
+  }
   $.extend( PasswordFieldEditor.prototype, editors.FieldEditor.prototype, {
     syncToDOM: function() {},
     syncFromDOM: function() {
@@ -91,7 +117,7 @@
     console.log("Set EnumFieldEditor's value:", this.value);
   }
   $.extend( EnumFieldEditor.prototype, editors.FieldEditor.prototype, {
-    selector: function() { return "select[name=" + this.field.slug + "]" },
+    selector: function() {return "select[name=" + this.field.slug + "]"; },
     syncToDOM: function() {
       var current = $( this.selector() ).val();
       if (!current) {
@@ -101,7 +127,7 @@
     },
     syncFromDOM: function() {
       var previous = this.get("id");
-      this.value.id = $( this.selector() ).val()
+      this.value.id = $( this.selector() ).val();
       if ( previous && previous != this.value.id ) {
         this.value.value = null;
       }

@@ -79,23 +79,29 @@
       self.children = [];
       $( self.model.fields ).each( function( index, field ) {
         var editor = self.constructChild(field);
-        if (editor) { self.children.push(editor) }
-
+        if (editor) { self.children.push(editor); }
       });
     },
     constructChild: function(field) {
       var self = this;
       if (!self.fieldIsEditable(field)) { return null }
 
-      var fieldEditorClass = fieldEditorMap[ field.type ] || editors.FieldEditor;
+      var fieldEditorClass = (
+        fieldEditorMap[ field.type ] ||
+          editors.FieldEditor
+      );
       var editor = new fieldEditorClass({
         model: self.model,
         field: field,
         parent: self,
-        idField: _( self.model.fields ).find( function(f) { return f.slug === field.slug + "-id" } ),
+        idField: _( self.model.fields ).find( function(f) {
+          return f.slug === field.slug + "-id";
+        } ),
         value: self.get( field.slug ),
         idValue: self.get( field.slug + "-id" ),
-        sync: function( value, next ) { self.syncFromChild( editor, value, next ); }
+        sync: function( value, next ) {
+          self.syncFromChild( editor, value, next );
+        }
       });
       return editor;
     },
@@ -119,7 +125,9 @@
     syncFromChild: function( child, value, next ) {
       var self = this;
       if ( self.locale ) {
-        var checkboxes = $("input[name='caribou-use-global'][value='" + child.field.slug + "']:checked");
+        var checkboxes = $("input[name='caribou-use-global'][value='" +
+                           child.field.slug +
+                           "']:checked");
         if (checkboxes.length) {
           value = null;
         }
@@ -149,7 +157,9 @@
 
       $( self.children ).each( function(index, child) {
         child.on("caribou:edit", function(e) {
-          $("input[name='caribou-use-global'][value='" + child.field.slug + "']").prop("checked", false);
+          $("input[name='caribou-use-global'][value='" +
+            child.field.slug +
+            "']").prop("checked", false);
         });
       });
     },
@@ -204,7 +214,7 @@
         global.caribou.status.render().clearMessages();
       }
       return failures;
-    },
+    }
   });
 
   // -------------------------------------------------------
@@ -228,7 +238,9 @@
   $.extend( BulkModelEditor.prototype, ModelEditor.prototype, {
     description: function() {
       var self = this;
-      return "Bulk edit: " + self.ids.length + " " + owl.pluralize( self.model.slug );
+      return (
+        "Bulk edit: " + self.ids.length + " " + owl.pluralize( self.model.slug )
+      );
     },
     load: function( success ) {
       var self = this;
@@ -240,7 +252,9 @@
     },
     syncFromChild: function( child, value, next ) {
       var self = this;
-      var checkboxes = $("input[name='caribou-update'][value='" + child.field.slug + "']:checked");
+      var checkboxes = $("input[name='caribou-update'][value='" +
+                         child.field.slug +
+                         "']:checked");
       if (checkboxes.length) {
         ModelEditor.prototype.syncFromChild.call( this, child, value, next );
       }
@@ -267,7 +281,9 @@
       ModelEditor.prototype.attach.call( this );
       $( self.children ).each( function(index, child) {
         child.on("caribou:edit", function(e) {
-          $("input[name='caribou-update'][value='" + child.field.slug + "']").prop("checked", true);
+          $("input[name='caribou-update'][value='" +
+            child.field.slug +
+            "']").prop("checked", true);
         });
       });
     }

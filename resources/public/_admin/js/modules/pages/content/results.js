@@ -5,11 +5,13 @@ $(function() {
       case "edit":
         var pageInfo = $("body").data();
         var ids = [];
-        $("input[type=checkbox][name=id]:checked").each(function(index, el) { ids.push( $(el).val() ); });
+        $("input[type=checkbox][name=id]:checked").each(function(index, el) {
+            ids.push( $(el).val() );
+        });
         location.href = window.caribou.api.routeFor("to-route", {
-          page: "admin.edit-model-instance",
-          id: ids.join(":"),
-          slug: pageInfo.model
+            page: "admin.edit-model-instance",
+            id: ids.join(":"),
+            slug: pageInfo.model
         });
         break;
       default:

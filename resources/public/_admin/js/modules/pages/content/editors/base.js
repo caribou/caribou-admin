@@ -29,7 +29,7 @@
   }
 
   $.extend( Editor.prototype, {
-    api: function() { return global.caribou.api },
+    api: function() { return global.caribou.api; },
 
     initFrom: function( parent ) {
       var self = this;
@@ -48,7 +48,7 @@
         if (!k) { break; }
         current = current[k];
       }
-      if (!current) { return def };
+      if (!current) { return def; };
       return current;
     },
     // pushes a value into the editor's state
@@ -71,16 +71,21 @@
       this.syncToDOM();
     },
     stack: function() {
-      if ( this._stack ) { return this._stack }
+      if ( this._stack ) { return this._stack; }
       return this.parent.stack();
     },
-    setStack: function(s) { this._stack = s },
+    setStack: function(s) { this._stack = s; },
     _callback: function( name, value, next ) {
-      var f = this.options[name] || function ( value, next ) { if (next) { next( value ) } };
+      var f = this.options[name] ||
+            function ( value, next ) { if (next) { next( value ); } };
       f( value, next );
     },
-    callback: function( name, next ) { this._callback(name, this.value, next) },
-    callbackWithValue: function( name, value, next ) { this._callback(name, value, next) },
+    callback: function( name, next ) {
+      this._callback(name, this.value, next);
+    },
+    callbackWithValue: function( name, value, next ) {
+      this._callback(name, value, next);
+    },
     submit: function( next ) {
       this.syncFromDOM();
       this.callback("submit", next);
@@ -95,32 +100,39 @@
     prepareForUpdate: function( data ) {
       var blacklist = _( this.model.fields ).chain().filter(
         function(f) {
-          if ( f.type === "id" ) { return false }
-          if ( f.slug === "type" ) { return false }
-          if ( f.type === "integer" && f.slug.match(/(^|_|-)id$/) ) { return false }
-          if ( f.type === "part" || f.type == "enum" || f.type == "asset" ) { return true } // because the id field is present
-          if ( f.type === "password" && data[f.slug] === null ) { return true }
-          if ( f.type === "link" || f.type === "collection" ) { return true }
-          if ( f.type === "string" && f.slug.match(/-key$/) ) { return false }
+          if ( f.type === "id" ) { return false; }
+          if ( f.slug === "type" ) { return false; }
+          if ( f.type === "integer" && f.slug.match(/(^|_|-)id$/) ) {
+            return false;
+          }
+          if ( f.type === "part" || f.type == "enum" || f.type == "asset" ) {
+            // because the id field is present
+            return true;
+          }
+          if ( f.type === "password" && data[f.slug] === null ) { return true; }
+          if ( f.type === "link" || f.type === "collection" ) { return true; }
+          if ( f.type === "string" && f.slug.match(/-key$/) ) { return false; }
           return !f.editable;
-        }).map( function(f) { return f.slug }).value();
+        }).map( function(f) { return f.slug; }).value();
       return _( data ).omit( blacklist );
     },
-    description: function() { return this.model.slug },
-    attach:      function() {},
-    syncToDOM:   function() {},
+    description: function() { return this.model.slug; },
+    attach: function() {},
+    syncToDOM: function() {},
     syncFromDOM: function() {},
-    load:        function( success ) {},
-    refresh:     function( success ) {
+    load: function( success ) {},
+    refresh: function( success ) {
       var self = this;
       self.load( function( data, error, jqxhr ) {
         self.template = data.template;
         $( self.selector ).html( self.template );
         self.attach();
-        if (success) { success( data ) }
+        if (success) { success( data ); }
       });
     },
-    on: function( event, fn ) { console.error(this + " can't handle " + event); },
+    on: function( event, fn ) {
+      console.error(this + " can't handle " + event);
+    },
     validationFailures: function() {
       return [];
     },
@@ -147,18 +159,20 @@
   }
 
   $.extend( FieldEditor.prototype, Editor.prototype, {
-    description:   function() { return this.field.slug },
-    selector:      function() { return this.parent.selector + " input[name=" + this.field.slug + "]" },
-    element:       function() {
+    description: function() { return this.field.slug; },
+    selector: function() {
+      return this.parent.selector + " input[name=" + this.field.slug + "]";
+    },
+    element: function() {
       var self = this;
       if (!self._element) {
         self._element = $(self.selector());
       }
       return self._element;
     },
-    syncToDOM:     function() { $( this.selector() ).val( this.value ) },
-    syncFromDOM:   function() { this.value = $( this.selector() ).val() },
-    syncValueFrom: function(from) { this.value = from.get( this.field.slug ) },
+    syncToDOM: function() { $( this.selector() ).val( this.value ); },
+    syncFromDOM: function() { this.value = $( this.selector() ).val(); },
+    syncValueFrom: function(from) { this.value = from.get( this.field.slug ); },
     on: function( event, fn ) {
       if ( event === "caribou:edit" ) {
         event = "change keyup";
@@ -174,12 +188,16 @@
 
       var validationLevel = self.preferences().valueForKey("validationLevel");
       var shouldValidate =
-        validationLevel === "all" ||
-        (validationLevel === "required" && self.field.required);
+            validationLevel === "all" ||
+            (validationLevel === "required" && self.field.required);
 
       if (shouldValidate) {
         if (self.field.required && !self.value) {
-          failures.push({message: self.field.name + " is required", type: "REQUIRED", field: self.field});
+          failures.push({
+            message: self.field.name + " is required",
+            type: "REQUIRED",
+            field: self.field
+          });
         }
         // validate format
         var formatFailures = self.formatValidationFailures();
@@ -191,18 +209,26 @@
       var self = this;
       var failures = [];
       switch (self.field.type) {
-        case "integer":
-          if (self.value && !self.value.match(/^(\d)+$/)) {
-            failures.push({message:"Invalid integer: " + self.value, type:"FORMAT", field: self.field});
-          }
-          break;
-        case "decimal":
-          if (self.value && !self.value.match(/^(\d)*(\.(\d)*)?$/)) {
-            failures.push({message:"Invalid decimal: " + self.value, type:"FORMAT", field: self.field});
-          }
-          break;
-        default:
-          break;
+      case "integer":
+        if (self.value && !self.value.match(/^(\d)+$/)) {
+          failures.push({
+            message:"Invalid integer: " + self.value,
+            type:"FORMAT",
+            field: self.field
+          });
+        }
+        break;
+      case "decimal":
+        if (self.value && !self.value.match(/^(\d)*(\.(\d)*)?$/)) {
+          failures.push({
+            message:"Invalid decimal: " + self.value,
+            type:"FORMAT",
+            field: self.field
+          });
+        }
+        break;
+      default:
+        break;
       }
       return failures;
     },
@@ -228,7 +254,7 @@
     this.map = {};
   }
   $.extend( EditorRegistry.prototype, {
-    register: function( model, editorClass ) { this.map[model] = editorClass },
+    register: function( model, editorClass ) { this.map[model] = editorClass; },
     editor: function( options ) {
       var model = options.model;
       var content = options.value;

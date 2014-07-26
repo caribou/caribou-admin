@@ -1,4 +1,4 @@
-( function(global) {
+(function(global) {
   function models() {
     var validateName = function(name) {
       console.log('Checking name ' + name);
@@ -66,8 +66,24 @@
       });
     };
 
+    var positionOrdered = function() {
+      var query = location.search.substring(1);
+      var settings = query.split(/&/);
+      var positioned = true;
+      settings.forEach(function(s) {
+        var setting = s.split(/=/);
+        if(setting[0] == "order" && setting[1] != "position")
+          positioned = false;
+      });
+      return positioned;
+    };
+
     var updateOrdering = function( success ) {
-      /* TODO: exit early here if we are in a view not ordered by position */
+      /* we exit early if ordering is not already by position,
+       in order to prevent weird unintended reorderings */
+      var positioned = positionOrdered();
+      if(!positioned)
+        return;
       var selector = $( ".sortable" ).sortable( "option", "items" );
       var parentData = $(".sortable").data("position");
       var items = [];
@@ -231,35 +247,35 @@
         self.resetControls();
         var v = self.typeSelection.val();
         switch (v) {
-          case "collection":
-          case "part":
-          case "link":
-            self.associationControls.show();
-            self.associationSelection.prop("disabled", false);
-            if (v === "part") {
-              self.reciprocalNameField.val(owl.pluralize(self._data.model));
-            } else {
-              self.reciprocalNameField.val(self._data.model);
-            }
-            break;
-          case "slug":
-          case "urlslug":
-            self.slugSelection.prop("disabled", false);
-            self.slugControls.show();
-            break;
-          case "password":
-            self.searchableCheckbox.prop("checked", false);
-            self.searchableCheckbox.prop("disabled", true);
-            break;
-          case "timestamp":
-            self.timestampControls.show();
-            break;
-          case "enum":
-            self.resetEnumerationControls();
-            self.enumerationControls.show();
-            break;
-          default:
-            break;
+        case "collection":
+        case "part":
+        case "link":
+          self.associationControls.show();
+          self.associationSelection.prop("disabled", false);
+          if (v === "part") {
+            self.reciprocalNameField.val(owl.pluralize(self._data.model));
+          } else {
+            self.reciprocalNameField.val(self._data.model);
+          }
+          break;
+        case "slug":
+        case "urlslug":
+          self.slugSelection.prop("disabled", false);
+          self.slugControls.show();
+          break;
+        case "password":
+          self.searchableCheckbox.prop("checked", false);
+          self.searchableCheckbox.prop("disabled", true);
+          break;
+        case "timestamp":
+          self.timestampControls.show();
+          break;
+        case "enum":
+          self.resetEnumerationControls();
+          self.enumerationControls.show();
+          break;
+        default:
+          break;
         }
       },
       hideControls: function() {

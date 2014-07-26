@@ -5,14 +5,23 @@
     throw "editors/base.js and editors/fields.js have not been included";
   }
 
-  function AddressFieldEditor( options ) { editors.PartFieldEditor.call( this, options ) }
+  function AddressFieldEditor( options ) {
+    editors.PartFieldEditor.call( this, options );
+  }
   $.extend( AddressFieldEditor.prototype, editors.PartFieldEditor.prototype, {
-    selector: function() { return "span#" + this.field.slug },
+    selector: function() {
+      return "span#" + this.field.slug;
+    },
     syncToDOM: function() {
       var address = this.value.value;
       if ( address ) {
-        $( this.selector() ).prepend( "<pre style='float:left'>" + global.caribou.models.formatAddress( address ) + "</pre>" );
-        $( this.selector() ).prepend( "<img style='float:left' src='" + global.caribou.models.mapImageURL( address, 150, 100) + "' />" );
+        $( this.selector() )
+          .prepend( "<pre style='float:left'>" +
+                    global.caribou.models.formatAddress( address ) + "</pre>" );
+        $( this.selector() )
+          .prepend( "<img style='float:left' src='" +
+                    global.caribou.models.mapImageURL( address, 150, 100) +
+                    "' />" );
       }
     },
     syncFromDOM: function() {},
@@ -32,7 +41,10 @@
         model: target,
         value: value,
         submit: function( value, next ) {
-          var data = [{ model: target.slug, fields: self.prepareForUpdate( value ) }];
+          var data = [{
+            model: target.slug,
+            fields: self.prepareForUpdate( value )
+          }];
           self.api().post( data, function( d ) {
             console.log(d);
             self.value.value = d[0];

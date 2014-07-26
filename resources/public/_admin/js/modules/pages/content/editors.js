@@ -9,7 +9,7 @@ _.templateSettings = {
 $(function () {
   // this seems janky; the way of retrieving the data for the page
   // should live somewhere else rather than this hardcoded jQuery stuff.
-  if ( !$("#editor")[0] ) { return }
+  if ( !$("#editor")[0] ) { return; }
 
   var pageInfo = $('body').data();
   var ids = pageInfo.instanceIds || [];
@@ -36,7 +36,9 @@ $(function () {
           next( d.length > 1 ? d : d[0] );
         } else {
           //window.history.back();
-          location.href = api.routeFor( "to-route", { page: "admin.results", slug: pageInfo.model } );
+          location.href = api.routeFor( "to-route",
+                                        { page: "admin.results",
+                                          slug: pageInfo.model } );
         }
       });
     }

@@ -13,10 +13,14 @@
     throw "editors/base.js and editors/fields.js have not been included";
   }
 
-  function CollectionFieldEditor( options) { editors.FieldEditor.call( this, options ) }
+  function CollectionFieldEditor( options) {
+    editors.FieldEditor.call( this, options );
+  }
   $.extend( CollectionFieldEditor.prototype, editors.FieldEditor.prototype, {
-    selector: function() { return "span#" + this.field.slug },
-    syncToDOM: function() { $( this.selector() ).html( this.value ? this.value.length : "No" ) },
+    selector: function() { return "span#" + this.field.slug; },
+    syncToDOM: function() {
+      $( this.selector() ).html( this.value ? this.value.length : "No" );
+    },
     syncFromDOM: function() {},
     attach: function() {
       var self = this;
@@ -63,13 +67,15 @@
     this.instance = options.instance;
     this.instanceModel = options.instanceModel;
     this.page = 0;
-    this.defaultPageSize = global.caribou.config.pages.results['page-size'] || 20;
+    this.defaultPageSize = (
+      global.caribou.config.pages.results['page-size'] || 20
+    );
     this.pageSize = this.defaultPageSize;
   }
   $.extend( CollectionEditor.prototype, editors.Editor.prototype, {
     reciprocalField: function() {
       var self = this;
-      if (self._reciprocalField) { return self._reciprocalField }
+      if (self._reciprocalField) { return self._reciprocalField; }
       var reciprocalField = _( self.model.fields ).find( function(field) {
         return field.id == self.field["link-id"];
       });
@@ -86,22 +92,30 @@
         field: self.field.slug
       });
       var method = "GET";
-      if (data) { method = "POST" }
+      if (data) { method = "POST"; }
       $.ajax({ url: route, type: method, data: data, success: success });
     },
     // TODO: don't cut/paste this from base.js
     prepareForUpdate: function( data ) {
       var blacklist = _( this.model.fields ).chain().filter(
         function(f) {
-          if ( f.type === "id" ) { return false }
-          if ( f.slug === "type" ) { return false }
-          if ( f.type === "integer" && f.slug.match(/(^|_|-)id$/) ) { return false }
-          if ( f.type === "part" || f.type == "enum" || f.type == "asset" ) { return true } // because the id field is present
-          if ( f.type === "password" && data[f.slug] === null ) { return true }
+          if ( f.type === "id" ) { return false; }
+          if ( f.slug === "type" ) { return false; }
+          if ( f.type === "integer" &&
+               f.slug.match(/(^|_|-)id$/) ) {
+            return false;
+          }
+          if ( f.type === "part" ||
+               f.type == "enum" ||
+               f.type == "asset" ) {
+                 // because the id field is present
+                 return true;
+               }
+          if ( f.type === "password" && data[f.slug] === null ) { return true; }
           //if ( f.type === "link" || f.type === "collection" ) { return true }
-          if ( f.type === "string" && f.slug.match(/-key$/) ) { return false }
+          if ( f.type === "string" && f.slug.match(/-key$/) ) { return false; }
           return !f.editable;
-        }).map( function(f) { return f.slug }).value();
+        }).map( function(f) { return f.slug; }).value();
       return _( data ).omit( blacklist );
     },
     // too much copy & paste here - refactor this from here
@@ -110,7 +124,7 @@
       var self = this;
       var selected = [];
       var _content = {};
-      _( self.value ).each( function(c) { _content[ c.id ] = c } );
+      _( self.value ).each( function(c) { _content[ c.id ] = c; } );
       var ids = $("input[name=id]:checked").each( function(index, el) {
         selected.push(_content[ $(el).val() ]);
       });
@@ -122,13 +136,16 @@
       // just do edit for now
       if (command === "edit") {
         if (selected.length === 0) {
-          global.caribou.status.addErrorMessage("You have to choose at least one!").render();
+          global.caribou.status.addErrorMessage(
+            "You have to choose at least one!"
+          ).render();
+          return null;
         } else if (selected.length === 1) {
           return self.editExisting( selected[0] );
         }
         return self.bulkEdit( selected );
       }
-      return;
+      return null;
     },
     bulkEdit: function( values ) {
       var self = this;
@@ -195,7 +212,9 @@
     },
     removeExisting: function( existing ) {
       var self = this;
-      var removed = _( self.value ).find(function(c) { return c.id === existing.id });
+      var removed = _( self.value ).find(function(c) {
+        return c.id === existing.id;
+      });
       if (removed) {
         console.log("Removing:", removed);
 
@@ -225,7 +244,7 @@
         current: self.value,
         submit: function( value, next ) {
           console.log("user chose ", value);
-          if (!_.isArray(value) ) { value = [value] };
+          if (!_.isArray(value) ) { value = [value]; };
           _(value).each( function(v) {
             if ( self.field.type === "collection" ) {
               v[reciprocalField.slug] = self.instance;
@@ -251,9 +270,12 @@
     saveChanges: function( value, next ) {
       var self = this;
       var data = [];
-      if (!_.isArray(value)) { value = [value] }
+      if (!_.isArray(value)) { value = [value]; }
       _( value ).each( function(v) {
-        data.push({ model: self.model.slug, fields: self.prepareForUpdate( v ) });
+        data.push({
+          model: self.model.slug,
+          fields: self.prepareForUpdate( v )
+        });
       });
       self.api().post( data, function( d ) {
         console.log(d);
@@ -264,7 +286,9 @@
             "Saved changes to " + self.model.slug + ": " +
             global.caribou.api.bestTitle( value, self.model.slug )
           );
-          if (next) { next( value ) }
+          if (next) {
+            next( value );
+          }
         });
       });
     },
@@ -296,7 +320,10 @@
         self.page = $(this).data().page || 0;
         self.pageSize = $(this).data().size || self.defaultPageSize;
         self.refresh( function( data, error, jqxhr ) {
-          console.log("refreshed to page " + self.page + " size " + self.pageSize);
+          console.log(
+            "refreshed to page " + self.page +
+              " size " + self.pageSize
+          );
         });
       });
     }
@@ -306,7 +333,9 @@
     editors.Editor.call( this, options );
     // used for pagination
     this.page = 0;
-    this.defaultPageSize = global.caribou.config.pages.results['page-size'] || 20;
+    this.defaultPageSize = (
+      global.caribou.config.pages.results['page-size'] || 20
+    );
     this.pageSize = this.defaultPageSize;
 
     // the current state of this collection,
@@ -314,7 +343,7 @@
     // present and which can be added
     this.current = options.current || [];
     var _currentIds = {};
-    _( this.current ).each(function( c ) { _currentIds[ c.id ] = true });
+    _( this.current ).each(function( c ) { _currentIds[ c.id ] = true; });
     this._currentIds = _currentIds;
     // can we choose more than one item?
     this.multiple = options.multiple || false;
@@ -340,11 +369,11 @@
     loadContent: function( content ) {
       var self = this;
       self._content = {};
-      _( content ).each( function(c) { self._content[ c.id ] = c } );
+      _( content ).each( function(c) { self._content[ c.id ] = c; } );
     },
     selected: function() {
       var self = this;
-      if (!self.multiple) { return null }
+      if (!self.multiple) { return null; }
       var selected = [];
       var ids = $("input[name=id]:checked").each( function(index, el) {
         selected.push(self._content[ $(el).val() ]);
@@ -358,13 +387,15 @@
       // just do edit for now
       if (command === "edit") {
         if (selected.length === 0) {
-          global.caribou.status.addErrorMessage("You have to choose at least one!").render();
+          global.caribou.status.addErrorMessage(
+            "You have to choose at least one!"
+          ).render();
         } else if (selected.length === 1) {
           return self.editExisting( selected[0] );
         }
         return self.bulkEdit( selected );
       }
-      return;
+      return null;
     },
     // TODO:kd - combine the two following methods
     // or better, make ModelEditor a special case
@@ -406,9 +437,12 @@
     saveChanges: function( value, next ) {
       var self = this;
       var data = [];
-      if (!_.isArray(value)) { value = [value] }
+      if (!_.isArray(value)) { value = [value]; }
       _( value ).each( function(v) {
-        data.push({ model: self.model.slug, fields: self.prepareForUpdate( v ) });
+        data.push({
+          model: self.model.slug,
+          fields: self.prepareForUpdate( v )
+        });
       });
       self.api().post( data, function( d ) {
         console.log(d);
@@ -419,7 +453,7 @@
             "Saved changes to " + self.model.slug + ": " +
             global.caribou.api.bestTitle( value, self.model.slug )
           );
-          if (next) { next( value ) }
+          if (next) { next( value ); }
         });
       });
     },
@@ -452,7 +486,8 @@
         self.page = $(this).data().page || 0;
         self.pageSize = $(this).data().size || self.defaultPageSize;
         self.refresh( function( data, error, jqxhr ) {
-          console.log("refreshed to page " + self.page + " with size " + self.pageSize);
+          console.log("refreshed to page " + self.page +
+                      " with size " + self.pageSize);
         });
       });
     },
@@ -465,7 +500,9 @@
     }
   });
 
-  function LinkFieldEditor( options ) { CollectionFieldEditor.call( this, options ) }
+  function LinkFieldEditor( options ) {
+    CollectionFieldEditor.call( this, options );
+  }
   $.extend( LinkFieldEditor.prototype, CollectionFieldEditor.prototype, {});
 
   editors.CollectionFieldEditor = CollectionFieldEditor;
