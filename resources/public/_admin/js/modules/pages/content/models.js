@@ -52,7 +52,7 @@
       success = success || function( data ) {
         location.reload(); // what's the kosher way to do this again?
       };
-      failure = failure || function(e) { console.error(e) };
+      failure = failure || function(e) { console.error(e); };
 
       // submit items
       $.ajax({
@@ -64,9 +64,10 @@
         success: success,
         failure: failure
       });
-    }
+    };
 
     var updateOrdering = function( success ) {
+      /* TODO: exit early here if we are in a view not ordered by position */
       var selector = $( ".sortable" ).sortable( "option", "items" );
       var parentData = $(".sortable").data("position");
       var items = [];
@@ -87,7 +88,7 @@
       console.log(payload);
       // submit items
       _post( "reorder-all", payload, success );
-    }
+    };
 
     var showDeleteDialog = function( el, callback ) {
       var data = [ { model: $(el).data().model || "field", id: $(el).data().id + '' } ];
@@ -106,7 +107,7 @@
 
       $('#delete').modal('show');
       return false;
-    }
+    };
 
     var formatAddress = function( data ) {
       // cheesy
@@ -130,10 +131,10 @@
     };
 
     var unrollFieldSlugs = function(modelName, depth, test, visited) {
-      var visited = visited || {};
+      visited = visited || {};
       var model = global.caribou.api.model(modelName);
       if (!model) return [];
-      if (visited["model-" + model.id]) { return }
+      if (visited["model-" + model.id]) { return null; }
 
       visited["model-" + model.id] = true;
       var slugs = [];
@@ -301,7 +302,7 @@
     var showAddFieldDialog = function( el ) {
       var dialog = new AddFieldDialog({ data: $(el).data() });
       dialog.open();
-    }
+    };
 
     var enableDeleteLinks = function( opts ) {
       $(".delete-link").on("click", function(e) {
