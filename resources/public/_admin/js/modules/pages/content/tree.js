@@ -16,8 +16,8 @@
     this.labelKey    = options.labelKey    || "name";
     this.rootLabel   = options.rootLabel   || "/";
     this.delegate    = options.delegate || {
-      labelFor: function() { return "" },
-      select: function() { return "" },
+      labelFor: function() { return ""; },
+      select: function() { return ""; },
       addControls: function() {},
       removeControls: function() {},
       update: function () {}
@@ -29,7 +29,13 @@
   $.extend( TreeEditor.prototype, editors.Editor.prototype, {
     _makeNode: function( node ) {
       var self = this;
-      return $('<li class="treenode" data-id="' + (node.id || "") + '" data-label="' + (node.label || "...") + '"><span>' + (node.label || "...") + '</span> <span class="controls"></span></li>');
+      return $('<li class="treenode" data-id="' +
+               (node.id || "") +
+               '" data-label="' +
+               (node.label || "...") +
+               '"><span>' +
+               (node.label || "...") +
+               '</span> <span class="controls"></span></li>');
     },
     produce: function( dom, node ) {
       var self = this;
@@ -54,9 +60,13 @@
         $(dom).find("li.treenode").each( function(index, el) {
           var sub = $("ul", this);
           if (sub.size() > 0) {
-            $(this).prepend( self.options.collapseSign || '<img src="/img/tree/open.png" width="12" height="12" class="expand" />' );
+            $(this).prepend( self.options.collapseSign ||
+                             ('<img src="/img/tree/open.png" ' +
+                              'width="12" height="12" class="expand" />'
+                             ));
           } else {
-            $(this).prepend( '<img src="/img/tree/blank.png" width="12" height="12" class="expand" />'  );
+            $(this).prepend( '<img src="/img/tree/blank.png" ' +
+                             'width="12" height="12" class="expand" />'  );
           }
         });
 
@@ -76,7 +86,11 @@
 
       // TODO: should prune the tree first
       // sets up what's draggable
-      $(dom).find("li.treenode").Draggable({ revert: true, autoSize: true, ghosting: true });
+      $(dom).find("li.treenode").Draggable({
+        revert: true,
+        autoSize: true,
+        ghosting: true
+      });
 
       // sets up what's droppable
       $(dom).find("span").Droppable({
@@ -149,11 +163,12 @@
       var self = this;
 
       // store the original
-      self.serverValue = self.serverValue || global.caribou.api.deepClone( self.value );
+      self.serverValue = self.serverValue ||
+        global.caribou.api.deepClone( self.value );
 
       var pairs = [];
-      $( self.selector ).find("li").each( function( index, el ) {
-        var el = $(el);
+      $( self.selector ).find("li").each( function( index, element ) {
+        var el = $(element);
         var pair = {};
         pair.id = el.data().id;
         pair.parentId = el.parent().parent().data().id || null;
@@ -162,10 +177,12 @@
       });
       _( pairs ).each( function(p) {
         var node = self.tree[p.id || 0].node;
-        if (!node) { console.log("Node with id %d not found", p.id); return }
+        if (!node) { console.log("Node with id %d not found", p.id); return; }
         var currentParentId = (node[self.parentIdKey] || 0);
         if ( currentParentId != (p.parentId || 0) ) {
-          console.log("Updating parent for <%s> from <%d> to <%d>", p.label, currentParentId, p.parentId );
+          console.log("Updating parent for <%s> from <%d> to <%d>",
+                      p.label,
+                      currentParentId, p.parentId );
           console.log(node);
           node[self.parentIdKey] = p.parentId;
         }

@@ -18,4 +18,3 @@
 
   global.caribou.editors.StructureFieldEditor = StructureFieldEditor;
 })(window);
-

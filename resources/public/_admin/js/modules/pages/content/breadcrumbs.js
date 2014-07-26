@@ -14,7 +14,7 @@
           $(breadcrumb).appendTo(".breadcrumb");
         },
         pop: function() {
-          $(".breadcrumb li:last").remove()
+          $(".breadcrumb li:last").remove();
           $(".breadcrumb li:last span.divider").remove();
         },
         clear: function() {

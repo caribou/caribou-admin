@@ -8,17 +8,17 @@
 
   // Subclass/override to provide your own
   // delegate to handle tree events
-  var TreeEditorDelegate = function() {}
+  var TreeEditorDelegate = function() {};
   TreeEditorDelegate.prototype = {
-    labelFor: function() { return "" },
-    select: function() { return "" },
+    labelFor: function() { return ""; },
+    select: function() { return ""; },
     addControls: function() {},
     removeControls: function() {},
     update: function () {},
     makeNode: function( node ) {
       var self = this;
       return $('<tr data-id="' + (node.id || "0") +
-                   '" data-parent-id="' + (node.parentId || "") + '">' +
+               '" data-parent-id="' + (node.parentId || "") + '">' +
                '<td>' + node.label + '</td></tr>');
     },
     makeHeader: function() {}
@@ -94,7 +94,9 @@
               console.log("can't drop onto a child of itself");
               return;
             }
-            $( self.selector + " table:first").treetable("move", dropped.data( "id" ), $(this).data( "id" ));
+            $( self.selector + " table:first")
+              .treetable("move", dropped.data( "id" ),
+                         $(this).data( "id" ));
             dropped.data().parentId = $(this).data().id;
             self.syncFromDOM();
             var diffs = self.diffs();
@@ -128,9 +130,9 @@
         };
       });
       _( nodesById ).chain().values().each( function(v) {
-        if ( v.id === 0 ) { return }
+        if ( v.id === 0 ) { return; }
         var parent = nodesById[v.parentId || 0];
-        if (!parent) { parent = nodesById[0] }
+        if (!parent) { parent = nodesById[0]; }
         parent.children.push(v);
         v.parent = parent;
       });
@@ -141,23 +143,32 @@
       var self = this;
 
       // store the original
-      self.serverValue = self.serverValue || global.caribou.api.deepClone( self.value );
+      self.serverValue = (
+        self.serverValue || global.caribou.api.deepClone( self.value )
+        );
 
       var pairs = [];
-      $( self.selector ).find("table:first").find("tr").has("td").each( function() {
-        var el = $(this);
-        var pair = {
-          id: el.data().id || null,
-          parentId: el.data().parentId || null
-        };
-        pairs.push(pair);
-      });
+      $( self.selector )
+        .find("table:first")
+        .find("tr")
+        .has("td")
+        .each( function() {
+          var el = $(this);
+          var pair = {
+            id: el.data().id || null,
+            parentId: el.data().parentId || null
+          };
+          pairs.push(pair);
+        });
       _( pairs ).each( function(p) {
         var node = self.tree[p.id || 0].node;
         if (!node) { console.log("Node with id %d not found", p.id); return }
         var currentParentId = (node[self.parentIdKey] || 0);
         if ( currentParentId != (p.parentId || 0) ) {
-          console.log("Updating parent for <%s> from <%d> to <%d>", p.label, currentParentId, p.parentId );
+          console.log("Updating parent for <%s> from <%d> to <%d>",
+                      p.label,
+                      currentParentId,
+                      p.parentId );
           console.log(node);
           node[self.parentIdKey] = p.parentId;
         }
@@ -166,7 +177,6 @@
     diffs: function() {
       var self = this;
       var diff = global.caribou.api.difference( self.serverValue, self.value );
-
       // TODO handle complex diffs like additions and removals
       var diffs = [];
       _( diff ).map( function( value, key, all ) {

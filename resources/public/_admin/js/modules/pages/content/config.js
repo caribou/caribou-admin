@@ -5,12 +5,12 @@
 
 (function(global) {
   global = global || {};
-  global.caribou = global.caribou || {}
+  global.caribou = global.caribou || {};
   global.caribou.config = {
     "pages": {
       "results": {
         "page-size": 20
       }
     }
-  }
+  };
 })(window);

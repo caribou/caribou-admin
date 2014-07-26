@@ -1,12 +1,12 @@
 if (typeof window["console"] == 'undefined') {
-    var console = {};
-    console.log = function () {};
+  var console = {};
+  console.log = function () {};
 }
 
 var Main = (function(global){
   
   var model_list = global.caribou.model_list(),
-  model_detail = global.caribou.model_detail()
+      model_detail = global.caribou.model_detail();
 
 
   var init = function(){
@@ -31,10 +31,7 @@ var Main = (function(global){
 
 
 /*- INITIALIZATION
-----------------------------------------------------------------------*/
+ ----------------------------------------------------------------------*/
 $(document).ready(function(){
   Main.init();
 });
-
-
-

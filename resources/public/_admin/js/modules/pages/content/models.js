@@ -97,7 +97,10 @@
         console.log( "Initial is " + data.position + " and index is " + index );
         if ( data.position !== ( index + parentData.offset + 1 ) ) {
           // we add one because position is one-based, not zero-based.
-          items.push( { id: data.id, position: index + parentData.offset + 1 } );
+          items.push({
+            id: data.id,
+            position: index + parentData.offset + 1
+          });
         }
       });
       payload.items = items;
@@ -107,7 +110,10 @@
     };
 
     var showDeleteDialog = function( el, callback ) {
-      var data = [ { model: $(el).data().model || "field", id: $(el).data().id + '' } ];
+      var data = [{
+        model: $(el).data().model || "field",
+        id: $(el).data().id + ''
+      }];
       $('#delete').find('#delete-submit').click( function( e ) {
         e.preventDefault();
         _post( "delete-all", data, function() {
@@ -128,7 +134,10 @@
     var formatAddress = function( data ) {
       // cheesy
       var bits = [];
-      _([ "address", "address-two", "city", "state", "postal-code", "country" ]).each(function(key) {
+      var keys = [ "address", "address-two",
+                   "city", "state",
+                   "postal-code", "country" ];
+      _(keys).each(function(key) {
         if (data[key]) {
           bits.push( data[key] );
         }
@@ -137,7 +146,14 @@
     };
 
     var mapImageURL = function( data, width, height ) {
-      var template = "http://maps.googleapis.com/maps/api/staticmap?center={{location}}&zoom=15&size={{width}}x{{height}}&maptype=roadmap&sensor=false";
+      var url_part = "http://maps.googleapis.com/maps/api/staticmap";
+      var query_part = (
+        "center={{location}}&zoom=15" +
+          "&size={{width}}x{{height}}" +
+          "&maptype=roadmap" +
+          "&sensor=false"
+      );
+      var template = url_part + "?" + query_part;
       var builder = _.template( template );
       return builder({
         "location": formatAddress(data),
@@ -160,10 +176,16 @@
         }
         visited["field-" + f.id] = true;
         if (!test || (test && test(model, f))) {
-          if (depth > 0 && (f.type === "link" || f.type === "part" || f.type === "collection")) {
+          if (depth > 0 &&
+              (f.type === "link" ||
+               f.type === "part" ||
+               f.type === "collection")) {
             var targetModel = global.caribou.api.model(f['target-id']);
             if (targetModel && !visited["model-" + targetModel.id]) {
-              var associationNames = unrollFieldSlugs(targetModel.slug, depth - 1, test, visited);
+              var associationNames = unrollFieldSlugs(targetModel.slug,
+                                                      depth - 1,
+                                                      test,
+                                                      visited);
               _(associationNames).each(function(a) {
                 slugs.push(f.slug + "." + a);
               });
@@ -206,12 +228,13 @@
       self._element = $(self._selector);
       self._data = options.data;
 
-      self.form                 = self._element.find("form");
-      self.typeSelection        = self._element.find("select[name=field-type]");
-      self.associationControls  = self._element.find("#association-controls");
+      self.form = self._element.find("form");
+      self.typeSelection = self._element.find("select[name=field-type]");
+      self.associationControls = self._element.find("#association-controls");
       self.associationSelection = self.associationControls.find("select");
-      self.reciprocalNameField  = self.associationControls.find("#reciprocal-name");
-      self.timestampControls    = self._element.find("#timestamp-controls");
+      self.reciprocalNameField = self.associationControls
+        .find("#reciprocal-name");
+      self.timestampControls = self._element.find("#timestamp-controls");
       self.enumerationControls  = self._element.find("#enumeration-controls");
       self.searchableCheckbox   = self._element.find("#searchable");
       self.slugControls         = self._element.find("#slug-controls");
@@ -294,12 +317,15 @@
       newEnumerationValueField: function(value, shouldAdd, shouldRemove) {
         var self = this;
         var newValue = $("<input type='text' name='value' />");
-        var addValueButton = $("<a href='#' class='btn btn-primary'>+</a>").on("click", function(e) {
-          self.enumerationValues.append(self.newEnumerationValueField("", true, true));
-        });
-        var removeValueButton = $("<a href='#' class='btn btn-primary'>-</a>").on("click", function(e) {
-          $(this).parent("li").remove();
-        });
+        var addValueButton = $("<a href='#' class='btn btn-primary'>+</a>")
+              .on("click", function(e) {
+                self.enumerationValues
+                  .append(self.newEnumerationValueField("", true, true));
+              });
+        var removeValueButton = $("<a href='#' class='btn btn-primary'>-</a>")
+              .on("click", function(e) {
+                $(this).parent("li").remove();
+              });
         var newField = $("<li>").append(newValue);
         if (shouldAdd) {
           newField.append(addValueButton);
@@ -311,7 +337,8 @@
       },
       resetEnumerationControls: function() {
         var self = this;
-        self.enumerationValues.empty().append(self.newEnumerationValueField("", true, false));
+        self.enumerationValues.empty()
+          .append(self.newEnumerationValueField("", true, false));
       }
     });
 

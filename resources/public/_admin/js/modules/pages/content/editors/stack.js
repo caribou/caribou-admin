@@ -38,16 +38,20 @@
   }
 
   $.extend( EditorStack.prototype, {
-    ownedControl:     function(c) { return $(this.options.selector + "-" + c) },
+    ownedControl: function(c) { return $(this.options.selector + "-" + c); },
     saveChangesButton: function() { return this.ownedControl("save-changes"); },
-    saveAndNew:        function() { return this.ownedControl("save-and-new"); },
-    saveAndContinue:   function() { return this.ownedControl("save-and-continue"); },
-    backButton:        function() { return this.ownedControl("back-button");  },
-    cancelButton:      function() { return this.ownedControl("cancel-button"); },
-    addNewButton:      function() { return this.ownedControl("add-new"); },
-    commandMenu:       function() { return this.ownedControl("command-menu"); },
-    description:       function() { return this.ownedControl("description"); },
-    chooseExistingButton: function() { return this.ownedControl("choose-existing"); },
+    saveAndNew: function() { return this.ownedControl("save-and-new"); },
+    saveAndContinue: function() {
+      return this.ownedControl("save-and-continue");
+    },
+    backButton: function() { return this.ownedControl("back-button");  },
+    cancelButton: function() { return this.ownedControl("cancel-button"); },
+    addNewButton: function() { return this.ownedControl("add-new"); },
+    commandMenu: function() { return this.ownedControl("command-menu"); },
+    description: function() { return this.ownedControl("description"); },
+    chooseExistingButton: function() {
+      return this.ownedControl("choose-existing");
+    },
     attach: function() {
       var self = this;
       console.log("Attaching editor stack to DOM");
@@ -97,7 +101,9 @@
       });
       return self;
     },
-    activeEditor: function() { return this.editors[ this.editors.length - 1 ] },
+    activeEditor: function() {
+      return this.editors[ this.editors.length - 1 ];
+    },
     push: function( editor ) {
       var active = this.activeEditor();
       if ( active ) {
@@ -109,7 +115,7 @@
       this.description().html( editor.description() );
       this.render();
     },
-    pop: function( editor ) {
+    pop: function( unusedEditor ) {
       var editor = this.editors.pop();
       if ( editor ) {
         global.caribou.breadcrumbs.pop();
@@ -215,7 +221,7 @@
       this.data({ stack: stack });
       stack.attach();
       return stack;
-    }
+    };
   })(jQuery);
 
   editors.EditorStack = EditorStack;

@@ -28,7 +28,11 @@ $(function () {
         opts.locale = editor.locale;
       }
       var data = _.map( values, function(v) {
-        return { model: pageInfo.model, fields: editor.prepareForUpdate( v ), opts: opts };
+        return {
+          model: pageInfo.model,
+          fields: editor.prepareForUpdate( v ),
+          opts: opts
+        };
       });
       api.post( data, function( d ) {
         console.log(d);
@@ -36,9 +40,12 @@ $(function () {
           next( d.length > 1 ? d : d[0] );
         } else {
           //window.history.back();
-          location.href = api.routeFor( "to-route",
-                                        { page: "admin.results",
-                                          slug: pageInfo.model } );
+          window.location.href = api.routeFor( "to-route",
+                                               {
+                                                 page: "admin.results",
+                                                 slug: pageInfo.model
+                                               }
+                                             );
         }
       });
     }
