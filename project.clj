@@ -1,4 +1,4 @@
-(defproject caribou/caribou-admin "0.14.0"
+(defproject caribou/caribou-admin "0.14.0-ASSET-DELETION"
   :description "Generic admin tool for Caribou projects"
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [caribou/caribou-frontend "0.14.0"]
