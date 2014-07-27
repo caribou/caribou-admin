@@ -140,7 +140,7 @@
     },
     syncsTo: function() {
       return [ this.field.slug, this.field.slug + "-id" ];
-    },
+    }
   });
 
   // export these editors
